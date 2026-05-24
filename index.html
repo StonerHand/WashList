@@ -476,6 +476,109 @@ footer {
 footer a { color: var(--ink3); text-decoration: none; transition: color .15s; }
 footer a:hover { color: var(--ink); }
 
+/* ══ ANIMATIONS ══ */
+
+/* Ripple on buttons */
+.btn { position: relative; overflow: hidden; }
+.ripple {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,.18);
+  transform: scale(0); animation: ripple-anim .5s linear;
+  pointer-events: none;
+}
+@keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
+
+/* Landing headline split-word reveal */
+.word-reveal { display: inline-block; overflow: hidden; }
+.word-inner {
+  display: inline-block;
+  transform: translateY(110%);
+  animation: wordUp .7s cubic-bezier(.16,1,.3,1) forwards;
+}
+@keyframes wordUp { to { transform: translateY(0); } }
+
+/* Stagger fade-in for list rows */
+.plr { animation: rowIn .3s ease both; }
+@keyframes rowIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+/* Animated counter */
+@keyframes countUp { from { opacity: 0; transform: translateY(8px) scale(.9); } to { opacity:1; transform:none; } }
+.stat-anim { animation: countUp .4s cubic-bezier(.34,1.56,.64,1) both; }
+
+/* Tab slide */
+.tb { animation: tabIn .22s ease both; }
+@keyframes tabIn { from { opacity:0; transform:translateX(8px); } to { opacity:1; transform:none; } }
+
+/* Dupe panel expand */
+.dp { animation: dpIn .2s cubic-bezier(.16,1,.3,1) both; transform-origin: top; }
+@keyframes dpIn { from { opacity:0; transform:scaleY(.96) translateY(-6px); } to { opacity:1; transform:none; } }
+
+/* Scan progress shimmer */
+.pgb::after {
+  content:''; position:absolute; top:0; left:-100%; width:60%; height:100%;
+  background: linear-gradient(90deg, transparent, rgba(29,185,84,.4), transparent);
+  animation: shimmer 1.5s infinite;
+}
+.pgb { position: relative; overflow: visible; }
+@keyframes shimmer { to { left: 160%; } }
+
+/* Status pill pulse on scan */
+.sp-scan { position: relative; }
+.sp-scan::before {
+  content:''; position:absolute; inset:-3px; border-radius:20px;
+  background: var(--abg); animation: ringPulse 1.4s ease-out infinite;
+}
+@keyframes ringPulse { 0%{opacity:.6;transform:scale(1);} 100%{opacity:0;transform:scale(1.5);} }
+
+/* Hover lift on pl row */
+.plr { transition: background .1s, transform .15s; }
+.plr:hover { transform: translateX(2px); }
+
+/* Number ticker for stats */
+.ustat-v { transition: all .3s cubic-bezier(.34,1.56,.64,1); }
+
+/* Smooth theme transition */
+*, *::before, *::after {
+  transition: background-color .2s, border-color .2s, color .15s;
+}
+/* But not animations themselves */
+.wfb, .ripple, .word-inner, .plr, .tb, .dp, .pgf, .sp-scan::before { transition: none; }
+
+/* Feature cards hover */
+.l-feat {
+  transition: transform .2s ease;
+  cursor: default;
+}
+.l-feat:hover { transform: translateY(-3px); }
+.l-feat:hover .l-feat-n { color: var(--green); }
+.l-feat-n { transition: color .2s; }
+
+/* Green glow on connect button */
+.btn-green {
+  box-shadow: 0 0 0 0 rgba(29,185,84,0);
+  transition: background .15s, box-shadow .3s, transform .15s;
+}
+.btn-green:hover {
+  box-shadow: 0 0 24px rgba(29,185,84,.25);
+  transform: translateY(-1px);
+}
+
+/* Scan all button pulse when idle */
+#scanAllBtn:not(:disabled) { animation: scanPulse 3s ease-in-out infinite; }
+@keyframes scanPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(29,185,84,.3); }
+  50% { box-shadow: 0 0 0 6px rgba(29,185,84,0); }
+}
+
+/* Lang switcher active */
+.lb.on { box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+
+/* Waveform bars interactive */
+.waveform:hover .wfb { animation-duration: .8s; opacity: .5; }
+
+/* Smooth ab buttons */
+.ab, .fp, .mp, .mb-sb { transition: all .15s; }
+
 @media(max-width:768px) {
   .pl-head,.plr { grid-template-columns: 1fr 70px 100px; }
   .pl-head>*:nth-child(3),.plr>*:nth-child(3) { display: none; }
@@ -870,7 +973,49 @@ const L={
     't.cancel':'Auth cancelada','t.miss':'Faltan datos de auth',
     't.pErr':(e)=>`Error de perfil: ${e}`,'t.sErr':(p)=>`Error al analizar: ${p}`,
     't.rErr':'Error al eliminar','t.out':'Sesión cerrada','t.demo':'Demo cargada',
-    'srch.ph':'Buscar listas…'}
+    'srch.ph':'Buscar listas…'},
+  fr:{f:'🇫🇷',n:'FR',
+    'hero.kicker':'Nettoyeur de bibliothèque Spotify',
+    'hero.h1':'Lavez vos playlists<br><em>proprement</em>',
+    'hero.sub':'Supprimez les doublons, comparez les playlists et visualisez les connexions de votre bibliothèque.',
+    'hero.connect':'Connecter Spotify','hero.demo':'Démo',
+    'hf.1':'Dédup intelligent','hf.1d':'URI + correspondance floue. Remasters et versions live',
+    'hf.2':'Comparer','hf.2d':'Titres communs entre deux playlists',
+    'hf.3':'Chevauchements','hf.3d':'Titres présents dans 3+ playlists',
+    'hf.4':'Graphe','hf.4d':'Graphe D3 des connexions entre playlists',
+    'hf.5':'Exporter','hf.5d':'CSV ou JSON. Historique stocké localement',
+    's.pl':'Playlists','s.sc':'Analysées','s.du':'Doublons','s.af':'Affectées',
+    'app.logout':'Déconnexion','app.scanAll':'Tout analyser','app.loading':'Chargement…',
+    'tab.lib':'Bibliothèque','tab.cmp':'Comparer','tab.ov':'Chevauchements','tab.gph':'Graphe','tab.hist':'Historique',
+    'mb.mode':'Mode','mb.bal':'Équilibré','mb.strict':'Strict','mb.fuzzy':'Flexible',
+    'mb.rem':'Remasters','mb.live':'Live','mb.dry':'Simulation',
+    'sort.all':'Toutes','sort.dupes':'Plus de doublons','sort.dirty':'Avec doublons',
+    'col.pl':'Playlist','col.tr':'Titres','col.du':'Doublons','col.st':'Statut','col.ac':'Actions',
+    'pl.scan':'Analyser','pl.scanning':'Analyse…','pl.rescan':'Réanalyser','pl.view':'Voir','pl.tracks':'titres',
+    'st.idle':'—','st.scan':'Analyse…','st.clean':'Propre','st.dirty':(n)=>`${n} doublons`,
+    'dupe.exact':'Exact','dupe.sim':'Autre édition',
+    'dupe.keep':'garder','dupe.rem':'supprimer',
+    'dupe.kF':'Garder le premier','dupe.kL':'Garder le dernier',
+    'dupe.groups':(n)=>`${n} groupe${n!==1?'s':''} trouvé${n!==1?'s':''}`,
+    'dupe.total':(n)=>`${n} doublon${n!==1?'s':''} au total`,
+    'dupe.more':(n)=>`+${n} autres`,
+    'dupe.col':'Réduire','dupe.rm':(n)=>`Supprimer ${n}`,'dupe.rming':'Suppression…','dupe.added':'ajouté le',
+    'exp.csv':'CSV','exp.json':'JSON',
+    'cmp.pick':'Choisir une playlist','cmp.shared':'communs',
+    'cmp.only':(n)=>`${n} unique${n!==1?'s':''}`,'cmp.both':(n)=>`${n} commun${n!==1?'s':''}`,
+    'ov.min':'Min. playlists','ov.none':'Aucun titre — analysez d\'abord plus de playlists',
+    'gph.build':'Construire le graphe','gph.reset':'Réinitialiser',
+    'gph.ln':'Nœud playlist (taille = titres)','gph.le':'Connexion (épaisseur = titres communs)',
+    'gph.nodata':'Analysez au moins 2 playlists d\'abord',
+    'h.date':'Date','h.pl':'Playlist','h.rm':'Supprimés','h.kp':'Conservés','h.md':'Mode',
+    'h.csv':'Export CSV','h.json':'Export JSON','h.clear':'Effacer','h.empty':'Aucun nettoyage pour l\'instant',
+    't.done':'Toutes les playlists analysées',
+    't.removed':(n,p)=>`${n} doublon${n!==1?'s':''} supprimé${n!==1?'s':''} de "${p}"`,
+    't.dry':'Simulation — rien n\'a été supprimé',
+    't.cancel':'Auth annulée','t.miss':'Données d\'auth manquantes',
+    't.pErr':(e)=>`Erreur profil : ${e}`,'t.sErr':(p)=>`Échec analyse : ${p}`,
+    't.rErr':'Échec suppression','t.out':'Déconnecté','t.demo':'Démo chargée',
+    'srch.ph':'Rechercher des playlists…'}
 };
 function pru(n,a,b,c){const m=n%10,h=n%100;if(m===1&&h!==11)return a;if(m>=2&&m<=4&&(h<10||h>=20))return b;return c;}
 const LSL='wl_l';let lang=localStorage.getItem(LSL)||'en';
@@ -938,7 +1083,7 @@ async function handleCb(){
   }catch(e){toast('Auth: '+e.message,'err');}
 }
 function chkTk(){const tk=localStorage.getItem(LT),ex=parseInt(localStorage.getItem(LE)||'0');if(tk&&ex>Date.now()+6e4){acc=tk;return true;}return false;}
-function logout(){localStorage.removeItem(LT);localStorage.removeItem(LE);acc=null;pls=[];pd={};show('landingPanel');hide('appPanel');toast(t('t.out'),'inf');}
+function logout(){localStorage.removeItem(LT);localStorage.removeItem(LE);acc=null;pls=[];pd={};show('landingPanel');hide('appPanel');setTimeout(revealHeadline,100);toast(t('t.out'),'inf');}
 
 /* ══ API ══ */
 async function sp(url,opts={},rt=3){
@@ -1034,9 +1179,8 @@ function renderPl(){
     el.appendChild(wrap);
   });
   updSt();
-}
-
-function buildDp(pl){
+  staggerRows();
+}(pl){
   const d=pd[pl.id];
   const panel=document.createElement('div');panel.className='dp';panel.id=`dp-${pl.id}`;
   const dry=document.getElementById('optDry')?.checked;
@@ -1068,12 +1212,7 @@ function buildDp(pl){
 }
 
 function toggleDp(id){if(!pd[id])return;pd[id].open=!pd[id].open;renderPl();if(pd[id].open)setTimeout(()=>document.getElementById(`dp-${id}`)?.scrollIntoView({behavior:'smooth',block:'nearest'}),80);}
-function updSt(){
-  const sc=Object.values(pd).filter(d=>d.status==='done');if(!sc.length)return;
-  document.getElementById('sSc').textContent=sc.reduce((s,d)=>s+(d.tc||0),0).toLocaleString();
-  document.getElementById('sDu').textContent=sc.reduce((s,d)=>s+(d.dc||0),0);
-  document.getElementById('sAf').textContent=sc.filter(d=>d.dc>0).length;
-}
+/* updSt replaced by animated version below */
 function setSort(s,btn){srt=s;document.querySelectorAll('.fp').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderPl();}
 
 /* ══ SCAN ══ */
@@ -1282,13 +1421,100 @@ function toast(msg,type='inf'){
   setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);},4000);
 }
 
+/* ══ ANIMATIONS ══ */
+
+/* Ripple effect on all .btn clicks */
+function addRipple(e) {
+  const btn = e.currentTarget;
+  const r = document.createElement('span');
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 2;
+  r.className = 'ripple';
+  r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  btn.appendChild(r);
+  r.addEventListener('animationend', () => r.remove());
+}
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.btn, .ab, .fp, .mp, .mb-sb');
+  if (btn) { btn.addEventListener('click', addRipple, {once:true}); }
+});
+
+/* Animated counter */
+function animCount(el, target, duration=600) {
+  const start = performance.now();
+  const from = parseInt(el.textContent.replace(/\D/g,'')) || 0;
+  el.classList.add('stat-anim');
+  function step(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const val = Math.round(from + (target - from) * ease);
+    el.textContent = val.toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+    else { el.textContent = target.toLocaleString(); el.classList.remove('stat-anim'); }
+  }
+  requestAnimationFrame(step);
+}
+
+/* Word-by-word headline reveal */
+function revealHeadline() {
+  const h1 = document.querySelector('.l-headline');
+  if (!h1 || h1.dataset.revealed) return;
+  h1.dataset.revealed = '1';
+  // split on innerHTML keeping <em> intact
+  const raw = h1.innerHTML;
+  const parts = raw.split(/(<em>.*?<\/em>|<br>)/);
+  let delay = 0;
+  h1.innerHTML = parts.map(part => {
+    if (part === '<br>') return '<br>';
+    if (part.startsWith('<em>')) {
+      const inner = part.replace(/<\/?em>/g,'');
+      const words = inner.split(' ').filter(Boolean);
+      return `<em>${words.map(w => {
+        const d = delay; delay += 60;
+        return `<span class="word-reveal"><span class="word-inner" style="animation-delay:${d}ms">${w}</span></span> `;
+      }).join('')}</em>`;
+    }
+    return part.split(' ').filter(Boolean).map(w => {
+      const d = delay; delay += 55;
+      return `<span class="word-reveal"><span class="word-inner" style="animation-delay:${d}ms">${w}</span></span>`;
+    }).join(' ');
+  }).join('');
+}
+
+/* Stagger playlist rows */
+function staggerRows() {
+  document.querySelectorAll('.plr').forEach((row, i) => {
+    row.style.animationDelay = `${i * 28}ms`;
+  });
+}
+
+/* Animated stats update */
+function updSt() {
+  const sc = Object.values(pd).filter(d => d.status === 'done');
+  if (!sc.length) return;
+  const tracks = sc.reduce((s,d) => s + (d.tc||0), 0);
+  const dupes  = sc.reduce((s,d) => s + (d.dc||0), 0);
+  const affected = sc.filter(d => d.dc > 0).length;
+  const scEl = document.getElementById('sSc');
+  const duEl = document.getElementById('sDu');
+  const afEl = document.getElementById('sAf');
+  animCount(scEl, tracks);
+  animCount(duEl, dupes);
+  animCount(afEl, affected);
+}
+
 /* ══ BOOT ══ */
 document.addEventListener('DOMContentLoaded',()=>{
   initTheme();buildSw();i18n();
   const p=new URLSearchParams(location.search);
   if(p.has('code')||p.has('error'))handleCb();
   else if(chkTk())initApp();
-  else show('landingPanel');
+  else { show('landingPanel'); setTimeout(revealHeadline, 100); }
+
+  // Reveal on landing if already shown
+  document.addEventListener('panelShown', (e) => {
+    if (e.detail === 'landingPanel') setTimeout(revealHeadline, 100);
+  });
 });
 </script>
 </body>
