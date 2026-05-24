@@ -571,18 +571,21 @@ footer a:hover { color: var(--ink); }
 }
 #cursor-ring {
   width: 20px; height: 20px;
-  background: rgba(29,185,84,.2);
+  background: rgba(29,185,84,.25);
   border-radius: 50%;
   position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9998;
   transform: translate(-50%,-50%);
-  mix-blend-mode: screen;
   transition: width .22s cubic-bezier(.34,1.4,.64,1),
               height .22s cubic-bezier(.34,1.4,.64,1),
               background .2s, opacity .2s;
   will-change: transform;
 }
+[data-theme="dark"] #cursor-ring { mix-blend-mode: screen; }
+[data-theme="light"] #cursor-ring { mix-blend-mode: multiply; }
 /* Скрываем когда мышь покидает окно */
 #cursor-dot.hidden, #cursor-ring.hidden { opacity: 0; }
+[data-theme="light"] #cursor-dot { background: #1a9e49; }
+[data-theme="light"] #cursor-ring { background: rgba(26,158,73,.18); }
 
 /* Connect button glow */
 .btn-green {
