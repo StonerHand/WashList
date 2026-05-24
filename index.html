@@ -3,639 +3,554 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WashList — Spotify Library Cleaner</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;400;700;900&display=swap" rel="stylesheet">
+<title>WashList — Clean your Spotify</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
 :root {
-  --ink: #0d0d0d;
-  --ink2: #1a1a1a;
-  --ink3: #242424;
-  --ink4: #2e2e2e;
-  --line: #333333;
-  --line2: #404040;
-  --dim: #555555;
-  --mid: #888888;
-  --pale: #bbbbbb;
-  --paper: #f0ece4;
-  --paper2: #e8e4dc;
-  --white: #f5f2ed;
+  --bg: #fafaf9;
+  --bg2: #f4f3f0;
+  --bg3: #eceae6;
+  --border: #e2e0db;
+  --border2: #d0cec9;
+  --text: #1a1917;
+  --text2: #6b6860;
+  --text3: #a8a59f;
   --green: #1db954;
-  --green2: #15a347;
-  --red: #c0392b;
-  --amber: #d4720a;
-  --blue: #2980b9;
+  --green2: #18a349;
+  --green-bg: #f0faf4;
+  --green-border: #c3e8d1;
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --amber: #d97706;
+  --amber-bg: #fffbeb;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{
-  font-family:'Space Mono',monospace;
-  background:var(--ink);
-  color:var(--white);
-  min-height:100vh;
-  overflow-x:hidden;
-}
-
-/* ── GRID LINES ── */
-body::before{
-  content:'';
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  background-image:
-    repeating-linear-gradient(90deg,rgba(255,255,255,0.018) 0px,rgba(255,255,255,0.018) 1px,transparent 1px,transparent 80px);
-  pointer-events:none;z-index:0;
-}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5;}
 
 /* ── NAV ── */
 nav{
-  position:sticky;top:0;z-index:200;
-  display:flex;align-items:stretch;
-  height:56px;
-  background:var(--ink);
-  border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:100;
+  height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+  background:rgba(250,250,249,0.92);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(8px);
 }
-.nav-logo{
-  display:flex;align-items:center;
-  padding:0 24px;
-  border-right:1px solid var(--line);
-  gap:10px;
-  text-decoration:none;
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.nav-logo-mark{
+  width:28px;height:28px;background:var(--green);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
 }
-.nav-logo-word{
-  font-family:'Unbounded',sans-serif;
-  font-size:14px;font-weight:900;
-  letter-spacing:-0.5px;
-  color:var(--white);
+.nav-logo-mark svg{width:16px;height:16px;fill:#fff;}
+.nav-logo-text{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--text);letter-spacing:-0.3px;}
+.nav-center{display:flex;gap:4px;}
+.nav-link{
+  font-size:13px;font-weight:500;color:var(--text2);
+  text-decoration:none;padding:6px 12px;border-radius:var(--radius-sm);
+  transition:all 0.15s;
 }
-.nav-logo-dot{
-  width:7px;height:7px;
-  background:var(--green);
-  border-radius:50%;
-  flex-shrink:0;
-}
-.nav-tabs{display:flex;flex:1;}
-.nav-tab{
-  display:flex;align-items:center;
-  padding:0 20px;
-  font-size:11px;font-weight:700;
-  letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--dim);border:none;background:none;
-  cursor:pointer;transition:all 0.15s;
-  border-right:1px solid var(--line);
-  white-space:nowrap;
-}
-.nav-tab:hover{color:var(--pale);}
-.nav-tab.active{color:var(--white);background:var(--ink2);}
-.nav-right{display:flex;align-items:center;margin-left:auto;gap:0;}
-.lang-switcher{display:flex;height:100%;border-left:1px solid var(--line);}
+.nav-link:hover{color:var(--text);background:var(--bg2);}
+.nav-link.active{color:var(--text);background:var(--bg2);}
+.nav-right{display:flex;align-items:center;gap:8px;}
+.lang-switcher{display:flex;gap:2px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px;}
 .lang-btn{
-  background:none;border:none;border-right:1px solid var(--line);
-  color:var(--dim);font-family:'Space Mono',monospace;
-  font-size:10px;font-weight:700;letter-spacing:1px;
-  padding:0 14px;cursor:pointer;transition:all 0.15s;
+  background:none;border:none;font-family:'Inter',sans-serif;
+  font-size:11px;font-weight:600;color:var(--text3);
+  padding:4px 9px;border-radius:6px;cursor:pointer;transition:all 0.15s;
 }
-.lang-btn:last-child{border-right:none;}
-.lang-btn:hover{color:var(--pale);}
-.lang-btn.active{color:var(--green);background:rgba(29,185,84,0.06);}
+.lang-btn:hover{color:var(--text2);}
+.lang-btn.active{background:#fff;color:var(--text);box-shadow:var(--shadow);}
 
 /* ── PANELS ── */
-.panel{display:none;position:relative;z-index:1;}
+.panel{display:none;}
 .panel.active{display:block;}
 
 /* ── LANDING ── */
-.landing-wrap{
-  max-width:1200px;margin:0 auto;padding:0 24px;
-}
 .hero{
-  display:grid;grid-template-columns:1fr 1fr;
-  min-height:calc(100vh - 56px);
-  border-left:1px solid var(--line);border-right:1px solid var(--line);
-}
-.hero-left{
-  padding:80px 60px;
-  border-right:1px solid var(--line);
-  display:flex;flex-direction:column;justify-content:space-between;
+  max-width:1080px;margin:0 auto;
+  padding:80px 32px 64px;
+  display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;
 }
 .hero-eyebrow{
-  font-size:10px;font-weight:700;letter-spacing:3px;
-  text-transform:uppercase;color:var(--green);
-  margin-bottom:40px;
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:600;color:var(--green);
+  background:var(--green-bg);border:1px solid var(--green-border);
+  padding:4px 12px;border-radius:20px;margin-bottom:20px;
 }
-.hero-title{
-  font-family:'Unbounded',sans-serif;
-  font-size:clamp(36px,5vw,64px);
-  font-weight:900;line-height:0.95;
-  letter-spacing:-2px;
-  margin-bottom:40px;
+.hero-eyebrow::before{content:'';width:6px;height:6px;background:var(--green);border-radius:50%;}
+.hero h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(32px,4vw,52px);font-weight:800;
+  line-height:1.1;letter-spacing:-1.5px;
+  margin-bottom:16px;color:var(--text);
 }
-.hero-title em{font-style:normal;color:var(--green);}
-.hero-desc{
-  font-size:13px;color:var(--mid);line-height:1.9;
-  max-width:400px;margin-bottom:60px;
-}
-.hero-actions{display:flex;flex-direction:column;gap:12px;}
+.hero h1 em{font-style:normal;color:var(--green);}
+.hero-desc{font-size:15px;color:var(--text2);line-height:1.7;margin-bottom:32px;max-width:440px;}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;}
 .btn-primary{
-  display:inline-flex;align-items:center;gap:12px;
-  background:var(--green);color:#000;
-  font-family:'Space Mono',monospace;
-  font-size:12px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;
-  padding:16px 28px;border:none;cursor:pointer;
-  transition:all 0.15s;width:fit-content;
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--green);color:#fff;
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:600;
+  padding:12px 22px;border-radius:var(--radius-sm);
+  border:none;cursor:pointer;transition:all 0.15s;text-decoration:none;
 }
-.btn-primary:hover{background:var(--green2);transform:translateX(4px);}
-.btn-primary svg{width:18px;height:18px;fill:#000;}
-.btn-ghost{
-  display:inline-flex;align-items:center;gap:10px;
-  background:none;color:var(--mid);
-  font-family:'Space Mono',monospace;
-  font-size:11px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;
-  padding:14px 0;border:none;cursor:pointer;
-  transition:all 0.15s;width:fit-content;
+.btn-primary:hover{background:var(--green2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(29,185,84,0.3);}
+.btn-primary svg{width:18px;height:18px;fill:#fff;}
+.btn-secondary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:#fff;color:var(--text);
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:500;
+  padding:12px 20px;border-radius:var(--radius-sm);
+  border:1px solid var(--border2);cursor:pointer;transition:all 0.15s;
 }
-.btn-ghost:hover{color:var(--pale);}
-.btn-ghost::after{content:'→';transition:transform 0.15s;}
-.btn-ghost:hover::after{transform:translateX(6px);}
+.btn-secondary:hover{background:var(--bg2);border-color:var(--border2);}
 
-.hero-right{
-  padding:80px 60px;
-  display:flex;flex-direction:column;gap:1px;
-  background:var(--line);
+/* hero visual */
+.hero-visual{position:relative;}
+.hero-card{
+  background:#fff;border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px;
+  box-shadow:var(--shadow-md);
 }
-.feat-row{
-  background:var(--ink);
-  padding:24px 28px;
-  display:flex;align-items:flex-start;gap:20px;
-  transition:background 0.15s;
+.hero-card-head{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:20px;
 }
-.feat-row:hover{background:var(--ink2);}
-.feat-num{
-  font-family:'Unbounded',sans-serif;
-  font-size:10px;font-weight:700;
-  color:var(--green);opacity:0.6;
-  min-width:24px;padding-top:2px;
+.hc-dot{width:8px;height:8px;border-radius:50%;}
+.hero-scan-badge{
+  background:var(--green-bg);border:1px solid var(--green-border);
+  color:var(--green);font-size:11px;font-weight:600;
+  padding:3px 10px;border-radius:20px;margin-left:auto;
 }
-.feat-body{}
-.feat-title-sm{font-size:12px;font-weight:700;margin-bottom:4px;letter-spacing:0.3px;}
-.feat-desc-sm{font-size:11px;color:var(--mid);line-height:1.7;}
+.hero-track-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.hero-track{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:var(--radius-sm);
+  background:var(--bg);border:1px solid var(--border);
+  font-size:12px;
+}
+.hero-track.dupe{background:var(--red-bg);border-color:#fecaca;}
+.hero-track.dupe .ht-name{color:var(--red);}
+.ht-thumb{width:28px;height:28px;border-radius:4px;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;}
+.ht-info{flex:1;min-width:0;}
+.ht-name{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ht-artist{font-size:11px;color:var(--text3);}
+.ht-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;white-space:nowrap;}
+.badge-dupe{background:#fee2e2;color:var(--red);}
+.badge-ok{background:var(--green-bg);color:var(--green);}
 
-/* ── SETUP ── */
-.setup-box{
-  max-width:640px;
-  border:1px solid var(--line);
-  margin:60px auto;
+.waveform{display:flex;align-items:flex-end;gap:3px;height:40px;}
+.waveform span{
+  flex:1;background:var(--green);border-radius:2px;opacity:0.4;
+  height:var(--h);
+  animation:wave 1.5s ease-in-out infinite;
+  animation-delay:calc(var(--i,0) * 0.1s);
 }
-.setup-head{
-  padding:20px 28px;
-  border-bottom:1px solid var(--line);
-  font-size:10px;font-weight:700;letter-spacing:2px;
-  text-transform:uppercase;color:var(--mid);
-  display:flex;align-items:center;gap:12px;
-}
-.setup-head-badge{
-  background:rgba(212,114,10,0.15);color:var(--amber);
-  font-size:9px;letter-spacing:1px;padding:3px 8px;
-  border:1px solid rgba(212,114,10,0.3);
-}
-.setup-body{padding:28px;}
-.setup-steps{list-style:none;margin-bottom:24px;}
-.setup-steps li{
-  display:flex;gap:16px;
-  padding:14px 0;border-bottom:1px solid var(--ink3);
-  font-size:12px;color:var(--pale);line-height:1.7;
-}
-.setup-steps li:last-child{border-bottom:none;}
-.step-n{
-  font-family:'Unbounded',sans-serif;
-  font-size:10px;font-weight:700;color:var(--green);
-  min-width:20px;padding-top:2px;
-}
-.setup-steps a{color:var(--green);text-decoration:none;}
-.setup-steps a:hover{text-decoration:underline;}
-.setup-steps code{
-  font-family:'Space Mono',monospace;
-  background:var(--ink3);border:1px solid var(--line);
-  padding:1px 6px;font-size:11px;color:var(--white);
-}
-.input-row{display:flex;gap:0;}
-.input-row input{
-  flex:1;background:var(--ink2);border:1px solid var(--line2);
-  border-right:none;color:var(--white);
-  font-family:'Space Mono',monospace;font-size:12px;
-  padding:12px 16px;outline:none;
-  transition:border-color 0.2s;
-}
-.input-row input::placeholder{color:var(--dim);}
-.input-row input:focus{border-color:var(--green);}
-.input-row .btn-primary{padding:12px 20px;font-size:11px;}
+.waveform span:nth-child(1){--i:0} .waveform span:nth-child(2){--i:1} .waveform span:nth-child(3){--i:2}
+.waveform span:nth-child(4){--i:3} .waveform span:nth-child(5){--i:4} .waveform span:nth-child(6){--i:5}
+.waveform span:nth-child(7){--i:6} .waveform span:nth-child(8){--i:7} .waveform span:nth-child(9){--i:8}
+.waveform span:nth-child(10){--i:9}
+@keyframes wave{0%,100%{opacity:0.3;transform:scaleY(0.8);}50%{opacity:0.7;transform:scaleY(1);}}
 
-/* ── APP LAYOUT ── */
-#appPanel{background:var(--ink);}
-.app-wrap{max-width:1400px;margin:0 auto;}
+/* ── FEATURES ── */
+.features{background:#fff;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.features-inner{max-width:1080px;margin:0 auto;padding:60px 32px;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
+.feat{background:#fff;padding:32px 28px;}
+.feat-icon{
+  width:40px;height:40px;background:var(--green-bg);border:1px solid var(--green-border);
+  border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;
+  font-size:18px;margin-bottom:16px;
+}
+.feat h3{font-size:14px;font-weight:600;margin-bottom:6px;}
+.feat p{font-size:13px;color:var(--text2);line-height:1.6;}
 
-.user-strip{
-  display:flex;align-items:center;gap:0;
-  border-bottom:1px solid var(--line);
-  height:48px;
+/* ── APP ── */
+#appPanel{background:var(--bg);}
+.app-wrap{max-width:1300px;margin:0 auto;}
+
+.user-bar{
+  display:flex;align-items:center;gap:16px;
+  padding:12px 24px;background:#fff;
+  border-bottom:1px solid var(--border);
 }
-.user-cell{
-  display:flex;align-items:center;gap:12px;
-  padding:0 24px;height:100%;
-  border-right:1px solid var(--line);
-}
-.user-avatar-sm{
-  width:26px;height:26px;border-radius:50%;
-  background:rgba(29,185,84,0.2);
+.user-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--green-bg);border:2px solid var(--green-border);
   display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:700;color:var(--green);
+  font-size:13px;font-weight:600;color:var(--green);
   overflow:hidden;flex-shrink:0;
 }
-.user-avatar-sm img{width:100%;height:100%;object-fit:cover;}
-.user-name-sm{font-size:12px;font-weight:700;}
-.user-plan{font-size:10px;color:var(--dim);margin-left:4px;}
-.user-cell-right{margin-left:auto;border-right:none;border-left:1px solid var(--line);}
-.btn-sm{
-  background:none;border:none;color:var(--dim);
-  font-family:'Space Mono',monospace;font-size:10px;font-weight:700;
-  letter-spacing:1px;text-transform:uppercase;
-  padding:0 20px;height:100%;cursor:pointer;transition:color 0.15s;
+.user-avatar img{width:100%;height:100%;object-fit:cover;}
+.user-name{font-size:14px;font-weight:600;}
+.user-plan{font-size:12px;color:var(--text3);margin-left:4px;}
+.btn-logout{
+  margin-left:auto;background:none;border:1px solid var(--border2);
+  color:var(--text2);font-family:'Inter',sans-serif;
+  font-size:12px;font-weight:500;padding:6px 14px;
+  border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;
 }
-.btn-sm:hover{color:var(--pale);}
+.btn-logout:hover{color:var(--text);border-color:var(--text3);}
 
-/* ── STATS ROW ── */
-.stats-strip{
-  display:flex;border-bottom:1px solid var(--line);
+/* stats */
+.stats-bar{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:0;background:var(--border);
+  border-bottom:1px solid var(--border);
 }
-.stat-cell{
-  flex:1;padding:20px 24px;
-  border-right:1px solid var(--line);
-}
-.stat-cell:last-child{border-right:none;}
-.stat-k{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:6px;}
-.stat-v{font-family:'Unbounded',sans-serif;font-size:22px;font-weight:700;letter-spacing:-1px;}
-.stat-v.g{color:var(--green);}
-.stat-v.r{color:var(--red);}
-.stat-v.a{color:var(--amber);}
+.stat-cell{background:#fff;padding:16px 24px;}
+.stat-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+.stat-value{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;}
+.stat-value.r{color:var(--red);}
+.stat-value.a{color:var(--amber);}
+.stat-value.g{color:var(--green);}
 
-/* ── TOOLBAR ── */
+/* tabs */
+.app-tabs{
+  display:flex;background:#fff;
+  border-bottom:1px solid var(--border);
+  padding:0 24px;gap:0;
+}
+.app-tab{
+  background:none;border:none;border-bottom:2px solid transparent;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+  color:var(--text2);padding:12px 16px;cursor:pointer;
+  transition:all 0.15s;white-space:nowrap;margin-bottom:-1px;
+}
+.app-tab:hover{color:var(--text);}
+.app-tab.active{color:var(--green);border-bottom-color:var(--green);}
+
+/* content area */
+.tab-panel{display:none;padding:24px;}
+.tab-panel.active{display:block;}
+
+/* toolbar */
 .toolbar{
-  display:flex;align-items:stretch;
-  border-bottom:1px solid var(--line);
-  height:44px;
+  display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;
 }
 .toolbar-search{
-  flex:1;display:flex;align-items:center;
-  border-right:1px solid var(--line);
-  padding:0 16px;gap:10px;
-}
-.toolbar-search::before{content:'/';}
-.toolbar-search::before{
-  color:var(--dim);font-size:16px;font-weight:400;
+  flex:1;min-width:200px;position:relative;
 }
 .toolbar-search input{
-  flex:1;background:none;border:none;
-  color:var(--white);font-family:'Space Mono',monospace;
-  font-size:12px;outline:none;
+  width:100%;background:#fff;border:1px solid var(--border2);
+  color:var(--text);font-family:'Inter',sans-serif;font-size:13px;
+  padding:8px 12px 8px 36px;border-radius:var(--radius-sm);
+  outline:none;transition:border-color 0.15s;
 }
-.toolbar-search input::placeholder{color:var(--dim);}
-.toolbar-segs{display:flex;}
+.toolbar-search input:focus{border-color:var(--green);}
+.toolbar-search input::placeholder{color:var(--text3);}
+.toolbar-search::before{
+  content:'🔍';position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  font-size:12px;pointer-events:none;
+}
+.seg-group{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;}
 .seg-btn{
-  background:none;border:none;border-right:1px solid var(--line);
-  color:var(--dim);font-family:'Space Mono',monospace;
-  font-size:10px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;padding:0 18px;cursor:pointer;
-  transition:all 0.15s;white-space:nowrap;
+  background:none;border:none;color:var(--text2);
+  font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
+  padding:7px 14px;cursor:pointer;transition:all 0.15s;white-space:nowrap;
 }
-.seg-btn:hover{color:var(--pale);background:var(--ink2);}
-.seg-btn.on{color:var(--white);background:var(--ink2);}
+.seg-btn.active{background:#fff;color:var(--text);box-shadow:var(--shadow);}
+.seg-btn:hover:not(.active){color:var(--text);}
 .btn-scan-all{
-  background:var(--green);color:#000;
-  font-family:'Space Mono',monospace;
-  font-size:10px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;padding:0 20px;
-  border:none;cursor:pointer;transition:all 0.15s;
-  white-space:nowrap;
+  background:var(--green);color:#fff;
+  font-family:'Inter',sans-serif;font-size:12px;font-weight:600;
+  padding:8px 16px;border-radius:var(--radius-sm);
+  border:none;cursor:pointer;transition:all 0.15s;white-space:nowrap;
 }
 .btn-scan-all:hover{background:var(--green2);}
-.btn-scan-all:disabled{background:var(--ink3);color:var(--dim);cursor:not-allowed;}
+.btn-scan-all:disabled{background:var(--bg3);color:var(--text3);cursor:not-allowed;}
 
-/* ── PLAYLIST TABLE ── */
-.pl-table{width:100%;}
-.pl-thead{
-  display:grid;
-  grid-template-columns:40px 1fr 70px 70px 90px 180px;
-  gap:0;
-  border-bottom:1px solid var(--line2);
-  padding:10px 0;
+/* settings panel */
+.settings-panel{
+  background:#fff;border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;
+  margin-bottom:16px;
 }
-.pl-th{
-  font-size:9px;font-weight:700;letter-spacing:2px;
-  text-transform:uppercase;color:var(--dim);
-  padding:0 16px;
+.settings-panel-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;cursor:pointer;
+}
+.settings-panel-title{font-size:13px;font-weight:600;}
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+.setting-item{display:flex;flex-direction:column;gap:4px;}
+.setting-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;}
+.setting-select{
+  background:#fff;border:1px solid var(--border2);color:var(--text);
+  font-family:'Inter',sans-serif;font-size:12px;
+  padding:6px 10px;border-radius:var(--radius-sm);outline:none;cursor:pointer;
+}
+.setting-checks{display:flex;flex-direction:column;gap:6px;}
+.setting-check{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.setting-check input{accent-color:var(--green);width:14px;height:14px;}
+.setting-check span{font-size:12px;color:var(--text2);}
+
+/* playlist table */
+.pl-table{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.pl-thead{
+  display:grid;grid-template-columns:1fr 80px 80px 100px 160px;
+  padding:10px 16px;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  font-size:11px;font-weight:600;color:var(--text3);
+  text-transform:uppercase;letter-spacing:0.5px;
 }
 .pl-row{
-  display:grid;
-  grid-template-columns:40px 1fr 70px 70px 90px 180px;
-  border-bottom:1px solid var(--ink3);
-  transition:background 0.1s;
-  align-items:center;
-  min-height:52px;
+  display:grid;grid-template-columns:1fr 80px 80px 100px 160px;
+  padding:0 16px;min-height:52px;align-items:center;
+  border-bottom:1px solid var(--border);transition:background 0.1s;
 }
-.pl-row:hover{background:var(--ink2);}
-.pl-row.dirty{background:rgba(192,57,43,0.04);}
-.pl-row.dirty:hover{background:rgba(192,57,43,0.08);}
-
-.pl-idx{
-  font-family:'Unbounded',sans-serif;
-  font-size:9px;color:var(--line2);
-  text-align:center;padding:0 10px;
-}
-.pl-info-cell{
-  display:flex;align-items:center;gap:12px;
-  padding:10px 16px;min-width:0;
-}
+.pl-row:last-child{border-bottom:none;}
+.pl-row:hover{background:var(--bg);}
+.pl-row.dirty{background:#fff8f8;}
+.pl-row.dirty:hover{background:#fff2f2;}
+.pl-info{display:flex;align-items:center;gap:10px;min-width:0;}
 .pl-thumb{
-  width:34px;height:34px;flex-shrink:0;
-  background:var(--ink3);
-  display:flex;align-items:center;justify-content:center;
-  font-size:14px;overflow:hidden;
+  width:36px;height:36px;border-radius:6px;
+  background:var(--bg2);flex-shrink:0;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
 }
 .pl-thumb img{width:100%;height:100%;object-fit:cover;}
-.pl-text{min-width:0;}
-.pl-name-cell{
-  font-size:12px;font-weight:700;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.pl-meta-cell{font-size:10px;color:var(--dim);}
-.pl-num{font-size:13px;font-weight:700;text-align:center;padding:0 8px;}
-.pl-num.zero{color:var(--line2);}
+.pl-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pl-meta{font-size:11px;color:var(--text3);}
+.pl-num{font-size:14px;font-weight:600;text-align:center;}
+.pl-num.zero{color:var(--text3);}
 .pl-num.pos{color:var(--red);}
-.pl-status-cell{padding:0 8px;text-align:center;}
-.status-badge{
-  display:inline-block;
-  font-size:9px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;padding:3px 8px;
+.pl-status{text-align:center;}
+.status-pill{
+  display:inline-block;font-size:11px;font-weight:600;
+  padding:3px 9px;border-radius:20px;
 }
-.status-idle{color:var(--dim);}
-.status-scanning{
-  color:var(--amber);
-  animation:blink 1.2s step-end infinite;
-}
-@keyframes blink{50%{opacity:0.3;}}
-.status-clean{color:var(--green);}
-.status-dirty{color:var(--red);}
-.pl-actions-cell{
-  display:flex;gap:4px;padding:0 12px;justify-content:flex-end;
-}
-.act-btn{
-  background:none;border:1px solid var(--line);
-  color:var(--dim);font-family:'Space Mono',monospace;
-  font-size:9px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;padding:5px 10px;
-  cursor:pointer;transition:all 0.15s;white-space:nowrap;
-}
-.act-btn:hover{color:var(--pale);border-color:var(--line2);}
-.act-btn.g{color:var(--green);border-color:rgba(29,185,84,0.3);}
-.act-btn.g:hover{background:rgba(29,185,84,0.08);}
-.act-btn.r{color:var(--red);border-color:rgba(192,57,43,0.3);}
-.act-btn.r:hover{background:rgba(192,57,43,0.08);}
-.act-btn:disabled{opacity:0.2;pointer-events:none;}
-.pl-progress-bar{
-  height:2px;background:var(--ink3);
-  position:absolute;bottom:0;left:0;right:0;
-}
+.s-idle{color:var(--text3);background:var(--bg2);}
+.s-scanning{color:var(--amber);background:var(--amber-bg);animation:blink 1.2s step-end infinite;}
+.s-clean{color:var(--green);background:var(--green-bg);}
+.s-dirty{color:var(--red);background:var(--red-bg);}
+@keyframes blink{50%{opacity:0.5;}}
+.pl-progress{height:2px;background:var(--bg3);border-radius:1px;overflow:hidden;margin-top:3px;}
 .pl-progress-fill{height:100%;background:var(--green);width:0;transition:width 0.3s;}
+.pl-actions{display:flex;gap:6px;justify-content:flex-end;}
+.act-btn{
+  background:#fff;border:1px solid var(--border2);color:var(--text2);
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:500;
+  padding:5px 10px;border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;
+}
+.act-btn:hover{color:var(--text);border-color:var(--text3);}
+.act-btn.g{color:var(--green);border-color:var(--green-border);background:var(--green-bg);}
+.act-btn.g:hover{background:#e0f5ea;}
+.act-btn.r{color:var(--red);border-color:#fecaca;background:var(--red-bg);}
+.act-btn:disabled{opacity:0.3;pointer-events:none;}
 
-/* ── DUPE PANEL ── */
+/* dupe panel */
 .dupe-panel{
-  background:var(--ink2);
-  border-bottom:1px solid var(--line);
-  animation:fadeIn 0.2s ease;
-}
-@keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
-.dupe-panel-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:12px 20px;
-  border-bottom:1px solid var(--line);
-  background:rgba(192,57,43,0.06);
-}
-.dupe-panel-title{
-  font-size:10px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;color:var(--red);
-}
-.dupe-panel-meta{font-size:10px;color:var(--mid);}
-.dupe-panel-actions{display:flex;gap:8px;align-items:center;}
-.dupe-mode-sel{
-  background:var(--ink3);border:1px solid var(--line2);
-  color:var(--pale);font-family:'Space Mono',monospace;
-  font-size:10px;padding:5px 10px;cursor:pointer;outline:none;
-}
-.btn-remove-dupes{
-  background:var(--red);color:var(--white);
-  font-family:'Space Mono',monospace;
-  font-size:10px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;padding:7px 14px;
-  border:none;cursor:pointer;transition:background 0.15s;
-}
-.btn-remove-dupes:hover{background:#e74c3c;}
-.btn-remove-dupes:disabled{background:var(--ink4);color:var(--dim);cursor:not-allowed;}
-.btn-export-dupes{
-  background:none;border:1px solid var(--line2);
-  color:var(--mid);font-family:'Space Mono',monospace;
-  font-size:10px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;padding:7px 14px;
-  cursor:pointer;transition:all 0.15s;
-}
-.btn-export-dupes:hover{color:var(--pale);border-color:var(--line2);}
-
-.dupe-list{padding:12px 20px;display:flex;flex-direction:column;gap:8px;}
-.dupe-group-card{
-  border:1px solid var(--line);background:var(--ink);
-}
-.dupe-group-top{
-  display:flex;align-items:center;gap:12px;
-  padding:12px 14px;border-bottom:1px solid var(--ink3);
-}
-.dupe-art{
-  width:40px;height:40px;flex-shrink:0;
-  background:var(--ink3);overflow:hidden;
-}
-.dupe-art img{width:100%;height:100%;object-fit:cover;}
-.dupe-track-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.dupe-track-artist{font-size:11px;color:var(--mid);}
-.dupe-type-badge{
-  margin-left:auto;flex-shrink:0;
-  font-size:9px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;padding:3px 8px;
-}
-.badge-exact{background:rgba(192,57,43,0.15);color:var(--red);border:1px solid rgba(192,57,43,0.2);}
-.badge-similar{background:rgba(212,114,10,0.15);color:var(--amber);border:1px solid rgba(212,114,10,0.2);}
-.dupe-instances{display:flex;flex-direction:column;}
-.dupe-inst{
-  display:flex;align-items:center;gap:12px;
-  padding:8px 14px;
-  border-bottom:1px solid var(--ink3);
-  font-size:11px;
-}
-.dupe-inst:last-child{border-bottom:none;}
-.dupe-inst.keep{border-left:2px solid var(--green);}
-.dupe-inst.rem{border-left:2px solid var(--red);opacity:0.6;}
-.inst-pos{font-family:'Unbounded',sans-serif;font-size:9px;color:var(--dim);min-width:28px;}
-.inst-info{flex:1;min-width:0;}
-.inst-album{font-size:10px;color:var(--dim);}
-.inst-date{font-size:10px;color:var(--dim);}
-.inst-tag{
-  font-size:9px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;padding:2px 6px;
-}
-.t-keep{background:rgba(29,185,84,0.1);color:var(--green);}
-.t-rem{background:rgba(192,57,43,0.1);color:var(--red);}
-
-/* ── FEATURES TABS (extra tools) ── */
-.feature-panel{
-  max-width:1400px;margin:0 auto;
-  padding:40px 24px;
-}
-.feature-title{
-  font-family:'Unbounded',sans-serif;
-  font-size:11px;font-weight:700;letter-spacing:3px;
-  text-transform:uppercase;color:var(--mid);
-  margin-bottom:32px;
-  display:flex;align-items:center;gap:16px;
-}
-.feature-title::after{content:'';flex:1;height:1px;background:var(--line);}
-
-/* ── HISTORY ── */
-.history-table{border:1px solid var(--line);}
-.hist-row{
-  display:grid;grid-template-columns:140px 1fr 80px 80px 120px;
-  border-bottom:1px solid var(--ink3);
-  align-items:center;min-height:44px;
-}
-.hist-row:last-child{border-bottom:none;}
-.hist-row.head{background:var(--ink2);border-bottom:1px solid var(--line2);}
-.hist-cell{
-  padding:10px 16px;font-size:11px;
-}
-.hist-cell.mono{font-family:'Space Mono',monospace;font-size:10px;color:var(--mid);}
-.hist-cell.head{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);}
-.hist-cell.r{color:var(--red);}
-.hist-cell.g{color:var(--green);}
-
-/* ── COMPARE ── */
-.compare-grid{display:grid;grid-template-columns:1fr 60px 1fr;gap:0;border:1px solid var(--line);}
-.compare-col{min-width:0;}
-.compare-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid var(--line);border-right:1px solid var(--line);padding:20px 0;gap:8px;}
-.compare-mid-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);writing-mode:vertical-rl;}
-.compare-head{padding:16px 20px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;display:flex;align-items:center;gap:10px;background:var(--ink2);}
-.compare-select{
-  flex:1;background:var(--ink3);border:1px solid var(--line2);
-  color:var(--white);font-family:'Space Mono',monospace;
-  font-size:11px;padding:6px 10px;outline:none;cursor:pointer;
-}
-.compare-list{max-height:400px;overflow-y:auto;}
-.compare-track{
-  display:flex;align-items:center;gap:10px;
-  padding:8px 16px;border-bottom:1px solid var(--ink3);
-  font-size:11px;
-}
-.compare-track:last-child{border-bottom:none;}
-.compare-track.shared{background:rgba(29,185,84,0.06);}
-.compare-track.shared .ct-name{color:var(--green);}
-.ct-num{font-family:'Unbounded',sans-serif;font-size:9px;color:var(--dim);min-width:24px;}
-.ct-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ct-artist{font-size:10px;color:var(--dim);}
-.ct-mark{font-size:14px;flex-shrink:0;}
-.compare-stats{
-  padding:12px 16px;border-top:1px solid var(--line);
-  background:var(--ink2);font-size:11px;color:var(--mid);
-  display:flex;gap:20px;
-}
-
-/* ── MULTI-PLAYLIST TRACKER ── */
-.multi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--line);}
-.multi-card{background:var(--ink);padding:20px;}
-.multi-card-title{
-  font-family:'Unbounded',sans-serif;
-  font-size:13px;font-weight:700;
-  margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.multi-card-meta{font-size:10px;color:var(--dim);margin-bottom:12px;}
-.multi-pl-tag{
-  display:inline-block;
-  font-size:9px;font-weight:700;letter-spacing:0.5px;
-  background:var(--ink3);color:var(--mid);
-  padding:3px 8px;margin:2px;
-  border:1px solid var(--line);
-}
-.multi-empty{grid-column:1/-1;padding:60px;text-align:center;font-size:12px;color:var(--dim);}
-
-/* ── GRAPH ── */
-#graphCanvas{width:100%;height:520px;background:var(--ink2);border:1px solid var(--line);}
-.graph-controls{
-  display:flex;gap:0;margin-bottom:0;border:1px solid var(--line);border-bottom:none;
-}
-.graph-ctrl{
-  background:none;border:none;border-right:1px solid var(--line);
-  color:var(--dim);font-family:'Space Mono',monospace;
-  font-size:10px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;padding:10px 16px;
-  cursor:pointer;transition:all 0.15s;
-}
-.graph-ctrl:last-child{border-right:none;}
-.graph-ctrl:hover{color:var(--pale);background:var(--ink2);}
-.graph-legend{
-  display:flex;gap:20px;padding:12px 16px;
-  border:1px solid var(--line);border-top:none;
-  font-size:10px;color:var(--mid);
-}
-.legend-item{display:flex;align-items:center;gap:6px;}
-.legend-dot{width:8px;height:8px;border-radius:50%;}
-
-/* ── FOOTER ── */
-footer{
-  border-top:1px solid var(--line);
-  padding:20px 24px;
-  display:flex;align-items:center;justify-content:space-between;
-  font-size:10px;color:var(--dim);
-  position:relative;z-index:1;
-}
-footer a{color:var(--dim);text-decoration:none;transition:color 0.15s;}
-footer a:hover{color:var(--pale);}
-
-/* ── TOAST ── */
-.toasts{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;}
-.toast{
-  display:flex;align-items:center;gap:10px;
-  background:var(--ink2);border:1px solid var(--line2);
-  padding:12px 16px;font-size:11px;max-width:320px;
+  background:#fff;border:1px solid var(--border);
+  border-top:none;border-radius:0 0 var(--radius) var(--radius);
+  margin-bottom:0;overflow:hidden;
   animation:slideIn 0.2s ease;
 }
-.toast.ok{border-left:2px solid var(--green);}
-.toast.err{border-left:2px solid var(--red);}
-.toast.inf{border-left:2px solid var(--blue);}
-@keyframes slideIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}}
-
-/* ── MISC ── */
-.hidden{display:none!important;}
-.loading-state{padding:60px;text-align:center;font-size:12px;color:var(--dim);}
-.spin{
-  display:inline-block;width:20px;height:20px;
-  border:2px solid var(--line2);border-top-color:var(--green);
-  border-radius:50%;animation:spin 0.7s linear infinite;
-  margin-right:12px;vertical-align:middle;
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.dupe-panel-head{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 16px;background:#fff8f8;
+  border-bottom:1px solid #fecaca;
 }
-@keyframes spin{to{transform:rotate(360deg);}}
-.empty-msg{padding:40px;text-align:center;font-size:11px;color:var(--dim);}
+.dupe-panel-title{font-size:12px;font-weight:600;color:var(--red);}
+.dupe-panel-meta{font-size:12px;color:var(--text2);}
+.dupe-panel-actions{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.dupe-mode-sel{
+  background:#fff;border:1px solid var(--border2);color:var(--text);
+  font-family:'Inter',sans-serif;font-size:11px;
+  padding:5px 8px;border-radius:var(--radius-sm);cursor:pointer;outline:none;
+}
+.btn-remove-dupes{
+  background:var(--red);color:#fff;
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:600;
+  padding:6px 12px;border-radius:var(--radius-sm);border:none;cursor:pointer;
+  transition:background 0.15s;
+}
+.btn-remove-dupes:hover{background:#b91c1c;}
+.btn-remove-dupes:disabled{background:var(--bg3);color:var(--text3);cursor:not-allowed;}
+.btn-export-sm{
+  background:#fff;border:1px solid var(--border2);color:var(--text2);
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:500;
+  padding:5px 10px;border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;
+}
+.btn-export-sm:hover{color:var(--text);}
 
-@media(max-width:900px){
-  .hero{grid-template-columns:1fr;}
-  .hero-right{display:none;}
-  .pl-thead,.pl-row{grid-template-columns:1fr 70px 90px 160px;}
-  .pl-th:nth-child(2),.pl-row>*:nth-child(2),.pl-th:nth-child(4),.pl-row>*:nth-child(4){display:none;}
-  .compare-grid{grid-template-columns:1fr;}
-  .compare-mid{display:none;}
-  .multi-grid{grid-template-columns:1fr 1fr;}
+.dupe-list{padding:12px 16px;display:flex;flex-direction:column;gap:10px;}
+.dupe-card{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;background:#fff;}
+.dupe-card-head{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-bottom:1px solid var(--border);
+  background:var(--bg);
+}
+.dupe-art{width:38px;height:38px;border-radius:4px;background:var(--bg2);flex-shrink:0;overflow:hidden;}
+.dupe-art img{width:100%;height:100%;object-fit:cover;}
+.dupe-track-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dupe-artist{font-size:11px;color:var(--text2);}
+.dupe-type-badge{margin-left:auto;flex-shrink:0;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;}
+.b-exact{background:#fee2e2;color:var(--red);}
+.b-sim{background:var(--amber-bg);color:var(--amber);}
+.dupe-instances{display:flex;flex-direction:column;}
+.dupe-inst{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;
+}
+.dupe-inst:last-child{border-bottom:none;}
+.dupe-inst.keep{border-left:3px solid var(--green);}
+.dupe-inst.rem{border-left:3px solid var(--red);opacity:0.65;}
+.inst-pos{font-size:10px;color:var(--text3);min-width:28px;font-weight:500;}
+.inst-info{flex:1;min-width:0;}
+.inst-album{font-size:11px;color:var(--text3);}
+.inst-tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;}
+.t-keep{background:var(--green-bg);color:var(--green);}
+.t-rem{background:#fee2e2;color:var(--red);}
+.confidence-bar{height:3px;background:var(--bg3);border-radius:2px;margin-top:4px;overflow:hidden;}
+.confidence-fill{height:100%;background:var(--green);border-radius:2px;}
+
+/* compare */
+.compare-wrap{display:grid;grid-template-columns:1fr auto 1fr;gap:0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:#fff;}
+.compare-col{min-width:0;}
+.compare-divider{
+  width:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bg2);border-left:1px solid var(--border);border-right:1px solid var(--border);
+  gap:8px;padding:16px 0;
+}
+.compare-vs{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text3);}
+.compare-shared-num{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--green);}
+.compare-shared-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;}
+.compare-head{padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg2);}
+.compare-select{
+  width:100%;background:#fff;border:1px solid var(--border2);color:var(--text);
+  font-family:'Inter',sans-serif;font-size:12px;
+  padding:7px 10px;border-radius:var(--radius-sm);outline:none;cursor:pointer;
+}
+.compare-list{max-height:360px;overflow-y:auto;}
+.compare-track{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;
+}
+.compare-track:last-child{border-bottom:none;}
+.compare-track.shared{background:var(--green-bg);}
+.ct-n{font-size:10px;color:var(--text3);min-width:20px;}
+.ct-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ct-artist{font-size:11px;color:var(--text3);}
+.ct-mark{font-size:13px;}
+.compare-footer{
+  padding:10px 14px;background:var(--bg2);border-top:1px solid var(--border);
+  font-size:11px;color:var(--text2);display:flex;gap:12px;
+}
+
+/* overlap */
+.overlap-controls{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.overlap-controls label{font-size:13px;color:var(--text2);}
+.overlap-min-val{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--green);}
+.overlap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+.overlap-card{
+  background:#fff;border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;transition:box-shadow 0.15s;
+}
+.overlap-card:hover{box-shadow:var(--shadow-md);}
+.oc-name{font-size:13px;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.oc-artist{font-size:11px;color:var(--text2);margin-bottom:10px;}
+.oc-count{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--green-bg);color:var(--green);
+  font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px;margin-bottom:8px;
+}
+.oc-playlists{display:flex;flex-wrap:wrap;gap:4px;}
+.oc-pl-tag{
+  font-size:10px;font-weight:500;color:var(--text2);
+  background:var(--bg2);border:1px solid var(--border);
+  padding:2px 7px;border-radius:4px;
+}
+
+/* graph */
+.graph-area{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.graph-toolbar{
+  display:flex;align-items:center;padding:12px 16px;
+  border-bottom:1px solid var(--border);background:var(--bg2);gap:8px;
+}
+#graphCanvas{width:100%;height:480px;background:#fff;}
+.graph-legend{
+  padding:10px 16px;border-top:1px solid var(--border);
+  background:var(--bg2);display:flex;gap:16px;font-size:11px;color:var(--text2);
+}
+.legend-item{display:flex;align-items:center;gap:6px;}
+.legend-dot{width:8px;height:8px;border-radius:50%;background:var(--green);}
+.legend-line{width:16px;height:2px;background:var(--border2);}
+
+/* history */
+.hist-table{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.hist-thead{
+  display:grid;grid-template-columns:120px 1fr 80px 80px 80px;
+  padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);
+  font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;
+}
+.hist-row{
+  display:grid;grid-template-columns:120px 1fr 80px 80px 80px;
+  padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;align-items:center;
+}
+.hist-row:last-child{border-bottom:none;}
+.hist-row:hover{background:var(--bg);}
+.hist-mono{font-family:'Inter',sans-serif;color:var(--text2);}
+.hist-r{color:var(--red);font-weight:600;}
+.hist-g{color:var(--green);font-weight:600;}
+.hist-empty{padding:40px;text-align:center;font-size:13px;color:var(--text3);}
+
+/* roadmap */
+.roadmap{background:#fff;border-top:1px solid var(--border);}
+.roadmap-inner{max-width:1080px;margin:0 auto;padding:64px 32px;}
+.roadmap-eyebrow{font-size:12px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.roadmap h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:40px;}
+.roadmap-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);}
+.rm-item{background:#fff;padding:24px;}
+.rm-num{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:var(--green);margin-bottom:8px;}
+.rm-title{font-size:14px;font-weight:600;margin-bottom:6px;}
+.rm-desc{font-size:12px;color:var(--text2);line-height:1.6;}
+
+/* footer */
+footer{
+  border-top:1px solid var(--border);padding:16px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:12px;color:var(--text3);background:#fff;
+}
+footer a{color:var(--text3);text-decoration:none;transition:color 0.15s;}
+footer a:hover{color:var(--text);}
+
+/* toast */
+.toasts{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{
+  display:flex;align-items:center;gap:10px;
+  background:#fff;border:1px solid var(--border2);
+  border-radius:var(--radius-sm);padding:10px 14px;
+  font-size:13px;max-width:300px;
+  box-shadow:var(--shadow-md);
+  animation:toastIn 0.2s ease;
+}
+.toast.ok{border-left:3px solid var(--green);}
+.toast.err{border-left:3px solid var(--red);}
+.toast.inf{border-left:3px solid var(--amber);}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* loading */
+.loading-state{padding:48px;text-align:center;font-size:13px;color:var(--text3);}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.7s linear infinite;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty-msg{padding:32px;text-align:center;font-size:12px;color:var(--text3);}
+.hidden{display:none!important;}
+
+@media(max-width:800px){
+  .hero{grid-template-columns:1fr;gap:32px;}
+  .hero-visual{display:none;}
+  .features-inner{grid-template-columns:1fr;}
+  .stats-bar{grid-template-columns:repeat(2,1fr);}
+  .pl-thead,.pl-row{grid-template-columns:1fr 80px 100px;}
+  .pl-thead>*:nth-child(3),.pl-row>*:nth-child(3){display:none;}
+  .roadmap-grid{grid-template-columns:repeat(2,1fr);}
+  nav{padding:0 16px;}
 }
 </style>
 </head>
@@ -643,472 +558,511 @@ footer a:hover{color:var(--pale);}
 
 <div class="toasts" id="toasts"></div>
 
-<!-- ── NAV ── -->
 <nav>
   <a class="nav-logo" href="#">
-    <div class="nav-logo-dot"></div>
-    <span class="nav-logo-word">WASHLIST</span>
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.208c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 11-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 01.207.856zm1.223-2.722a.78.78 0 01-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 01-.966-.519.781.781 0 01.519-.966c3.632-1.102 8.147-.568 11.228 1.322a.78.78 0 01.256 1.072zm.105-2.835C14.69 9.135 9.9 8.976 7.028 9.833a.937.937 0 11-.544-1.794c3.276-.994 8.724-.802 12.168 1.25a.937.937 0 01-.738 1.578z"/></svg>
+    </div>
+    <span class="nav-logo-text">WashList</span>
   </a>
-  <div class="nav-tabs" id="navTabs">
-    <button class="nav-tab active" data-panel="landingPanel" onclick="switchPanel('landingPanel',this)">
-      <span data-i18n="nav.home">HOME</span>
-    </button>
-    <button class="nav-tab hidden" data-panel="appPanel" id="appTabBtn" onclick="switchPanel('appPanel',this)">
-      <span data-i18n="nav.library">LIBRARY</span>
-    </button>
-    <button class="nav-tab hidden" data-panel="comparePanel" id="compareTabBtn" onclick="switchPanel('comparePanel',this)">
-      <span data-i18n="nav.compare">COMPARE</span>
-    </button>
-    <button class="nav-tab hidden" data-panel="multiPanel" id="multiTabBtn" onclick="switchPanel('multiPanel',this)">
-      <span data-i18n="nav.overlap">OVERLAP</span>
-    </button>
-    <button class="nav-tab hidden" data-panel="graphPanel" id="graphTabBtn" onclick="switchPanel('graphPanel',this)">
-      <span data-i18n="nav.graph">GRAPH</span>
-    </button>
-    <button class="nav-tab hidden" data-panel="historyPanel" id="histTabBtn" onclick="switchPanel('historyPanel',this)">
-      <span data-i18n="nav.history">HISTORY</span>
-    </button>
+  <div class="nav-center" id="navCenter">
+    <a href="#features" class="nav-link" data-i18n="nav.features">Features</a>
+    <a href="#roadmap-section" class="nav-link" data-i18n="nav.roadmap">Roadmap</a>
   </div>
   <div class="nav-right">
     <div class="lang-switcher" id="langSwitcher"></div>
   </div>
 </nav>
 
-<!-- ══════════════════════════════════════
-     LANDING
-══════════════════════════════════════ -->
+<!-- ══ LANDING ══ -->
 <div class="panel active" id="landingPanel">
-  <div class="landing-wrap">
-    <div class="hero">
-      <div class="hero-left">
-        <div>
-          <div class="hero-eyebrow" data-i18n="hero.eyebrow">Spotify Library Cleaner</div>
-          <h1 class="hero-title" data-i18n-html="hero.title">Your library,<br><em>spotless.</em></h1>
-          <p class="hero-desc" data-i18n="hero.desc">Finds duplicate tracks across your playlists — exact copies and the same song from different releases. Visualises connections. Exports data. Tracks history.</p>
-        </div>
-        <div class="hero-actions">
-          <button class="btn-primary" onclick="startSpotifyAuth()">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.208c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 11-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 01.207.856zm1.223-2.722a.78.78 0 01-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 01-.966-.519.781.781 0 01.519-.966c3.632-1.102 8.147-.568 11.228 1.322a.78.78 0 01.256 1.072zm.105-2.835C14.69 9.135 9.9 8.976 7.028 9.833a.937.937 0 11-.544-1.794c3.276-.994 8.724-.802 12.168 1.25a.937.937 0 01-.738 1.578z"/></svg>
-            <span data-i18n="hero.connect">Connect Spotify</span>
-          </button>
-          <button class="btn-ghost" onclick="loadDemo()"><span data-i18n="hero.demo">Try demo</span></button>
-        </div>
-      </div>
-      <div class="hero-right">
-        <div class="feat-row"><span class="feat-num">01</span><div class="feat-body"><div class="feat-title-sm" data-i18n="f1t">Smart dedup</div><div class="feat-desc-sm" data-i18n="f1d">URI + name/artist fuzzy match across all playlists and Liked Songs</div></div></div>
-        <div class="feat-row"><span class="feat-num">02</span><div class="feat-body"><div class="feat-title-sm" data-i18n="f2t">Export</div><div class="feat-desc-sm" data-i18n="f2d">Download duplicate lists as CSV or JSON for your own analysis</div></div></div>
-        <div class="feat-row"><span class="feat-num">03</span><div class="feat-body"><div class="feat-title-sm" data-i18n="f3t">Compare playlists</div><div class="feat-desc-sm" data-i18n="f3d">See exactly which tracks two playlists share</div></div></div>
-        <div class="feat-row"><span class="feat-num">04</span><div class="feat-body"><div class="feat-title-sm" data-i18n="f4t">Overlap finder</div><div class="feat-desc-sm" data-i18n="f4d">Which tracks live in 3, 4, 5+ playlists simultaneously</div></div></div>
-        <div class="feat-row"><span class="feat-num">05</span><div class="feat-body"><div class="feat-title-sm" data-i18n="f5t">Connection graph</div><div class="feat-desc-sm" data-i18n="f5d">Interactive D3 force-graph of how playlists share tracks</div></div></div>
-        <div class="feat-row"><span class="feat-num">06</span><div class="feat-body"><div class="feat-title-sm" data-i18n="f6t">Clean history</div><div class="feat-desc-sm" data-i18n="f6d">Log of every removal — what, when, which playlist</div></div></div>
+  <section class="hero">
+    <div>
+      <div class="hero-eyebrow" data-i18n="hero.eyebrow">Spotify duplicate cleaner</div>
+      <h1 data-i18n-html="hero.title">Wash your<br>playlists <em>clean.</em></h1>
+      <p class="hero-desc" data-i18n="hero.desc">Finds duplicate tracks — exact copies and the same song from different releases. Compares playlists, maps connections, exports everything.</p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="startSpotifyAuth()">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.208c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 11-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 01.207.856zm1.223-2.722a.78.78 0 01-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 01-.966-.519.781.781 0 01.519-.966c3.632-1.102 8.147-.568 11.228 1.322a.78.78 0 01.256 1.072zm.105-2.835C14.69 9.135 9.9 8.976 7.028 9.833a.937.937 0 11-.544-1.794c3.276-.994 8.724-.802 12.168 1.25a.937.937 0 01-.738 1.578z"/></svg>
+          <span data-i18n="hero.connect">Connect Spotify</span>
+        </button>
+        <button class="btn-secondary" onclick="loadDemo()" data-i18n="hero.demo">Try demo</button>
       </div>
     </div>
-  </div>
+    <div class="hero-visual">
+      <div class="hero-card">
+        <div class="hero-card-head">
+          <div class="hc-dot" style="background:#ef4444"></div>
+          <div class="hc-dot" style="background:#f59e0b"></div>
+          <div class="hc-dot" style="background:#22c55e"></div>
+          <span class="hero-scan-badge" data-i18n="hero.scanDone">Scan complete</span>
+        </div>
+        <div class="hero-track-list">
+          <div class="hero-track">
+            <div class="ht-thumb">♪</div>
+            <div class="ht-info"><div class="ht-name">Midnight City</div><div class="ht-artist">M83</div></div>
+            <span class="ht-badge badge-ok" data-i18n="hero.ok">OK</span>
+          </div>
+          <div class="hero-track dupe">
+            <div class="ht-thumb">♪</div>
+            <div class="ht-info"><div class="ht-name">Blinding Lights</div><div class="ht-artist">The Weeknd</div></div>
+            <span class="ht-badge badge-dupe" data-i18n="hero.dupe">DUPE</span>
+          </div>
+          <div class="hero-track dupe">
+            <div class="ht-thumb">♪</div>
+            <div class="ht-info"><div class="ht-name">Blinding Lights (Deluxe)</div><div class="ht-artist">The Weeknd</div></div>
+            <span class="ht-badge badge-dupe" data-i18n="hero.dupe">DUPE</span>
+          </div>
+          <div class="hero-track">
+            <div class="ht-thumb">♪</div>
+            <div class="ht-info"><div class="ht-name">Starboy</div><div class="ht-artist">The Weeknd</div></div>
+            <span class="ht-badge badge-ok" data-i18n="hero.ok">OK</span>
+          </div>
+        </div>
+        <div class="waveform">
+          <span style="--h:35%"></span><span style="--h:72%"></span><span style="--h:48%"></span>
+          <span style="--h:90%"></span><span style="--h:58%"></span><span style="--h:80%"></span>
+          <span style="--h:42%"></span><span style="--h:66%"></span><span style="--h:50%"></span>
+          <span style="--h:78%"></span>
+        </div>
+      </div>
+    </div>
+  </section>
 
+  <section class="features" id="features">
+    <div class="features-inner">
+      <div class="feat"><div class="feat-icon">🔍</div><h3 data-i18n="f1t">Smart dedup</h3><p data-i18n="f1d">URI + fuzzy name/artist match. Handles remasters, live versions, different releases of the same song.</p></div>
+      <div class="feat"><div class="feat-icon">⚙️</div><h3 data-i18n="f2t">Match settings</h3><p data-i18n="f2d">Balanced, strict or fuzzy mode. Toggle remasters, live versions, duration matching — your rules.</p></div>
+      <div class="feat"><div class="feat-icon">🔒</div><h3 data-i18n="f3t">Safe dry-run</h3><p data-i18n="f3d">Preview everything before removing. Nothing changes until you confirm.</p></div>
+      <div class="feat"><div class="feat-icon">🔀</div><h3 data-i18n="f4t">Compare playlists</h3><p data-i18n="f4d">See exactly which tracks two playlists share with overlap percentage.</p></div>
+      <div class="feat"><div class="feat-icon">🕸</div><h3 data-i18n="f5t">Connection graph</h3><p data-i18n="f5d">Interactive D3 force-graph visualising how playlists connect through shared tracks.</p></div>
+      <div class="feat"><div class="feat-icon">📁</div><h3 data-i18n="f6t">Export & history</h3><p data-i18n="f6d">CSV/JSON export per playlist. Full history of every cleanup stored locally.</p></div>
+    </div>
+  </section>
 
+  <section class="roadmap" id="roadmap-section">
+    <div class="roadmap-inner">
+      <p class="roadmap-eyebrow" data-i18n="roadmap.eyebrow">Development roadmap</p>
+      <h2 data-i18n="roadmap.title">From prototype to full Spotify product</h2>
+      <div class="roadmap-grid">
+        <div class="rm-item"><div class="rm-num">01</div><div class="rm-title">Spotify OAuth</div><p class="rm-desc">PKCE login, encrypted session storage, scopes for playlist and library read/write.</p></div>
+        <div class="rm-item"><div class="rm-num">02</div><div class="rm-title">Scanner engine</div><p class="rm-desc">Paginated API traversal with throttling, resumable scans, confidence scoring.</p></div>
+        <div class="rm-item"><div class="rm-num">03</div><div class="rm-title">Safe mutation</div><p class="rm-desc">Dry-run diff, undo snapshot, batch removals, audit log, per-playlist rollback.</p></div>
+        <div class="rm-item"><div class="rm-num">04</div><div class="rm-title">Extended access</div><p class="rm-desc">Spotify quota review for public release. Any user, no setup required.</p></div>
+      </div>
+    </div>
+  </section>
 </div>
 
-<!-- ══════════════════════════════════════
-     APP — LIBRARY
-══════════════════════════════════════ -->
+<!-- ══ APP ══ -->
 <div class="panel" id="appPanel">
   <div class="app-wrap">
-    <div class="user-strip">
-      <div class="user-cell">
-        <div class="user-avatar-sm" id="uAvatar">?</div>
-        <span class="user-name-sm" id="uName">—</span>
-        <span class="user-plan" id="uPlan"></span>
-      </div>
-      <div class="stats-strip" style="flex:1;border-bottom:none;">
-        <div class="stat-cell"><div class="stat-k" data-i18n="stat.playlists">Playlists</div><div class="stat-v" id="sPlaylists">—</div></div>
-        <div class="stat-cell"><div class="stat-k" data-i18n="stat.scanned">Scanned</div><div class="stat-v" id="sTracks">—</div></div>
-        <div class="stat-cell"><div class="stat-k" data-i18n="stat.dupes">Dupes</div><div class="stat-v r" id="sDupes">—</div></div>
-        <div class="stat-cell"><div class="stat-k" data-i18n="stat.affected">Affected</div><div class="stat-v a" id="sAffected">—</div></div>
-      </div>
-      <div class="user-cell user-cell-right">
-        <button class="btn-sm" onclick="logout()" data-i18n="app.logout">LOGOUT</button>
-      </div>
+    <div class="user-bar">
+      <div class="user-avatar" id="uAvatar">?</div>
+      <span class="user-name" id="uName">—</span>
+      <span class="user-plan" id="uPlan"></span>
+      <button class="btn-logout" onclick="logout()" data-i18n="app.logout">Log out</button>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-cell"><div class="stat-label" data-i18n="stat.playlists">Playlists</div><div class="stat-value" id="sPlaylists">—</div></div>
+      <div class="stat-cell"><div class="stat-label" data-i18n="stat.scanned">Scanned</div><div class="stat-value" id="sTracks">—</div></div>
+      <div class="stat-cell"><div class="stat-label" data-i18n="stat.dupes">Duplicates</div><div class="stat-value r" id="sDupes">—</div></div>
+      <div class="stat-cell"><div class="stat-label" data-i18n="stat.affected">Affected</div><div class="stat-value a" id="sAffected">—</div></div>
+    </div>
+    <div class="app-tabs">
+      <button class="app-tab active" onclick="switchTab('tabLibrary',this)" data-i18n="tab.library">Library</button>
+      <button class="app-tab" onclick="switchTab('tabCompare',this)" data-i18n="tab.compare">Compare</button>
+      <button class="app-tab" onclick="switchTab('tabOverlap',this)" data-i18n="tab.overlap">Overlap</button>
+      <button class="app-tab" onclick="switchTab('tabGraph',this)" data-i18n="tab.graph">Graph</button>
+      <button class="app-tab" onclick="switchTab('tabHistory',this)" data-i18n="tab.history">History</button>
     </div>
 
-    <div class="toolbar">
-      <div class="toolbar-search">
-        <input type="text" id="searchInput" oninput="renderPlaylists()">
+    <!-- LIBRARY -->
+    <div class="tab-panel active" id="tabLibrary">
+      <div class="settings-panel">
+        <div class="settings-panel-head" onclick="toggleSettings()">
+          <span class="settings-panel-title" data-i18n="settings.title">⚙ Match settings</span>
+          <span style="font-size:12px;color:var(--text3)" id="settingsToggleLabel">show</span>
+        </div>
+        <div id="settingsBody" class="settings-grid">
+          <div class="setting-item">
+            <div class="setting-label" data-i18n="settings.mode">Matching mode</div>
+            <select class="setting-select" id="matchMode" onchange="rerenderAll()">
+              <option value="balanced" data-i18n="settings.balanced">Balanced</option>
+              <option value="strict" data-i18n="settings.strict">Strict (URI only)</option>
+              <option value="fuzzy" data-i18n="settings.fuzzy">Fuzzy (name + artist)</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label" data-i18n="settings.options">Options</div>
+            <div class="setting-checks">
+              <label class="setting-check"><input type="checkbox" id="optRemasters" checked onchange="rerenderAll()"><span data-i18n="settings.remasters">Treat remasters as duplicates</span></label>
+              <label class="setting-check"><input type="checkbox" id="optLive" onchange="rerenderAll()"><span data-i18n="settings.live">Group live / acoustic versions</span></label>
+              <label class="setting-check"><input type="checkbox" id="optDryRun" checked><span data-i18n="settings.dryRun">Dry-run (preview only, no changes)</span></label>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="toolbar-segs">
-        <button class="seg-btn on" onclick="setSortMode('default',this)" data-i18n="sort.all">ALL</button>
-        <button class="seg-btn" onclick="setSortMode('dupes',this)" data-i18n="sort.dupes">MOST DUPES</button>
-        <button class="seg-btn" onclick="setSortMode('dirty',this)" data-i18n="sort.dirty">DIRTY</button>
+      <div class="toolbar">
+        <div class="toolbar-search"><input type="text" id="searchInput" oninput="renderPlaylists()"></div>
+        <div class="seg-group">
+          <button class="seg-btn active" onclick="setSortMode('default',this)" data-i18n="sort.all">All</button>
+          <button class="seg-btn" onclick="setSortMode('dupes',this)" data-i18n="sort.dupes">Most dupes</button>
+          <button class="seg-btn" onclick="setSortMode('dirty',this)" data-i18n="sort.dirty">Dirty only</button>
+        </div>
+        <button class="btn-scan-all" id="scanAllBtn" onclick="scanAll()">⚡ <span data-i18n="app.scanAll">Scan all</span></button>
       </div>
-      <button class="btn-scan-all" id="scanAllBtn" onclick="scanAll()">⚡ <span data-i18n="app.scanAll">SCAN ALL</span></button>
-    </div>
-
-    <div id="plLoadingState" class="loading-state"><span class="spin"></span><span data-i18n="app.loading">Loading playlists…</span></div>
-    <div id="plTable" class="hidden">
-      <div class="pl-table">
+      <div id="plLoadingState" class="loading-state hidden"><span class="spin"></span><span data-i18n="app.loading">Loading…</span></div>
+      <div id="plTable" class="pl-table">
         <div class="pl-thead">
-          <div class="pl-th">#</div>
-          <div class="pl-th" data-i18n="col.playlist">PLAYLIST</div>
-          <div class="pl-th" style="text-align:center" data-i18n="col.tracks">TRACKS</div>
-          <div class="pl-th" style="text-align:center" data-i18n="col.dupes">DUPES</div>
-          <div class="pl-th" style="text-align:center" data-i18n="col.status">STATUS</div>
-          <div class="pl-th" style="text-align:right" data-i18n="col.actions">ACTIONS</div>
+          <div data-i18n="col.playlist">Playlist</div>
+          <div style="text-align:center" data-i18n="col.tracks">Tracks</div>
+          <div style="text-align:center" data-i18n="col.dupes">Dupes</div>
+          <div style="text-align:center" data-i18n="col.status">Status</div>
+          <div style="text-align:right" data-i18n="col.actions">Actions</div>
         </div>
         <div id="plList"></div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- ══════════════════════════════════════
-     COMPARE
-══════════════════════════════════════ -->
-<div class="panel" id="comparePanel">
-  <div class="feature-panel">
-    <div class="feature-title" data-i18n="compare.title">Playlist comparison</div>
-    <div class="compare-grid">
-      <div class="compare-col">
-        <div class="compare-head">
-          <select class="compare-select" id="cmpLeft" onchange="runCompare()"></select>
+    <!-- COMPARE -->
+    <div class="tab-panel" id="tabCompare">
+      <div class="compare-wrap">
+        <div class="compare-col">
+          <div class="compare-head"><select class="compare-select" id="cmpLeft" onchange="runCompare()"></select></div>
+          <div class="compare-list" id="cmpLeftList"><div class="empty-msg" data-i18n="compare.pick">Select a playlist</div></div>
+          <div class="compare-footer" id="cmpLeftStats"></div>
         </div>
-        <div class="compare-list" id="cmpLeftList"><div class="empty-msg" data-i18n="compare.pick">← Pick a playlist</div></div>
-        <div class="compare-stats" id="cmpLeftStats"></div>
-      </div>
-      <div class="compare-mid">
-        <span class="compare-mid-label" data-i18n="compare.vs">VS</span>
-        <div id="cmpSharedCount" style="font-family:'Unbounded',sans-serif;font-size:18px;font-weight:700;color:var(--green);">—</div>
-        <div style="font-size:9px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;" data-i18n="compare.shared">shared</div>
-      </div>
-      <div class="compare-col">
-        <div class="compare-head">
-          <select class="compare-select" id="cmpRight" onchange="runCompare()"></select>
+        <div class="compare-divider">
+          <span class="compare-vs">VS</span>
+          <span class="compare-shared-num" id="cmpShared">—</span>
+          <span class="compare-shared-label" data-i18n="compare.shared">shared</span>
         </div>
-        <div class="compare-list" id="cmpRightList"><div class="empty-msg" data-i18n="compare.pick">← Pick a playlist</div></div>
-        <div class="compare-stats" id="cmpRightStats"></div>
+        <div class="compare-col">
+          <div class="compare-head"><select class="compare-select" id="cmpRight" onchange="runCompare()"></select></div>
+          <div class="compare-list" id="cmpRightList"><div class="empty-msg" data-i18n="compare.pick">Select a playlist</div></div>
+          <div class="compare-footer" id="cmpRightStats"></div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- ══════════════════════════════════════
-     OVERLAP (3+ playlists)
-══════════════════════════════════════ -->
-<div class="panel" id="multiPanel">
-  <div class="feature-panel">
-    <div class="feature-title" data-i18n="overlap.title">Tracks in 3+ playlists</div>
-    <div style="display:flex;align-items:center;gap:0;border:1px solid var(--line);border-bottom:none;margin-bottom:0;">
-      <span style="font-size:10px;color:var(--dim);padding:0 16px;" data-i18n="overlap.min">Min playlists:</span>
-      <input type="range" min="2" max="8" value="3" id="overlapMin" oninput="renderOverlap()" style="margin:0 12px;">
-      <span id="overlapMinVal" style="font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;color:var(--green);padding-right:16px;">3</span>
+    <!-- OVERLAP -->
+    <div class="tab-panel" id="tabOverlap">
+      <div class="overlap-controls">
+        <label style="font-size:13px;color:var(--text2)" data-i18n="overlap.min">Min playlists:</label>
+        <input type="range" min="2" max="8" value="3" step="1" id="overlapMin" oninput="document.getElementById('overlapMinVal').textContent=this.value;renderOverlap()" style="width:120px;">
+        <span class="overlap-min-val" id="overlapMinVal">3</span>
+      </div>
+      <div id="overlapGrid" class="overlap-grid"></div>
     </div>
-    <div id="multiGrid" class="multi-grid"></div>
-  </div>
-</div>
 
-<!-- ══════════════════════════════════════
-     GRAPH
-══════════════════════════════════════ -->
-<div class="panel" id="graphPanel">
-  <div class="feature-panel">
-    <div class="feature-title" data-i18n="graph.title">Playlist connection graph</div>
-    <div class="graph-controls">
-      <button class="graph-ctrl" onclick="buildGraph()" data-i18n="graph.build">Build graph</button>
-      <button class="graph-ctrl" onclick="resetGraph()" data-i18n="graph.reset">Reset</button>
-      <span style="flex:1;"></span>
-      <span style="font-size:10px;color:var(--dim);padding:0 16px;" id="graphStatus"></span>
-    </div>
-    <svg id="graphCanvas"></svg>
-    <div class="graph-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span data-i18n="graph.legNode">Playlist (size = tracks)</span></div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--line2);border-radius:0;width:20px;height:2px;"></div><span data-i18n="graph.legEdge">Connection (thickness = shared tracks)</span></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     HISTORY
-══════════════════════════════════════ -->
-<div class="panel" id="historyPanel">
-  <div class="feature-panel">
-    <div class="feature-title" style="justify-content:space-between;">
-      <span data-i18n="history.title">Clean history</span>
-      <div style="display:flex;gap:0;align-items:stretch;">
-        <button class="graph-ctrl" onclick="exportHistory('csv')" data-i18n="export.csv">Export CSV</button>
-        <button class="graph-ctrl" onclick="exportHistory('json')" data-i18n="export.json">Export JSON</button>
-        <button class="graph-ctrl" style="color:var(--red);" onclick="clearHistory()" data-i18n="history.clear">Clear</button>
+    <!-- GRAPH -->
+    <div class="tab-panel" id="tabGraph">
+      <div class="graph-area">
+        <div class="graph-toolbar">
+          <button class="btn-primary" style="padding:7px 14px;font-size:12px;" onclick="buildGraph()" data-i18n="graph.build">Build graph</button>
+          <button class="btn-secondary" style="padding:7px 14px;font-size:12px;" onclick="resetGraph()" data-i18n="graph.reset">Reset</button>
+          <span style="font-size:12px;color:var(--text3);margin-left:8px;" id="graphStatus"></span>
+        </div>
+        <svg id="graphCanvas"></svg>
+        <div class="graph-legend">
+          <div class="legend-item"><div class="legend-dot"></div><span data-i18n="graph.legNode">Playlist node (size = track count)</span></div>
+          <div class="legend-item"><div class="legend-line"></div><span data-i18n="graph.legEdge">Connection (thickness = shared tracks)</span></div>
+        </div>
       </div>
     </div>
-    <div id="histTable" class="history-table">
-      <div class="hist-row head">
-        <div class="hist-cell head" data-i18n="hist.date">DATE</div>
-        <div class="hist-cell head" data-i18n="hist.playlist">PLAYLIST</div>
-        <div class="hist-cell head" data-i18n="hist.removed">REMOVED</div>
-        <div class="hist-cell head" data-i18n="hist.kept">KEPT</div>
-        <div class="hist-cell head" data-i18n="hist.mode">MODE</div>
+
+    <!-- HISTORY -->
+    <div class="tab-panel" id="tabHistory">
+      <div style="display:flex;gap:8px;margin-bottom:16px;justify-content:flex-end;">
+        <button class="btn-secondary" style="font-size:12px;padding:7px 12px;" onclick="exportHistory('csv')" data-i18n="export.csv">Export CSV</button>
+        <button class="btn-secondary" style="font-size:12px;padding:7px 12px;" onclick="exportHistory('json')" data-i18n="export.json">Export JSON</button>
+        <button class="btn-secondary" style="font-size:12px;padding:7px 12px;color:var(--red);" onclick="clearHistory()" data-i18n="history.clear">Clear</button>
       </div>
-      <div id="histRows"></div>
+      <div class="hist-table">
+        <div class="hist-thead">
+          <div data-i18n="hist.date">Date</div>
+          <div data-i18n="hist.playlist">Playlist</div>
+          <div data-i18n="hist.removed">Removed</div>
+          <div data-i18n="hist.kept">Kept</div>
+          <div data-i18n="hist.mode">Mode</div>
+        </div>
+        <div id="histRows"></div>
+      </div>
     </div>
   </div>
 </div>
 
 <footer>
-  <span>WASHLIST — <span data-i18n="footer.tagline">Spotify library cleaner</span></span>
-  <a href="https://github.com/StonerHand" target="_blank">made by StonerHand ↗</a>
+  <span>WashList — <span data-i18n="footer.tagline">Spotify library cleaner</span></span>
+  <a href="https://github.com/StonerHand" target="_blank" rel="noreferrer">made by StonerHand ↗</a>
 </footer>
 
 <script>
-// ══════════════════════════════════════════
-// I18N
-// ══════════════════════════════════════════
+// ══ I18N ══
 const LANGS={
   en:{flag:'🇬🇧',name:'EN',
-    'nav.home':'HOME','nav.library':'LIBRARY','nav.compare':'COMPARE','nav.overlap':'OVERLAP','nav.graph':'GRAPH','nav.history':'HISTORY',
-    'hero.eyebrow':'Spotify Library Cleaner',
-    'hero.title':'Your library,<br><em>spotless.</em>',
-    'hero.desc':'Finds duplicate tracks across your playlists — exact copies and the same song from different releases. Visualises connections. Exports data. Tracks history.',
+    'nav.features':'Features','nav.roadmap':'Roadmap',
+    'hero.eyebrow':'Spotify duplicate cleaner',
+    'hero.title':'Wash your<br>playlists <em>clean.</em>',
+    'hero.desc':'Finds duplicate tracks — exact copies and the same song from different releases. Compares playlists, maps connections, exports everything.',
     'hero.connect':'Connect Spotify','hero.demo':'Try demo',
-    'f1t':'Smart dedup','f1d':'URI + name/artist fuzzy match across all playlists and Liked Songs',
-    'f2t':'Export','f2d':'Download duplicate lists as CSV or JSON for your own analysis',
-    'f3t':'Compare playlists','f3d':'See exactly which tracks two playlists share',
-    'f4t':'Overlap finder','f4d':'Which tracks live in 3, 4, 5+ playlists simultaneously',
-    'f5t':'Connection graph','f5d':'Interactive D3 force-graph of how playlists share tracks',
-    'f6t':'Clean history','f6d':'Log of every removal — what, when, which playlist',
-    'setup.title':'Setup','setup.once':'ONE-TIME',
-    'setup.steps':['Go to <a href="https://developer.spotify.com/dashboard" target="_blank">developer.spotify.com/dashboard</a> — create an app','Set Redirect URI to <code id="redirectUriDisplay">this page URL</code>','Copy <strong>Client ID</strong> and paste below'],
-    'setup.placeholder':'Paste Spotify Client ID…',
-    'setup.note':'Client ID stored locally. Never transmitted except to Spotify.',
-    'stat.playlists':'PLAYLISTS','stat.scanned':'SCANNED','stat.dupes':'DUPES','stat.affected':'AFFECTED',
-    'app.logout':'LOGOUT','app.scanAll':'SCAN ALL','app.loading':'Loading playlists…',
-    'sort.all':'ALL','sort.dupes':'MOST DUPES','sort.dirty':'DIRTY ONLY',
-    'col.playlist':'PLAYLIST','col.tracks':'TRACKS','col.dupes':'DUPES','col.status':'STATUS','col.actions':'ACTIONS',
-    'pl.scan':'SCAN','pl.scanning':'SCANNING','pl.rescan':'RESCAN','pl.view':'VIEW DUPES',
-    'pl.tracks':'tracks','status.idle':'—','status.scanning':'SCANNING','status.clean':'CLEAN','status.dirty':(n)=>`${n} DUPES`,
-    'dupe.exact':'EXACT COPY','dupe.similar':'DIFF RELEASE',
-    'dupe.keep':'KEEP','dupe.remove':'DEL',
-    'dupe.keepLabel':'Keep:','dupe.keepFirst':'First added','dupe.keepLast':'Last added',
-    'dupe.collapse':'COLLAPSE','dupe.removeBtn':(n)=>`REMOVE ${n}`,'dupe.removing':'REMOVING…',
-    'dupe.added':'added',
+    'hero.scanDone':'Scan complete','hero.ok':'OK','hero.dupe':'DUPE',
+    'f1t':'Smart dedup','f1d':'URI + fuzzy name/artist match. Handles remasters, live versions, different releases.',
+    'f2t':'Match settings','f2d':'Balanced, strict or fuzzy mode. Toggle remasters, live, duration — your rules.',
+    'f3t':'Safe dry-run','f3d':'Preview everything before removing. Nothing changes until you confirm.',
+    'f4t':'Compare playlists','f4d':'See exactly which tracks two playlists share with overlap percentage.',
+    'f5t':'Connection graph','f5d':'Interactive D3 force-graph of how playlists connect through shared tracks.',
+    'f6t':'Export & history','f6d':'CSV/JSON export per playlist. Full history stored locally.',
+    'roadmap.eyebrow':'Development roadmap','roadmap.title':'From prototype to full Spotify product',
+    'settings.title':'⚙ Match settings','settings.mode':'Matching mode',
+    'settings.balanced':'Balanced','settings.strict':'Strict (URI only)','settings.fuzzy':'Fuzzy (name + artist)',
+    'settings.options':'Options','settings.remasters':'Treat remasters as duplicates',
+    'settings.live':'Group live / acoustic versions','settings.dryRun':'Dry-run (preview only, no changes)',
+    'app.logout':'Log out','app.scanAll':'Scan all','app.loading':'Loading…',
+    'tab.library':'Library','tab.compare':'Compare','tab.overlap':'Overlap','tab.graph':'Graph','tab.history':'History',
+    'stat.playlists':'Playlists','stat.scanned':'Scanned','stat.dupes':'Duplicates','stat.affected':'Affected',
+    'sort.all':'All','sort.dupes':'Most dupes','sort.dirty':'Dirty only',
+    'col.playlist':'Playlist','col.tracks':'Tracks','col.dupes':'Dupes','col.status':'Status','col.actions':'Actions',
+    'pl.scan':'Scan','pl.scanning':'Scanning…','pl.rescan':'Rescan','pl.view':'View dupes','pl.tracks':'tracks',
+    'status.idle':'—','status.scanning':'Scanning','status.clean':'Clean','status.dirty':(n)=>`${n} dupes`,
+    'dupe.exact':'Exact copy','dupe.similar':'Diff release',
+    'dupe.keep':'keep','dupe.remove':'remove',
+    'dupe.keepFirst':'Keep first added','dupe.keepLast':'Keep last added',
     'dupe.groups':(n)=>`${n} duplicate group${n!==1?'s':''}`,
     'dupe.total':(n)=>`${n} duplicate${n!==1?'s':''} total`,
     'dupe.more':(n)=>`…${n} more groups`,
+    'dupe.collapse':'Collapse','dupe.removeBtn':(n)=>`Remove ${n}`,'dupe.removing':'Removing…',
+    'dupe.added':'added','dupe.confidence':'confidence',
     'export.dupes.csv':'CSV','export.dupes.json':'JSON',
-    'compare.title':'Playlist comparison','compare.pick':'← Pick a playlist','compare.vs':'VS','compare.shared':'shared',
-    'compare.onlyLeft':(n)=>`${n} only here`,'compare.onlyRight':(n)=>`${n} only here`,'compare.inBoth':(n)=>`${n} shared`,
-    'overlap.title':'Tracks in 3+ playlists','overlap.min':'Min playlists:','overlap.none':'No tracks found in that many playlists — scan more first.',
-    'graph.title':'Playlist connection graph','graph.build':'BUILD','graph.reset':'RESET',
-    'graph.legNode':'Playlist (size = tracks)','graph.legEdge':'Connection (thickness = shared tracks)',
+    'compare.pick':'Select a playlist','compare.shared':'shared',
+    'compare.onlyLeft':(n)=>`${n} unique here`,'compare.onlyRight':(n)=>`${n} unique here`,'compare.inBoth':(n)=>`${n} shared`,
+    'overlap.min':'Min playlists:','overlap.none':'No tracks found in that many playlists — scan more first.',
+    'graph.build':'Build graph','graph.reset':'Reset',
+    'graph.legNode':'Playlist node (size = track count)','graph.legEdge':'Connection (thickness = shared tracks)',
     'graph.noData':'Scan playlists first, then build the graph.',
-    'history.title':'Clean history','history.clear':'CLEAR','history.empty':'No cleanups yet.',
-    'hist.date':'DATE','hist.playlist':'PLAYLIST','hist.removed':'REMOVED','hist.kept':'KEPT','hist.mode':'MODE',
-    'export.csv':'CSV','export.json':'JSON',
+    'history.title':'Clean history','history.clear':'Clear','history.empty':'No cleanups yet.',
+    'hist.date':'Date','hist.playlist':'Playlist','hist.removed':'Removed','hist.kept':'Kept','hist.mode':'Mode',
+    'export.csv':'Export CSV','export.json':'Export JSON',
     'toast.allDone':'All playlists scanned!',
-    'toast.removed':(n,pl)=>`Removed ${n} duplicate${n!==1?'s':''} from "${pl}"`,
+    'toast.removed':(n,pl)=>`Removed ${n} dupe${n!==1?'s':''} from "${pl}"`,
+    'toast.dryRun':'Dry-run mode — nothing was deleted',
     'toast.noClientId':'Enter your Spotify Client ID first',
-    'toast.authCancel':'Auth cancelled','toast.missingAuth':'Auth data missing — reconnect',
-    'toast.failProfile':(e)=>`Profile load failed: ${e}`,
+    'toast.authCancel':'Auth cancelled','toast.missingAuth':'Auth data missing',
+    'toast.failProfile':(e)=>`Profile error: ${e}`,
     'toast.failScan':(pl,e)=>`Scan failed for "${pl}": ${e}`,
     'toast.failRemove':(e)=>`Remove failed: ${e}`,
-    'toast.disconnected':'Disconnected from Spotify',
-    'toast.demo':'Demo loaded — connect Spotify for real data',
+    'toast.disconnected':'Disconnected','toast.demo':'Demo loaded',
     'footer.tagline':'Spotify library cleaner',
-    'search.placeholder':'search playlists…',
-    'app.playlists':(n)=>`${n} playlists`,
+    'search.placeholder':'Search playlists…',
   },
   ru:{flag:'🇷🇺',name:'RU',
-    'nav.home':'ГЛАВНАЯ','nav.library':'БИБЛИОТЕКА','nav.compare':'СРАВНЕНИЕ','nav.overlap':'ПЕРЕСЕЧЕНИЯ','nav.graph':'ГРАФ','nav.history':'ИСТОРИЯ',
+    'nav.features':'Возможности','nav.roadmap':'Роадмап',
     'hero.eyebrow':'Очиститель Spotify-библиотеки',
-    'hero.title':'Ваша библиотека —<br><em>идеальна.</em>',
-    'hero.desc':'Находит дублирующиеся треки — точные копии и одну песню из разных релизов. Визуализирует связи. Экспортирует данные. Ведёт историю.',
-    'hero.connect':'Войти через Spotify','hero.demo':'Демо-режим',
-    'f1t':'Умный поиск дублей','f1d':'URI + размытое совпадение по названию и артисту во всех плейлистах и Liked Songs',
-    'f2t':'Экспорт','f2d':'Скачать список дублей в CSV или JSON для анализа',
-    'f3t':'Сравнение плейлистов','f3d':'Точное пересечение треков между двумя плейлистами',
-    'f4t':'Поиск пересечений','f4d':'Какие треки есть одновременно в 3, 4, 5+ плейлистах',
-    'f5t':'Граф связей','f5d':'Интерактивный D3-граф того, как плейлисты связаны через общие треки',
-    'f6t':'История очисток','f6d':'Лог каждого удаления — что, когда, из какого плейлиста',
-    'setup.title':'Настройка','setup.once':'ОДИН РАЗ',
-    'setup.steps':['Откройте <a href="https://developer.spotify.com/dashboard" target="_blank">developer.spotify.com/dashboard</a> — создайте приложение','Укажите Redirect URI: <code id="redirectUriDisplay">URL этой страницы</code>','Скопируйте <strong>Client ID</strong> и вставьте ниже'],
-    'setup.placeholder':'Вставьте Spotify Client ID…',
-    'setup.note':'Client ID хранится локально. Никуда не передаётся кроме Spotify.',
-    'stat.playlists':'ПЛЕЙЛИСТЫ','stat.scanned':'ПРОВЕРЕНО','stat.dupes':'ДУБЛИ','stat.affected':'ЗАТРОНУТО',
-    'app.logout':'ВЫЙТИ','app.scanAll':'СКАНИРОВАТЬ ВСЁ','app.loading':'Загружаем плейлисты…',
-    'sort.all':'ВСЕ','sort.dupes':'БОЛЬШЕ ДУБЛЕЙ','sort.dirty':'ТОЛЬКО ГРЯЗНЫЕ',
-    'col.playlist':'ПЛЕЙЛИСТ','col.tracks':'ТРЕКИ','col.dupes':'ДУБЛИ','col.status':'СТАТУС','col.actions':'ДЕЙСТВИЯ',
-    'pl.scan':'СКАНИРОВАТЬ','pl.scanning':'СКАНИРУЮ','pl.rescan':'ЗАНОВО','pl.view':'ПОКАЗАТЬ ДУБЛИ',
-    'pl.tracks':'треков','status.idle':'—','status.scanning':'СКАНИРУЮ','status.clean':'ЧИСТО','status.dirty':(n)=>`${n} ДУБЛЕЙ`,
-    'dupe.exact':'ТОЧНЫЙ ДУБЛЬ','dupe.similar':'ДРУГОЙ РЕЛИЗ',
-    'dupe.keep':'ОСТАВИТЬ','dupe.remove':'УДАЛИТЬ',
-    'dupe.keepLabel':'Оставить:','dupe.keepFirst':'Первый добавленный','dupe.keepLast':'Последний добавленный',
-    'dupe.collapse':'СВЕРНУТЬ','dupe.removeBtn':(n)=>`УДАЛИТЬ ${n}`,'dupe.removing':'УДАЛЯЮ…',
-    'dupe.added':'добавлено',
+    'hero.title':'Чистые плейлисты —<br><em>без лишнего.</em>',
+    'hero.desc':'Находит дубликаты — точные копии и ту же песню из разных релизов. Сравнивает плейлисты, строит граф связей, экспортирует данные.',
+    'hero.connect':'Войти через Spotify','hero.demo':'Демо',
+    'hero.scanDone':'Анализ завершён','hero.ok':'OK','hero.dupe':'ДУБЛЬ',
+    'f1t':'Умный поиск','f1d':'URI + размытое совпадение по названию/артисту. Ремастеры, live-версии, разные релизы.',
+    'f2t':'Настройки матчинга','f2d':'Сбалансировано, строго или гибко. Ремастеры, live, длительность — ваши правила.',
+    'f3t':'Безопасный dry-run','f3d':'Смотрите всё до удаления. Ничего не меняется без подтверждения.',
+    'f4t':'Сравнение плейлистов','f4d':'Точное пересечение треков двух плейлистов с процентом совпадения.',
+    'f5t':'Граф связей','f5d':'Интерактивный D3-граф того, как плейлисты связаны через общие треки.',
+    'f6t':'Экспорт и история','f6d':'CSV/JSON по каждому плейлисту. Полная история очисток локально.',
+    'roadmap.eyebrow':'План разработки','roadmap.title':'От прототипа к полноценному Spotify-продукту',
+    'settings.title':'⚙ Настройки матчинга','settings.mode':'Режим совпадения',
+    'settings.balanced':'Сбалансировано','settings.strict':'Строго (только URI)','settings.fuzzy':'Гибко (название + артист)',
+    'settings.options':'Опции','settings.remasters':'Считать ремастеры дублями',
+    'settings.live':'Группировать live/acoustic версии','settings.dryRun':'Dry-run (только просмотр, без изменений)',
+    'app.logout':'Выйти','app.scanAll':'Сканировать всё','app.loading':'Загружаем…',
+    'tab.library':'Библиотека','tab.compare':'Сравнение','tab.overlap':'Пересечения','tab.graph':'Граф','tab.history':'История',
+    'stat.playlists':'Плейлисты','stat.scanned':'Проверено','stat.dupes':'Дубликаты','stat.affected':'Затронуто',
+    'sort.all':'Все','sort.dupes':'Больше дублей','sort.dirty':'Только грязные',
+    'col.playlist':'Плейлист','col.tracks':'Треки','col.dupes':'Дубли','col.status':'Статус','col.actions':'Действия',
+    'pl.scan':'Сканировать','pl.scanning':'Сканирую…','pl.rescan':'Заново','pl.view':'Дубли','pl.tracks':'треков',
+    'status.idle':'—','status.scanning':'Сканирую','status.clean':'Чисто','status.dirty':(n)=>`${n} дублей`,
+    'dupe.exact':'Точный дубль','dupe.similar':'Другой релиз',
+    'dupe.keep':'оставить','dupe.remove':'удалить',
+    'dupe.keepFirst':'Оставить первый','dupe.keepLast':'Оставить последний',
     'dupe.groups':(n)=>`${n} ${pru(n,'группа','группы','групп')} дублей`,
     'dupe.total':(n)=>`${n} ${pru(n,'дубликат','дубликата','дубликатов')} всего`,
     'dupe.more':(n)=>`…ещё ${n} групп`,
+    'dupe.collapse':'Свернуть','dupe.removeBtn':(n)=>`Удалить ${n}`,'dupe.removing':'Удаляю…',
+    'dupe.added':'добавлено','dupe.confidence':'совпадение',
     'export.dupes.csv':'CSV','export.dupes.json':'JSON',
-    'compare.title':'Сравнение плейлистов','compare.pick':'← Выберите плейлист','compare.vs':'VS','compare.shared':'общих',
-    'compare.onlyLeft':(n)=>`${n} только здесь`,'compare.onlyRight':(n)=>`${n} только здесь`,'compare.inBoth':(n)=>`${n} общих`,
-    'overlap.title':'Треки в 3+ плейлистах','overlap.min':'Мин. плейлистов:','overlap.none':'Нет треков в таком количестве плейлистов — сначала отсканируйте больше.',
-    'graph.title':'Граф связей плейлистов','graph.build':'ПОСТРОИТЬ','graph.reset':'СБРОСИТЬ',
+    'compare.pick':'Выберите плейлист','compare.shared':'общих',
+    'compare.onlyLeft':(n)=>`${n} уникальных`,'compare.onlyRight':(n)=>`${n} уникальных`,'compare.inBoth':(n)=>`${n} общих`,
+    'overlap.min':'Мин. плейлистов:','overlap.none':'Нет треков в таком количестве плейлистов.',
+    'graph.build':'Построить граф','graph.reset':'Сбросить',
     'graph.legNode':'Плейлист (размер = треки)','graph.legEdge':'Связь (толщина = общие треки)',
-    'graph.noData':'Сначала отсканируйте плейлисты, потом стройте граф.',
-    'history.title':'История очисток','history.clear':'ОЧИСТИТЬ','history.empty':'Очисток ещё не было.',
-    'hist.date':'ДАТА','hist.playlist':'ПЛЕЙЛИСТ','hist.removed':'УДАЛЕНО','hist.kept':'ОСТАВЛЕНО','hist.mode':'РЕЖИМ',
+    'graph.noData':'Сначала отсканируйте плейлисты.',
+    'history.title':'История очисток','history.clear':'Очистить','history.empty':'Очисток ещё не было.',
+    'hist.date':'Дата','hist.playlist':'Плейлист','hist.removed':'Удалено','hist.kept':'Оставлено','hist.mode':'Режим',
     'export.csv':'CSV','export.json':'JSON',
     'toast.allDone':'Все плейлисты отсканированы!',
     'toast.removed':(n,pl)=>`Удалено ${n} ${pru(n,'дубликат','дубликата','дубликатов')} из «${pl}»`,
-    'toast.noClientId':'Введите Spotify Client ID',
-    'toast.authCancel':'Авторизация отменена','toast.missingAuth':'Нет данных авторизации — переподключитесь',
-    'toast.failProfile':(e)=>`Ошибка загрузки профиля: ${e}`,
+    'toast.dryRun':'Dry-run режим — ничего не удалено',
+    'toast.noClientId':'Введите Spotify Client ID','toast.authCancel':'Авторизация отменена',
+    'toast.missingAuth':'Нет данных авторизации',
+    'toast.failProfile':(e)=>`Ошибка профиля: ${e}`,
     'toast.failScan':(pl,e)=>`Ошибка сканирования «${pl}»: ${e}`,
     'toast.failRemove':(e)=>`Ошибка удаления: ${e}`,
-    'toast.disconnected':'Отключено от Spotify',
-    'toast.demo':'Демо загружено — подключите Spotify для реальных данных',
+    'toast.disconnected':'Отключено','toast.demo':'Демо загружено',
     'footer.tagline':'очиститель Spotify-библиотеки',
-    'search.placeholder':'поиск плейлистов…',
-    'app.playlists':(n)=>`${n} ${pru(n,'плейлист','плейлиста','плейлистов')}`,
+    'search.placeholder':'Поиск плейлистов…',
   },
   de:{flag:'🇩🇪',name:'DE',
-    'nav.home':'START','nav.library':'BIBLIOTHEK','nav.compare':'VERGLEICH','nav.overlap':'ÜBERLAPPUNG','nav.graph':'GRAPH','nav.history':'VERLAUF',
-    'hero.eyebrow':'Spotify-Bibliothek Bereiniger',
-    'hero.title':'Deine Bibliothek,<br><em>makellos.</em>',
-    'hero.desc':'Findet Duplikate in deinen Playlists — exakte Kopien und denselben Song aus verschiedenen Releases. Visualisiert Verbindungen. Exportiert Daten.',
-    'hero.connect':'Spotify verbinden','hero.demo':'Demo ansehen',
-    'f1t':'Smarte Erkennung','f1d':'URI + Fuzzy-Matching nach Name/Künstler in allen Playlists',
-    'f2t':'Export','f2d':'Duplikatliste als CSV oder JSON herunterladen',
-    'f3t':'Playlists vergleichen','f3d':'Genau sehen, welche Tracks zwei Playlists teilen',
-    'f4t':'Überlappungen','f4d':'Welche Tracks gleichzeitig in 3, 4, 5+ Playlists sind',
-    'f5t':'Verbindungsgraph','f5d':'Interaktiver D3-Kraftgraph der Playlist-Verbindungen',
-    'f6t':'Bereinigungsverlauf','f6d':'Log jeder Entfernung — was, wann, welche Playlist',
-    'setup.title':'Einrichtung','setup.once':'EINMALIG',
-    'setup.steps':['Gehe zu <a href="https://developer.spotify.com/dashboard" target="_blank">developer.spotify.com/dashboard</a> — App erstellen','Redirect URI auf <code id="redirectUriDisplay">diese Seite</code> setzen','<strong>Client ID</strong> kopieren und unten einfügen'],
-    'setup.placeholder':'Spotify Client ID einfügen…','setup.note':'Client ID wird lokal gespeichert. Nur an Spotify übertragen.',
-    'stat.playlists':'PLAYLISTS','stat.scanned':'GESCANNT','stat.dupes':'DUPLIKATE','stat.affected':'BETROFFEN',
-    'app.logout':'ABMELDEN','app.scanAll':'ALLES SCANNEN','app.loading':'Playlists laden…',
-    'sort.all':'ALLE','sort.dupes':'MEISTE DUPL.','sort.dirty':'NUR SCHMUTZIG',
-    'col.playlist':'PLAYLIST','col.tracks':'TRACKS','col.dupes':'DUPL.','col.status':'STATUS','col.actions':'AKTIONEN',
-    'pl.scan':'SCANNEN','pl.scanning':'SCANNT','pl.rescan':'NEU SCANNEN','pl.view':'DUPLIKATE',
-    'pl.tracks':'Tracks','status.idle':'—','status.scanning':'SCANNT','status.clean':'SAUBER','status.dirty':(n)=>`${n} DUPL.`,
-    'dupe.exact':'EXAKTES DUPLIKAT','dupe.similar':'AND. RELEASE',
-    'dupe.keep':'BEHALTEN','dupe.remove':'LÖSCHEN',
-    'dupe.keepLabel':'Behalten:','dupe.keepFirst':'Zuerst hinzugefügt','dupe.keepLast':'Zuletzt hinzugefügt',
-    'dupe.collapse':'ZUKLAPPEN','dupe.removeBtn':(n)=>`${n} ENTFERNEN`,'dupe.removing':'ENTFERNT…',
-    'dupe.added':'hinzugefügt',
+    'nav.features':'Funktionen','nav.roadmap':'Roadmap',
+    'hero.eyebrow':'Spotify Bibliothek Bereiniger',
+    'hero.title':'Playlists <em>sauber</em><br>waschen.',
+    'hero.desc':'Findet Duplikate — exakte Kopien und denselben Song aus verschiedenen Releases. Vergleicht Playlists, erstellt Verbindungsgraphen, exportiert alles.',
+    'hero.connect':'Mit Spotify verbinden','hero.demo':'Demo',
+    'hero.scanDone':'Scan abgeschlossen','hero.ok':'OK','hero.dupe':'DUPLIKAT',
+    'f1t':'Intelligente Erkennung','f1d':'URI + Fuzzy-Matching. Remasters, Live-Versionen, verschiedene Releases.',
+    'f2t':'Match-Einstellungen','f2d':'Ausgewogen, streng oder flexibel. Remasters, Live, Dauer — deine Regeln.',
+    'f3t':'Sicherer Dry-Run','f3d':'Alles vorher prüfen. Nichts ändert sich ohne Bestätigung.',
+    'f4t':'Playlists vergleichen','f4d':'Exakte gemeinsame Tracks zweier Playlists mit Überlappungsprozent.',
+    'f5t':'Verbindungsgraph','f5d':'Interaktiver D3 Force-Graph der Playlist-Verbindungen.',
+    'f6t':'Export & Verlauf','f6d':'CSV/JSON pro Playlist. Vollständiger Bereinigungsverlauf lokal.',
+    'roadmap.eyebrow':'Entwicklungs-Roadmap','roadmap.title':'Vom Prototyp zum vollständigen Spotify-Produkt',
+    'settings.title':'⚙ Match-Einstellungen','settings.mode':'Matching-Modus',
+    'settings.balanced':'Ausgewogen','settings.strict':'Streng (nur URI)','settings.fuzzy':'Flexibel (Name + Künstler)',
+    'settings.options':'Optionen','settings.remasters':'Remasters als Duplikate behandeln',
+    'settings.live':'Live/Acoustic-Versionen gruppieren','settings.dryRun':'Dry-Run (nur Vorschau)',
+    'app.logout':'Abmelden','app.scanAll':'Alles scannen','app.loading':'Lade…',
+    'tab.library':'Bibliothek','tab.compare':'Vergleich','tab.overlap':'Überlappung','tab.graph':'Graph','tab.history':'Verlauf',
+    'stat.playlists':'Playlists','stat.scanned':'Gescannt','stat.dupes':'Duplikate','stat.affected':'Betroffen',
+    'sort.all':'Alle','sort.dupes':'Meiste Dupl.','sort.dirty':'Nur schmutzig',
+    'col.playlist':'Playlist','col.tracks':'Tracks','col.dupes':'Dupl.','col.status':'Status','col.actions':'Aktionen',
+    'pl.scan':'Scannen','pl.scanning':'Scannt…','pl.rescan':'Neu scannen','pl.view':'Duplikate','pl.tracks':'Tracks',
+    'status.idle':'—','status.scanning':'Scannt','status.clean':'Sauber','status.dirty':(n)=>`${n} Dupl.`,
+    'dupe.exact':'Exaktes Duplikat','dupe.similar':'And. Release',
+    'dupe.keep':'behalten','dupe.remove':'löschen',
+    'dupe.keepFirst':'Erstes behalten','dupe.keepLast':'Letztes behalten',
     'dupe.groups':(n)=>`${n} Duplikatgruppe${n!==1?'n':''}`,
     'dupe.total':(n)=>`${n} Duplikat${n!==1?'e':''} gesamt`,
-    'dupe.more':(n)=>`…${n} weitere Gruppen`,
+    'dupe.more':(n)=>`…${n} weitere`,
+    'dupe.collapse':'Zuklappen','dupe.removeBtn':(n)=>`${n} entfernen`,'dupe.removing':'Entfernt…',
+    'dupe.added':'hinzugefügt','dupe.confidence':'Übereinstimmung',
     'export.dupes.csv':'CSV','export.dupes.json':'JSON',
-    'compare.title':'Playlist-Vergleich','compare.pick':'← Playlist wählen','compare.vs':'VS','compare.shared':'gemeinsam',
-    'compare.onlyLeft':(n)=>`${n} nur hier`,'compare.onlyRight':(n)=>`${n} nur hier`,'compare.inBoth':(n)=>`${n} gemeinsam`,
-    'overlap.title':'Tracks in 3+ Playlists','overlap.min':'Min. Playlists:','overlap.none':'Keine Tracks gefunden — mehr zuerst scannen.',
-    'graph.title':'Playlist-Verbindungsgraph','graph.build':'ERSTELLEN','graph.reset':'ZURÜCKSETZEN',
-    'graph.legNode':'Playlist (Größe = Tracks)','graph.legEdge':'Verbindung (Dicke = gemeinsame Tracks)',
-    'graph.noData':'Zuerst Playlists scannen, dann Graph erstellen.',
-    'history.title':'Bereinigungsverlauf','history.clear':'LÖSCHEN','history.empty':'Noch keine Bereinigungen.',
-    'hist.date':'DATUM','hist.playlist':'PLAYLIST','hist.removed':'ENTFERNT','hist.kept':'BEHALTEN','hist.mode':'MODUS',
+    'compare.pick':'Playlist wählen','compare.shared':'gemeinsam',
+    'compare.onlyLeft':(n)=>`${n} einzigartig`,'compare.onlyRight':(n)=>`${n} einzigartig`,'compare.inBoth':(n)=>`${n} gemeinsam`,
+    'overlap.min':'Min. Playlists:','overlap.none':'Keine Tracks in so vielen Playlists.',
+    'graph.build':'Graph erstellen','graph.reset':'Zurücksetzen',
+    'graph.legNode':'Playlist-Knoten (Größe = Tracks)','graph.legEdge':'Verbindung (Dicke = gemeinsame Tracks)',
+    'graph.noData':'Zuerst Playlists scannen.',
+    'history.title':'Bereinigungsverlauf','history.clear':'Löschen','history.empty':'Noch keine Bereinigungen.',
+    'hist.date':'Datum','hist.playlist':'Playlist','hist.removed':'Entfernt','hist.kept':'Behalten','hist.mode':'Modus',
     'export.csv':'CSV','export.json':'JSON',
     'toast.allDone':'Alle Playlists gescannt!',
     'toast.removed':(n,pl)=>`${n} Duplikat${n!==1?'e':''} aus "${pl}" entfernt`,
-    'toast.noClientId':'Bitte zuerst Spotify Client ID eingeben',
-    'toast.authCancel':'Auth abgebrochen','toast.missingAuth':'Auth-Daten fehlen — neu verbinden',
+    'toast.dryRun':'Dry-Run — nichts wurde gelöscht',
+    'toast.noClientId':'Bitte Client ID eingeben','toast.authCancel':'Auth abgebrochen',
+    'toast.missingAuth':'Auth-Daten fehlen',
     'toast.failProfile':(e)=>`Profil-Fehler: ${e}`,
     'toast.failScan':(pl,e)=>`Scan-Fehler für "${pl}": ${e}`,
-    'toast.failRemove':(e)=>`Entfernen fehlgeschlagen: ${e}`,
-    'toast.disconnected':'Von Spotify getrennt',
-    'toast.demo':'Demo geladen — Spotify verbinden für echte Daten',
-    'footer.tagline':'Spotify-Bibliothek Bereiniger',
+    'toast.failRemove':(e)=>`Fehler beim Entfernen: ${e}`,
+    'toast.disconnected':'Getrennt','toast.demo':'Demo geladen',
+    'footer.tagline':'Spotify Bibliothek Bereiniger',
     'search.placeholder':'Playlists suchen…',
-    'app.playlists':(n)=>`${n} Playlist${n!==1?'s':''}`,
   },
   es:{flag:'🇪🇸',name:'ES',
-    'nav.home':'INICIO','nav.library':'BIBLIOTECA','nav.compare':'COMPARAR','nav.overlap':'SOLAPAMIENTO','nav.graph':'GRAFO','nav.history':'HISTORIAL',
+    'nav.features':'Funciones','nav.roadmap':'Hoja de ruta',
     'hero.eyebrow':'Limpiador de biblioteca Spotify',
-    'hero.title':'Tu biblioteca,<br><em>impecable.</em>',
-    'hero.desc':'Encuentra pistas duplicadas en tus listas — copias exactas y la misma canción de diferentes lanzamientos. Visualiza conexiones. Exporta datos.',
-    'hero.connect':'Conectar Spotify','hero.demo':'Ver demo',
-    'f1t':'Búsqueda inteligente','f1d':'URI + coincidencia difusa por nombre/artista en todas las listas',
-    'f2t':'Exportar','f2d':'Descarga la lista de duplicados en CSV o JSON',
-    'f3t':'Comparar listas','f3d':'Ve exactamente qué pistas comparten dos listas',
-    'f4t':'Solapamientos','f4d':'Qué pistas están en 3, 4, 5+ listas a la vez',
-    'f5t':'Grafo de conexiones','f5d':'Grafo de fuerzas D3 interactivo de conexiones entre listas',
-    'f6t':'Historial de limpieza','f6d':'Registro de cada eliminación — qué, cuándo, de qué lista',
-    'setup.title':'Configuración','setup.once':'UNA VEZ',
-    'setup.steps':['Ve a <a href="https://developer.spotify.com/dashboard" target="_blank">developer.spotify.com/dashboard</a> — crea una app','Pon el Redirect URI en <code id="redirectUriDisplay">la URL de esta página</code>','Copia tu <strong>Client ID</strong> y pégalo abajo'],
-    'setup.placeholder':'Pega el Spotify Client ID…','setup.note':'El Client ID se guarda localmente. Solo se envía a Spotify.',
-    'stat.playlists':'LISTAS','stat.scanned':'ANALIZADAS','stat.dupes':'DUPLICADOS','stat.affected':'AFECTADAS',
-    'app.logout':'SALIR','app.scanAll':'ANALIZAR TODO','app.loading':'Cargando listas…',
-    'sort.all':'TODAS','sort.dupes':'MÁS DUPLICADOS','sort.dirty':'SOLO SUCIAS',
-    'col.playlist':'LISTA','col.tracks':'PISTAS','col.dupes':'DUPL.','col.status':'ESTADO','col.actions':'ACCIONES',
-    'pl.scan':'ANALIZAR','pl.scanning':'ANALIZANDO','pl.rescan':'RE-ANALIZAR','pl.view':'VER DUPL.',
-    'pl.tracks':'pistas','status.idle':'—','status.scanning':'ANALIZANDO','status.clean':'LIMPIA','status.dirty':(n)=>`${n} DUPL.`,
-    'dupe.exact':'COPIA EXACTA','dupe.similar':'OTRO LANZAMIENTO',
-    'dupe.keep':'CONSERVAR','dupe.remove':'ELIMINAR',
-    'dupe.keepLabel':'Conservar:','dupe.keepFirst':'Primero añadido','dupe.keepLast':'Último añadido',
-    'dupe.collapse':'CERRAR','dupe.removeBtn':(n)=>`ELIMINAR ${n}`,'dupe.removing':'ELIMINANDO…',
-    'dupe.added':'añadido',
+    'hero.title':'Lava tus playlists<br><em>de verdad.</em>',
+    'hero.desc':'Encuentra duplicados — copias exactas y la misma canción de distintos lanzamientos. Compara listas, visualiza conexiones, exporta todo.',
+    'hero.connect':'Conectar Spotify','hero.demo':'Demo',
+    'hero.scanDone':'Análisis completo','hero.ok':'OK','hero.dupe':'DUPL.',
+    'f1t':'Búsqueda inteligente','f1d':'URI + coincidencia difusa. Remasters, versiones en vivo, distintos lanzamientos.',
+    'f2t':'Ajustes de coincidencia','f2d':'Equilibrado, estricto o flexible. Remasters, en vivo, duración — tus reglas.',
+    'f3t':'Dry-run seguro','f3d':'Previsualiza todo antes de eliminar. Nada cambia sin confirmación.',
+    'f4t':'Comparar listas','f4d':'Pistas compartidas entre dos listas con porcentaje de solapamiento.',
+    'f5t':'Grafo de conexiones','f5d':'Grafo D3 interactivo de cómo las listas se conectan por pistas compartidas.',
+    'f6t':'Exportar e historial','f6d':'CSV/JSON por lista. Historial completo almacenado localmente.',
+    'roadmap.eyebrow':'Hoja de ruta','roadmap.title':'Del prototipo al producto Spotify completo',
+    'settings.title':'⚙ Ajustes de coincidencia','settings.mode':'Modo de coincidencia',
+    'settings.balanced':'Equilibrado','settings.strict':'Estricto (solo URI)','settings.fuzzy':'Flexible (nombre + artista)',
+    'settings.options':'Opciones','settings.remasters':'Tratar remasters como duplicados',
+    'settings.live':'Agrupar versiones en vivo/acústicas','settings.dryRun':'Dry-run (solo vista previa)',
+    'app.logout':'Cerrar sesión','app.scanAll':'Analizar todo','app.loading':'Cargando…',
+    'tab.library':'Biblioteca','tab.compare':'Comparar','tab.overlap':'Solapamiento','tab.graph':'Grafo','tab.history':'Historial',
+    'stat.playlists':'Listas','stat.scanned':'Analizadas','stat.dupes':'Duplicados','stat.affected':'Afectadas',
+    'sort.all':'Todas','sort.dupes':'Más duplicados','sort.dirty':'Solo sucias',
+    'col.playlist':'Lista','col.tracks':'Pistas','col.dupes':'Dupl.','col.status':'Estado','col.actions':'Acciones',
+    'pl.scan':'Analizar','pl.scanning':'Analizando…','pl.rescan':'Re-analizar','pl.view':'Ver dupl.','pl.tracks':'pistas',
+    'status.idle':'—','status.scanning':'Analizando','status.clean':'Limpia','status.dirty':(n)=>`${n} dupl.`,
+    'dupe.exact':'Copia exacta','dupe.similar':'Otro lanzamiento',
+    'dupe.keep':'conservar','dupe.remove':'eliminar',
+    'dupe.keepFirst':'Conservar primero','dupe.keepLast':'Conservar último',
     'dupe.groups':(n)=>`${n} grupo${n!==1?'s':''} de duplicados`,
     'dupe.total':(n)=>`${n} duplicado${n!==1?'s':''} en total`,
-    'dupe.more':(n)=>`…${n} grupos más`,
+    'dupe.more':(n)=>`…${n} más`,
+    'dupe.collapse':'Cerrar','dupe.removeBtn':(n)=>`Eliminar ${n}`,'dupe.removing':'Eliminando…',
+    'dupe.added':'añadido','dupe.confidence':'coincidencia',
     'export.dupes.csv':'CSV','export.dupes.json':'JSON',
-    'compare.title':'Comparación de listas','compare.pick':'← Elige una lista','compare.vs':'VS','compare.shared':'compartidas',
-    'compare.onlyLeft':(n)=>`${n} solo aquí`,'compare.onlyRight':(n)=>`${n} solo aquí`,'compare.inBoth':(n)=>`${n} compartidas`,
-    'overlap.title':'Pistas en 3+ listas','overlap.min':'Mín. listas:','overlap.none':'No hay pistas en tantas listas — escanea más primero.',
-    'graph.title':'Grafo de conexiones','graph.build':'CONSTRUIR','graph.reset':'REINICIAR',
-    'graph.legNode':'Lista (tamaño = pistas)','graph.legEdge':'Conexión (grosor = pistas compartidas)',
-    'graph.noData':'Escanea listas primero, luego construye el grafo.',
-    'history.title':'Historial de limpieza','history.clear':'LIMPIAR','history.empty':'Aún no hay limpiezas.',
-    'hist.date':'FECHA','hist.playlist':'LISTA','hist.removed':'ELIMINADAS','hist.kept':'CONSERVADAS','hist.mode':'MODO',
+    'compare.pick':'Elige una lista','compare.shared':'compartidas',
+    'compare.onlyLeft':(n)=>`${n} únicas`,'compare.onlyRight':(n)=>`${n} únicas`,'compare.inBoth':(n)=>`${n} compartidas`,
+    'overlap.min':'Mín. listas:','overlap.none':'No hay pistas en tantas listas.',
+    'graph.build':'Construir grafo','graph.reset':'Reiniciar',
+    'graph.legNode':'Nodo de lista (tamaño = pistas)','graph.legEdge':'Conexión (grosor = pistas compartidas)',
+    'graph.noData':'Escanea primero las listas.',
+    'history.title':'Historial de limpieza','history.clear':'Limpiar','history.empty':'Aún no hay limpiezas.',
+    'hist.date':'Fecha','hist.playlist':'Lista','hist.removed':'Eliminadas','hist.kept':'Conservadas','hist.mode':'Modo',
     'export.csv':'CSV','export.json':'JSON',
     'toast.allDone':'¡Todas las listas analizadas!',
     'toast.removed':(n,pl)=>`${n} duplicado${n!==1?'s':''} eliminado${n!==1?'s':''} de "${pl}"`,
-    'toast.noClientId':'Introduce primero tu Spotify Client ID',
-    'toast.authCancel':'Auth cancelada','toast.missingAuth':'Datos de auth faltantes — reconecta',
+    'toast.dryRun':'Modo dry-run — nada fue eliminado',
+    'toast.noClientId':'Introduce el Client ID primero','toast.authCancel':'Auth cancelada',
+    'toast.missingAuth':'Faltan datos de auth',
     'toast.failProfile':(e)=>`Error de perfil: ${e}`,
     'toast.failScan':(pl,e)=>`Error al analizar "${pl}": ${e}`,
     'toast.failRemove':(e)=>`Error al eliminar: ${e}`,
-    'toast.disconnected':'Desconectado de Spotify',
-    'toast.demo':'Demo cargada — conecta Spotify para datos reales',
+    'toast.disconnected':'Desconectado','toast.demo':'Demo cargada',
     'footer.tagline':'limpiador de biblioteca Spotify',
-    'search.placeholder':'buscar listas…',
-    'app.playlists':(n)=>`${n} lista${n!==1?'s':''}`,
+    'search.placeholder':'Buscar listas…',
   }
 };
-
 function pru(n,one,few,many){const m=n%10,h=n%100;if(m===1&&h!==11)return one;if(m>=2&&m<=4&&(h<10||h>=20))return few;return many;}
-
-const LS_LANG='sp_lang';
+const LS_LANG='wl_lang';
 let lang=localStorage.getItem(LS_LANG)||'en';
 function t(k,...a){const v=LANGS[lang]?.[k]??LANGS.en[k];return typeof v==='function'?v(...a):v??k;}
-
 function applyI18n(){
   document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.dataset.i18n));
   document.querySelectorAll('[data-i18n-html]').forEach(el=>el.innerHTML=t(el.dataset.i18nHtml));
   const si=document.getElementById('searchInput');if(si)si.placeholder=t('search.placeholder');
-  const ci=document.getElementById('clientIdInput');if(ci)ci.placeholder=t('setup.placeholder');
-  const steps=document.getElementById('setupSteps');
-  if(steps){steps.innerHTML=(LANGS[lang]['setup.steps']||LANGS.en['setup.steps']).map(s=>`<li><span class="step-n">${'setup.steps'.length}</span><span>${s}</span></li>`).join('');
-    const rd=document.getElementById('redirectUriDisplay');if(rd)rd.textContent=REDIRECT_URI;}
-  // rebuild steps properly
-  if(steps){
-    const arr=LANGS[lang]['setup.steps']||LANGS.en['setup.steps'];
-    steps.innerHTML=arr.map((s,i)=>`<li><span class="step-n">0${i+1}</span><span>${s}</span></li>`).join('');
-    const rd=document.getElementById('redirectUriDisplay');if(rd)rd.textContent=REDIRECT_URI;
-  }
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
+  document.documentElement.lang=lang;
 }
 function setLang(l){lang=l;localStorage.setItem(LS_LANG,l);applyI18n();renderPlaylists();renderHistory();}
 function buildLangSwitcher(){
   document.getElementById('langSwitcher').innerHTML=Object.entries(LANGS).map(([c,d])=>
-    `<button class="lang-btn${c===lang?' active':''}" data-lang="${c}" onclick="setLang('${c}')">${d.flag} ${d.name}</button>`
+    `<button class="lang-btn${c===lang?' active':''}" data-lang="${c}" onclick="setLang('${c}')" title="${d.name}">${d.flag} ${d.name}</button>`
   ).join('');
 }
 
-// ══════════════════════════════════════════
-// SPOTIFY AUTH
-// ══════════════════════════════════════════
+// ══ SETTINGS TOGGLE ══
+let settingsOpen=false;
+function toggleSettings(){
+  settingsOpen=!settingsOpen;
+  document.getElementById('settingsBody').style.display=settingsOpen?'grid':'none';
+  document.getElementById('settingsToggleLabel').textContent=settingsOpen?'hide':'show';
+}
+function rerenderAll(){
+  Object.keys(playlistData).forEach(id=>{
+    if(playlistData[id]?.tracks?.length){
+      const{dupeGroups,dupeCount}=findDupes(playlistData[id].tracks);
+      playlistData[id].dupeGroups=dupeGroups;
+      playlistData[id].dupeCount=dupeCount;
+    }
+  });
+  renderPlaylists();updateStats();
+}
+
+// ══ AUTH ══
 const CLIENT_SCOPES='playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private user-library-read user-library-modify user-read-private user-read-email';
 const REDIRECT_URI=window.location.href.split('?')[0].split('#')[0];
-const LS_TOKEN='sp_token',LS_EXP='sp_exp',LS_CLIENT='sp_client',LS_VER='sp_ver';
-const HARDCODED_CLIENT_ID='5ce8326e147f46b3b11ebc24ac37bf7c';
-
+const LS_TOKEN='wl_token',LS_EXP='wl_exp',LS_VER='wl_ver';
+const CLIENT_ID='5ce8326e147f46b3b11ebc24ac37bf7c';
 let playlists=[],playlistData={},sortMode='default',accessToken=null;
 
 function b64url(a){return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
@@ -1116,24 +1070,20 @@ async function genV(){const a=new Uint8Array(32);crypto.getRandomValues(a);retur
 async function genC(v){return b64url(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v))));}
 
 async function startSpotifyAuth(){
-  const cid=HARDCODED_CLIENT_ID;
-  if(!cid){toast(t('toast.noClientId'),'err');document.getElementById('clientIdInput')?.focus();return;}
-  localStorage.setItem(LS_CLIENT,cid);
   const ver=await genV(),ch=await genC(ver);
   localStorage.setItem(LS_VER,ver);
-  window.location=`https://accounts.spotify.com/authorize?${new URLSearchParams({response_type:'code',client_id:cid,scope:CLIENT_SCOPES,redirect_uri:REDIRECT_URI,code_challenge_method:'S256',code_challenge:ch,state:crypto.randomUUID()})}`;
+  window.location=`https://accounts.spotify.com/authorize?${new URLSearchParams({response_type:'code',client_id:CLIENT_ID,scope:CLIENT_SCOPES,redirect_uri:REDIRECT_URI,code_challenge_method:'S256',code_challenge:ch,state:crypto.randomUUID()})}`;
 }
-
 async function handleCallback(){
   const p=new URLSearchParams(window.location.search);
   const code=p.get('code'),err=p.get('error');
   if(err){toast(t('toast.authCancel'),'inf');history.replaceState({},'',REDIRECT_URI);return;}
   if(!code)return;
-  const cid=localStorage.getItem(LS_CLIENT),ver=localStorage.getItem(LS_VER);
-  if(!cid||!ver){toast(t('toast.missingAuth'),'err');history.replaceState({},'',REDIRECT_URI);return;}
+  const ver=localStorage.getItem(LS_VER);
+  if(!ver){toast(t('toast.missingAuth'),'err');history.replaceState({},'',REDIRECT_URI);return;}
   history.replaceState({},'',REDIRECT_URI);
   try{
-    const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:REDIRECT_URI,client_id:cid,code_verifier:ver})});
+    const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:REDIRECT_URI,client_id:CLIENT_ID,code_verifier:ver})});
     if(!r.ok)throw new Error(await r.text());
     const d=await r.json();
     accessToken=d.access_token;
@@ -1143,27 +1093,15 @@ async function handleCallback(){
     initApp();
   }catch(e){toast('Auth failed: '+e.message,'err');}
 }
+function checkToken(){const tk=localStorage.getItem(LS_TOKEN),ex=parseInt(localStorage.getItem(LS_EXP)||'0');if(tk&&ex>Date.now()+60000){accessToken=tk;return true;}return false;}
+function logout(){localStorage.removeItem(LS_TOKEN);localStorage.removeItem(LS_EXP);accessToken=null;playlists=[];playlistData={};document.getElementById('appPanel').classList.remove('active');document.getElementById('landingPanel').classList.add('active');toast(t('toast.disconnected'),'inf');}
 
-function checkToken(){
-  const tk=localStorage.getItem(LS_TOKEN),ex=parseInt(localStorage.getItem(LS_EXP)||'0');
-  if(tk&&ex>Date.now()+60000){accessToken=tk;return true;}return false;
-}
-function saveClientId(v){if(v.trim())localStorage.setItem(LS_CLIENT,v.trim());}
-function logout(){
-  localStorage.removeItem(LS_TOKEN);localStorage.removeItem(LS_EXP);
-  accessToken=null;playlists=[];playlistData={};
-  showAppTabs(false);switchPanel('landingPanel',document.querySelector('[data-panel="landingPanel"]'));
-  toast(t('toast.disconnected'),'inf');
-}
-
-// ══════════════════════════════════════════
-// API
-// ══════════════════════════════════════════
+// ══ API ══
 async function api(url,opts={},retry=3){
   for(let i=0;i<retry;i++){
     const r=await fetch(url,{...opts,headers:{'Authorization':`Bearer ${accessToken}`,'Content-Type':'application/json',...(opts.headers||{})}});
     if(r.status===429){await sleep((parseInt(r.headers.get('Retry-After'))||1<<i)*1000);continue;}
-    if(!r.ok)throw new Error(`${r.status}: ${await r.text()}`);
+    if(!r.ok)throw new Error(`${r.status}`);
     if(r.status===204)return null;
     return r.json();
   }
@@ -1172,12 +1110,11 @@ async function api(url,opts={},retry=3){
 async function pages(url){let res=[],next=url;while(next){const d=await api(next);res=res.concat(d.items||[]);next=d.next;await sleep(80);}return res;}
 async function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
-// ══════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════
+// ══ INIT ══
 async function initApp(){
-  showAppTabs(true);
-  switchPanel('appPanel',document.getElementById('appTabBtn'));
+  document.getElementById('landingPanel').classList.remove('active');
+  document.getElementById('appPanel').classList.add('active');
+  document.getElementById('plLoadingState').classList.remove('hidden');
   try{
     const me=await api('https://api.spotify.com/v1/me');
     const av=document.getElementById('uAvatar');
@@ -1190,90 +1127,63 @@ async function initApp(){
 }
 
 async function loadPlaylists(){
-  document.getElementById('plLoadingState').classList.remove('hidden');
-  document.getElementById('plTable').classList.add('hidden');
   try{
     const items=await pages('https://api.spotify.com/v1/me/playlists?limit=50');
     playlists=[{id:'liked',name:'Liked Songs',images:[],tracks:{total:0},isLiked:true},...items.filter(p=>p&&p.id)];
     try{const lk=await api('https://api.spotify.com/v1/me/tracks?limit=1');playlists[0].tracks={total:lk.total};}catch(e){}
     document.getElementById('sPlaylists').textContent=playlists.length;
     document.getElementById('plLoadingState').classList.add('hidden');
-    document.getElementById('plTable').classList.remove('hidden');
-    renderPlaylists();
-    populateCompareSelects();
-  }catch(e){toast('Failed to load playlists: '+e.message,'err');}
+    renderPlaylists();populateCompareSelects();
+  }catch(e){toast('Failed: '+e.message,'err');}
 }
 
-function showAppTabs(on){
-  ['appTabBtn','compareTabBtn','multiTabBtn','graphTabBtn','histTabBtn'].forEach(id=>{
-    document.getElementById(id)?.classList.toggle('hidden',!on);
-  });
-}
-
-// ══════════════════════════════════════════
-// PANEL SWITCH
-// ══════════════════════════════════════════
-function switchPanel(id,btn){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+// ══ TAB SWITCH ══
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById(id)?.classList.add('active');
-  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.app-tab').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  if(id==='historyPanel')renderHistory();
-  if(id==='comparePanel')populateCompareSelects();
-  if(id==='multiPanel')renderOverlap();
+  if(id==='tabHistory')renderHistory();
+  if(id==='tabCompare')populateCompareSelects();
+  if(id==='tabOverlap')renderOverlap();
 }
 
-// ══════════════════════════════════════════
-// RENDER PLAYLISTS
-// ══════════════════════════════════════════
+// ══ RENDER ══
 function renderPlaylists(){
   const search=(document.getElementById('searchInput')?.value||'').toLowerCase();
   let list=playlists.filter(p=>!search||p.name.toLowerCase().includes(search));
   if(sortMode==='dupes')list=[...list].sort((a,b)=>(playlistData[b.id]?.dupeCount||0)-(playlistData[a.id]?.dupeCount||0));
   if(sortMode==='dirty')list=list.filter(p=>playlistData[p.id]?.dupeCount>0);
-  const container=document.getElementById('plList');
-  if(!container)return;
+  const container=document.getElementById('plList');if(!container)return;
   container.innerHTML='';
-  if(!list.length){container.innerHTML=`<div class="empty-msg">${t('sort.dirty')==='DIRTY ONLY'?'No playlists with duplicates found.':'No playlists found.'}</div>`;return;}
-  list.forEach((pl,i)=>{
+  if(!list.length){container.innerHTML=`<div class="empty-msg">No playlists found</div>`;return;}
+  list.forEach(pl=>{
     const d=playlistData[pl.id]||{};
     const wrap=document.createElement('div');
-    wrap.style.position='relative';
-
     const cover=pl.images?.[0]?.url;
     const coverHtml=cover?`<div class="pl-thumb"><img src="${cover}" alt=""></div>`:`<div class="pl-thumb">${pl.isLiked?'♥':'♪'}</div>`;
-    const dupeCount=d.dupeCount||0;
-
-    let statusHtml=`<span class="status-badge status-idle">${t('status.idle')}</span>`;
-    if(d.status==='scanning')statusHtml=`<span class="status-badge status-scanning">${t('status.scanning')}</span>`;
-    else if(d.status==='done')statusHtml=dupeCount>0?`<span class="status-badge status-dirty">${typeof t('status.dirty')==='function'?t('status.dirty',dupeCount):dupeCount+' DUPES'}</span>`:`<span class="status-badge status-clean">${t('status.clean')}</span>`;
-
+    const dc=d.dupeCount||0;
+    let statusHtml=`<span class="status-pill s-idle">${t('status.idle')}</span>`;
+    if(d.status==='scanning')statusHtml=`<span class="status-pill s-scanning">${t('status.scanning')}</span>`;
+    else if(d.status==='done')statusHtml=dc>0?`<span class="status-pill s-dirty">${typeof t('status.dirty')==='function'?t('status.dirty',dc):dc+' dupes'}</span>`:`<span class="status-pill s-clean">${t('status.clean')}</span>`;
     let actions='';
     if(!d.status||d.status==='idle')actions=`<button class="act-btn" onclick="scanPlaylist('${pl.id}')">${t('pl.scan')}</button>`;
     else if(d.status==='scanning')actions=`<button class="act-btn" disabled>${t('pl.scanning')}</button>`;
     else if(d.status==='done'){
-      if(dupeCount>0)actions=`<button class="act-btn g" onclick="togglePanel('${pl.id}')">${t('pl.view')}</button>`;
+      if(dc>0)actions=`<button class="act-btn g" onclick="togglePanel('${pl.id}')">${t('pl.view')}</button>`;
       actions+=`<button class="act-btn" onclick="scanPlaylist('${pl.id}')">${t('pl.rescan')}</button>`;
     }
-
-    const progressHtml=d.status==='scanning'?`<div class="pl-progress-bar"><div class="pl-progress-fill" id="prog-${pl.id}" style="width:${d.progress||0}%"></div></div>`:'';
-
+    const progHtml=d.status==='scanning'?`<div class="pl-progress"><div class="pl-progress-fill" id="prog-${pl.id}" style="width:${d.progress||0}%"></div></div>`:'';
     const row=document.createElement('div');
-    row.className='pl-row'+(dupeCount>0?' dirty':'');
-    row.id=`row-${pl.id}`;
+    row.className='pl-row'+(dc>0?' dirty':'');row.id=`row-${pl.id}`;
     row.innerHTML=`
-      <div class="pl-idx">${String(i+1).padStart(2,'0')}</div>
-      <div class="pl-info-cell">${coverHtml}<div class="pl-text"><div class="pl-name-cell">${esc(pl.name)}</div><div class="pl-meta-cell">${pl.tracks.total} ${t('pl.tracks')}</div></div></div>
+      <div class="pl-info">${coverHtml}<div><div class="pl-name">${esc(pl.name)}</div><div class="pl-meta">${pl.tracks.total} ${t('pl.tracks')}${progHtml}</div></div></div>
       <div class="pl-num">${pl.tracks.total}</div>
-      <div class="pl-num ${dupeCount>0?'pos':'zero'}">${d.dupeCount!==undefined?d.dupeCount:'—'}</div>
-      <div class="pl-status-cell">${statusHtml}</div>
-      <div class="pl-actions-cell">${actions}</div>
-      ${progressHtml}`;
+      <div class="pl-num ${dc>0?'pos':'zero'}">${d.dupeCount!==undefined?d.dupeCount:'—'}</div>
+      <div class="pl-status">${statusHtml}</div>
+      <div class="pl-actions">${actions}</div>`;
     wrap.appendChild(row);
-
-    if(d.status==='done'&&dupeCount>0&&d.panelOpen){
-      wrap.appendChild(buildDupePanel(pl));
-    }
+    if(d.status==='done'&&dc>0&&d.panelOpen)wrap.appendChild(buildDupePanel(pl));
     container.appendChild(wrap);
   });
   updateStats();
@@ -1284,30 +1194,31 @@ function buildDupePanel(pl){
   const panel=document.createElement('div');
   panel.className='dupe-panel';panel.id=`panel-${pl.id}`;
   const groups=d.dupeGroups||[];
+  const dryRun=document.getElementById('optDryRun')?.checked;
   let html=`<div class="dupe-panel-head">
     <span class="dupe-panel-title">${t('dupe.groups',groups.length)}</span>
     <span class="dupe-panel-meta">${t('dupe.total',d.dupeCount)}</span>
     <div class="dupe-panel-actions">
-      <button class="btn-export-dupes" onclick="exportDupes('${pl.id}','csv')">${t('export.dupes.csv')}</button>
-      <button class="btn-export-dupes" onclick="exportDupes('${pl.id}','json')">${t('export.dupes.json')}</button>
+      <button class="btn-export-sm" onclick="exportDupes('${pl.id}','csv')">${t('export.dupes.csv')}</button>
+      <button class="btn-export-sm" onclick="exportDupes('${pl.id}','json')">${t('export.dupes.json')}</button>
       <select class="dupe-mode-sel" id="mode-${pl.id}">
         <option value="first">${t('dupe.keepFirst')}</option>
         <option value="last">${t('dupe.keepLast')}</option>
       </select>
-      <button class="btn-remove-dupes" id="rmbtn-${pl.id}" onclick="removeDupes('${pl.id}')">${t('dupe.removeBtn',d.dupeCount)}</button>
-      <button class="btn-export-dupes" onclick="togglePanel('${pl.id}')">${t('dupe.collapse')}</button>
+      <button class="btn-remove-dupes" id="rmbtn-${pl.id}" onclick="removeDupes('${pl.id}')">${t('dupe.removeBtn',d.dupeCount)}${dryRun?' (dry-run)':''}</button>
+      <button class="btn-export-sm" onclick="togglePanel('${pl.id}')">${t('dupe.collapse')}</button>
     </div>
   </div><div class="dupe-list">`;
-
   groups.slice(0,25).forEach(g=>{
-    const art=g.albumArt?`<div class="dupe-art"><img src="${g.albumArt}" alt=""></div>`:`<div class="dupe-art" style="display:flex;align-items:center;justify-content:center;font-size:18px">♪</div>`;
-    const badge=g.type==='similar'?`<span class="dupe-type-badge badge-similar">${t('dupe.similar')}</span>`:`<span class="dupe-type-badge badge-exact">${t('dupe.exact')}</span>`;
-    html+=`<div class="dupe-group-card"><div class="dupe-group-top">${art}<div style="flex:1;min-width:0"><div class="dupe-track-name">${esc(g.name)}</div><div class="dupe-track-artist">${esc(g.artist)}</div></div>${badge}</div><div class="dupe-instances">`;
+    const art=g.albumArt?`<div class="dupe-art"><img src="${g.albumArt}" alt=""></div>`:`<div class="dupe-art" style="display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--bg2)">♪</div>`;
+    const badge=g.type==='similar'?`<span class="dupe-type-badge b-sim">${t('dupe.similar')}</span>`:`<span class="dupe-type-badge b-exact">${t('dupe.exact')}</span>`;
+    const conf=g.confidence||100;
+    html+=`<div class="dupe-card"><div class="dupe-card-head">${art}<div style="flex:1;min-width:0"><div class="dupe-track-name">${esc(g.name)}</div><div class="dupe-artist">${esc(g.artist)}</div><div class="confidence-bar"><div class="confidence-fill" style="width:${conf}%"></div></div></div>${badge}</div><div class="dupe-instances">`;
     g.instances.forEach((inst,i)=>{
       const cls=i===0?'keep':'rem';
       const tag=i===0?`<span class="inst-tag t-keep">${t('dupe.keep')}</span>`:`<span class="inst-tag t-rem">${t('dupe.remove')}</span>`;
       const date=inst.addedAt?new Date(inst.addedAt).toLocaleDateString(lang==='ru'?'ru-RU':lang==='de'?'de-DE':lang==='es'?'es-ES':'en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
-      html+=`<div class="dupe-inst ${cls}"><span class="inst-pos">#${inst.position+1}</span><div class="inst-info"><div>${esc(inst.name||g.name)}</div><div class="inst-album">${esc(inst.album||'')} · ${t('dupe.added')} ${date}</div></div>${tag}</div>`;
+      html+=`<div class="dupe-inst ${cls}"><span class="inst-pos">#${inst.position+1}</span><div class="inst-info"><div style="font-weight:500">${esc(inst.name||g.name)}</div><div class="inst-album">${esc(inst.album||'')} · ${t('dupe.added')} ${date}</div></div>${tag}</div>`;
     });
     html+=`</div></div>`;
   });
@@ -1333,40 +1244,30 @@ function updateStats(){
 
 function setSortMode(mode,btn){
   sortMode=mode;
-  document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  renderPlaylists();
+  document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderPlaylists();
 }
 
-// ══════════════════════════════════════════
-// SCAN
-// ══════════════════════════════════════════
+// ══ SCAN ══
 async function scanAll(){
-  const btn=document.getElementById('scanAllBtn');
-  btn.disabled=true;
+  const btn=document.getElementById('scanAllBtn');btn.disabled=true;
   for(const pl of playlists.filter(p=>playlistData[p.id]?.status!=='done'))await scanPlaylist(pl.id);
-  btn.disabled=false;
-  toast(t('toast.allDone'),'ok');
+  btn.disabled=false;toast(t('toast.allDone'),'ok');
 }
 
 async function scanPlaylist(id){
   const pl=playlists.find(p=>p.id===id);if(!pl)return;
-  playlistData[id]={status:'scanning',progress:0,dupeCount:0};
-  renderPlaylists();
+  playlistData[id]={status:'scanning',progress:0,dupeCount:0};renderPlaylists();
   try{
     const url=pl.isLiked?'https://api.spotify.com/v1/me/tracks?limit=50':`https://api.spotify.com/v1/playlists/${id}/tracks?limit=50`;
-    const tracks=await pagesWithProgress(url,id,pl.tracks.total);
+    const tracks=await pagesProgress(url,id,pl.tracks.total);
     const{dupeGroups,dupeCount}=findDupes(tracks);
     playlistData[id]={status:'done',tracks,dupeGroups,dupeCount,trackCount:tracks.length,panelOpen:dupeCount>0};
     renderPlaylists();
-  }catch(e){
-    playlistData[id]={status:'idle'};
-    toast(t('toast.failScan',pl.name,e.message),'err');
-    renderPlaylists();
-  }
+  }catch(e){playlistData[id]={status:'idle'};toast(t('toast.failScan',pl.name,e.message),'err');renderPlaylists();}
 }
 
-async function pagesWithProgress(url,plId,total){
+async function pagesProgress(url,plId,total){
   let res=[],next=url,fetched=0;
   while(next){
     const d=await api(next);
@@ -1379,46 +1280,51 @@ async function pagesWithProgress(url,plId,total){
   return res;
 }
 
-function norm(s){return(s||'').toLowerCase().replace(/\s*[\(\[].{0,40}[\)\]]\s*/g,'').replace(/\s*-\s*(remaster|remastered|remix|live|acoustic|radio|edit|version|single|feat\.?.*)/gi,'').replace(/[^a-z0-9]/g,'').trim();}
+// ══ DUPE DETECTION ══
+function norm(s){
+  const optR=document.getElementById('optRemasters')?.checked;
+  const optL=document.getElementById('optLive')?.checked;
+  let r=(s||'').toLowerCase();
+  if(optR)r=r.replace(/\s*[\(\[].{0,40}[\)\]]\s*/g,'').replace(/\s*-\s*(remaster|remastered)/gi,'');
+  if(optL)r=r.replace(/\s*-\s*(live|acoustic|unplugged|session)/gi,'');
+  r=r.replace(/\s*-\s*(radio edit|single version|album version)/gi,'');
+  return r.replace(/[^a-z0-9]/g,'').trim();
+}
 
 function findDupes(items){
+  const mode=document.getElementById('matchMode')?.value||'balanced';
   const byUri={},bySim={};const groups=[];let count=0;
   items.forEach((item,idx)=>{
     const t2=item.track;if(!t2||!t2.id)return;
     const sk=norm(t2.name)+'|'+norm(t2.artists?.[0]?.name||'');
     if(!byUri[t2.uri])byUri[t2.uri]=[];byUri[t2.uri].push({idx,item,t:t2});
-    if(!bySim[sk])bySim[sk]=[];bySim[sk].push({idx,item,t:t2,uri:t2.uri});
+    if(mode!=='strict'){if(!bySim[sk])bySim[sk]=[];bySim[sk].push({idx,item,t:t2,uri:t2.uri});}
   });
   Object.entries(byUri).forEach(([,es])=>{
     if(es.length<2)return;const t2=es[0].t;count+=es.length-1;
-    groups.push({type:'exact',name:t2.name,artist:t2.artists?.[0]?.name||'',albumArt:t2.album?.images?.[1]?.url||t2.album?.images?.[0]?.url,instances:es.map(e=>({position:e.idx,addedAt:e.item.added_at,album:e.t.album?.name,name:e.t.name,uri:e.t.uri,trackId:e.t.id}))});
+    groups.push({type:'exact',confidence:100,name:t2.name,artist:t2.artists?.[0]?.name||'',albumArt:t2.album?.images?.[1]?.url||t2.album?.images?.[0]?.url,instances:es.map(e=>({position:e.idx,addedAt:e.item.added_at,album:e.t.album?.name,name:e.t.name,uri:e.t.uri,trackId:e.t.id}))});
   });
-  Object.entries(bySim).forEach(([,es])=>{
+  if(mode!=='strict'){Object.entries(bySim).forEach(([,es])=>{
     const uris=[...new Set(es.map(e=>e.uri))];if(uris.length<2)return;
     const dd=es.filter((e,i,a)=>a.findIndex(x=>x.uri===e.uri)===i);if(dd.length<2)return;
-    const t2=dd[0].t;count+=dd.length-1;
-    groups.push({type:'similar',name:t2.name,artist:t2.artists?.[0]?.name||'',albumArt:t2.album?.images?.[1]?.url||t2.album?.images?.[0]?.url,instances:dd.map(e=>({position:e.idx,addedAt:e.item.added_at,album:e.t.album?.name,name:e.t.name,uri:e.t.uri,trackId:e.t.id}))});
-  });
+    const t2=dd[0].t;const conf=mode==='fuzzy'?75:90;count+=dd.length-1;
+    groups.push({type:'similar',confidence:conf,name:t2.name,artist:t2.artists?.[0]?.name||'',albumArt:t2.album?.images?.[1]?.url||t2.album?.images?.[0]?.url,instances:dd.map(e=>({position:e.idx,addedAt:e.item.added_at,album:e.t.album?.name,name:e.t.name,uri:e.t.uri,trackId:e.t.id}))});
+  });}
   groups.sort((a,b)=>b.instances.length-a.instances.length);
   return{dupeGroups:groups,dupeCount:count};
 }
 
-// ══════════════════════════════════════════
-// REMOVE
-// ══════════════════════════════════════════
+// ══ REMOVE ══
 async function removeDupes(id){
-  const pl=playlists.find(p=>p.id===id),d=playlistData[id];
-  if(!pl||!d)return;
+  const pl=playlists.find(p=>p.id===id),d=playlistData[id];if(!pl||!d)return;
+  const dryRun=document.getElementById('optDryRun')?.checked;
   const mode=document.getElementById(`mode-${id}`)?.value||'first';
   const btn=document.getElementById(`rmbtn-${id}`);
   if(btn){btn.disabled=true;btn.textContent=t('dupe.removing');}
   try{
     const toRemove=[];
-    d.dupeGroups.forEach(g=>{
-      const inst=[...g.instances].sort((a,b)=>a.position-b.position);
-      const keep=mode==='first'?inst[0]:inst[inst.length-1];
-      inst.forEach(i=>{if(i!==keep)toRemove.push(i);});
-    });
+    d.dupeGroups.forEach(g=>{const inst=[...g.instances].sort((a,b)=>a.position-b.position);const keep=mode==='first'?inst[0]:inst[inst.length-1];inst.forEach(i=>{if(i!==keep)toRemove.push(i);});});
+    if(dryRun){toast(t('toast.dryRun'),'inf');if(btn){btn.disabled=false;btn.textContent=t('dupe.removeBtn',d.dupeCount)+' (dry-run)';}return;}
     if(pl.isLiked){
       const ids=toRemove.map(x=>x.trackId).filter(Boolean);
       for(let i=0;i<ids.length;i+=50){await api('https://api.spotify.com/v1/me/tracks',{method:'DELETE',body:JSON.stringify({ids:ids.slice(i,i+50)})});await sleep(200);}
@@ -1430,51 +1336,28 @@ async function removeDupes(id){
     addHistory({date:new Date().toISOString(),playlist:pl.name,removed:toRemove.length,kept:d.trackCount-toRemove.length,mode});
     toast(t('toast.removed',toRemove.length,pl.name),'ok');
     await scanPlaylist(id);
-  }catch(e){
-    toast(t('toast.failRemove',e.message),'err');
-    if(btn){btn.disabled=false;btn.textContent=t('dupe.removeBtn',d.dupeCount);}
-  }
+  }catch(e){toast(t('toast.failRemove',e.message),'err');if(btn){btn.disabled=false;btn.textContent=t('dupe.removeBtn',d.dupeCount);}}
 }
 
-// ══════════════════════════════════════════
-// EXPORT DUPES
-// ══════════════════════════════════════════
+// ══ EXPORT ══
 function exportDupes(id,fmt){
-  const pl=playlists.find(p=>p.id===id),d=playlistData[id];
-  if(!pl||!d)return;
-  const data=d.dupeGroups.flatMap(g=>g.instances.map((inst,i)=>({playlist:pl.name,track:g.name,artist:g.artist,type:g.type,position:inst.position+1,album:inst.album||'',added:inst.addedAt||'',action:i===0?'keep':'remove'})));
-  if(fmt==='json'){dl(JSON.stringify(data,null,2),`washlist-dupes-${pl.name}.json`,'application/json');}
-  else{
-    const rows=[Object.keys(data[0]).join(','),...data.map(r=>Object.values(r).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))];
-    dl(rows.join('\n'),`washlist-dupes-${pl.name}.csv`,'text/csv');
-  }
+  const pl=playlists.find(p=>p.id===id),d=playlistData[id];if(!pl||!d)return;
+  const data=d.dupeGroups.flatMap(g=>g.instances.map((inst,i)=>({playlist:pl.name,track:g.name,artist:g.artist,type:g.type,confidence:g.confidence,position:inst.position+1,album:inst.album||'',added:inst.addedAt||'',action:i===0?'keep':'remove'})));
+  if(fmt==='json')dl(JSON.stringify(data,null,2),`washlist-dupes-${pl.name}.json`,'application/json');
+  else{const rows=[Object.keys(data[0]).join(','),...data.map(r=>Object.values(r).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))];dl(rows.join('\n'),`washlist-dupes-${pl.name}.csv`,'text/csv');}
 }
+function dl(content,filename,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=filename;a.click();URL.revokeObjectURL(a.href);}
 
-function dl(content,filename,type){
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([content],{type}));
-  a.download=filename;a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-// ══════════════════════════════════════════
-// HISTORY
-// ══════════════════════════════════════════
-const LS_HIST='sp_history';
+// ══ HISTORY ══
+const LS_HIST='wl_history';
 function getHistory(){try{return JSON.parse(localStorage.getItem(LS_HIST)||'[]');}catch(e){return[];}}
-function addHistory(entry){const h=getHistory();h.unshift(entry);localStorage.setItem(LS_HIST,JSON.stringify(h.slice(0,200)));}
+function addHistory(e){const h=getHistory();h.unshift(e);localStorage.setItem(LS_HIST,JSON.stringify(h.slice(0,200)));}
 function clearHistory(){localStorage.removeItem(LS_HIST);renderHistory();}
 function renderHistory(){
   const rows=document.getElementById('histRows');if(!rows)return;
   const h=getHistory();
-  if(!h.length){rows.innerHTML=`<div class="empty-msg">${t('history.empty')}</div>`;return;}
-  rows.innerHTML=h.map(e=>`<div class="hist-row">
-    <div class="hist-cell mono">${new Date(e.date).toLocaleDateString()}</div>
-    <div class="hist-cell">${esc(e.playlist)}</div>
-    <div class="hist-cell r">−${e.removed}</div>
-    <div class="hist-cell g">${e.kept}</div>
-    <div class="hist-cell mono">${e.mode}</div>
-  </div>`).join('');
+  if(!h.length){rows.innerHTML=`<div class="hist-empty">${t('history.empty')}</div>`;return;}
+  rows.innerHTML=h.map(e=>`<div class="hist-row"><div class="hist-mono">${new Date(e.date).toLocaleDateString()}</div><div style="font-weight:500">${esc(e.playlist)}</div><div class="hist-r">−${e.removed}</div><div class="hist-g">${e.kept}</div><div class="hist-mono">${e.mode}</div></div>`).join('');
 }
 function exportHistory(fmt){
   const h=getHistory();if(!h.length)return;
@@ -1482,12 +1365,10 @@ function exportHistory(fmt){
   else{const rows=[['date','playlist','removed','kept','mode'].join(','),...h.map(e=>[e.date,`"${e.playlist}"`,e.removed,e.kept,e.mode].join(','))];dl(rows.join('\n'),'washlist-history.csv','text/csv');}
 }
 
-// ══════════════════════════════════════════
-// COMPARE
-// ══════════════════════════════════════════
+// ══ COMPARE ══
 function populateCompareSelects(){
-  ['cmpLeft','cmpRight'].forEach(selId=>{
-    const sel=document.getElementById(selId);if(!sel)return;
+  ['cmpLeft','cmpRight'].forEach(sid=>{
+    const sel=document.getElementById(sid);if(!sel)return;
     const prev=sel.value;
     sel.innerHTML=playlists.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
     if(prev&&playlists.find(p=>p.id===prev))sel.value=prev;
@@ -1497,186 +1378,117 @@ function runCompare(){
   const lid=document.getElementById('cmpLeft')?.value,rid=document.getElementById('cmpRight')?.value;
   if(!lid||!rid||lid===rid)return;
   const ld=playlistData[lid],rd=playlistData[rid];
-  const lList=document.getElementById('cmpLeftList'),rList=document.getElementById('cmpRightList');
-  const lStats=document.getElementById('cmpLeftStats'),rStats=document.getElementById('cmpRightStats');
-  const sharedEl=document.getElementById('cmpSharedCount');
-  if(!ld?.tracks||!rd?.tracks){lList.innerHTML=`<div class="empty-msg">Scan this playlist first</div>`;rList.innerHTML=`<div class="empty-msg">Scan this playlist first</div>`;sharedEl.textContent='—';return;}
-  const lKeys=new Map(),rKeys=new Map();
-  ld.tracks.forEach(item=>{if(item.track)lKeys.set(item.track.uri,item.track);});
-  rd.tracks.forEach(item=>{if(item.track)rKeys.set(item.track.uri,item.track);});
-  const shared=[...lKeys.keys()].filter(uri=>rKeys.has(uri));
-  sharedEl.textContent=shared.length;
-
-  const renderList=(map,sharedSet,el)=>{
-    el.innerHTML=[...map.entries()].map(([uri,t2],i)=>`<div class="compare-track ${sharedSet.has(uri)?'shared':''}">
-      <span class="ct-num">${String(i+1).padStart(2,'0')}</span>
-      <div style="flex:1;min-width:0"><div class="ct-name">${esc(t2.name)}</div><div class="ct-artist">${esc(t2.artists?.[0]?.name||'')}</div></div>
-      ${sharedSet.has(uri)?'<span class="ct-mark">⇄</span>':''}
-    </div>`).join('');
-  };
+  if(!ld?.tracks||!rd?.tracks){return;}
+  const lMap=new Map(),rMap=new Map();
+  ld.tracks.forEach(item=>{if(item.track)lMap.set(item.track.uri,item.track);});
+  rd.tracks.forEach(item=>{if(item.track)rMap.set(item.track.uri,item.track);});
+  const shared=[...lMap.keys()].filter(uri=>rMap.has(uri));
+  document.getElementById('cmpShared').textContent=shared.length;
   const sharedSet=new Set(shared);
-  renderList(lKeys,sharedSet,lList);
-  renderList(rKeys,sharedSet,rList);
-  const onlyL=lKeys.size-shared.length,onlyR=rKeys.size-shared.length;
-  lStats.innerHTML=`<span>${t('compare.onlyLeft',onlyL)}</span><span style="margin-left:auto">${t('compare.inBoth',shared.length)}</span>`;
-  rStats.innerHTML=`<span>${t('compare.inBoth',shared.length)}</span><span style="margin-left:auto">${t('compare.onlyRight',onlyR)}</span>`;
+  const renderList=(map,el)=>{el.innerHTML=[...map.entries()].map(([uri,t2],i)=>`<div class="compare-track ${sharedSet.has(uri)?'shared':''}"><span class="ct-n">${String(i+1).padStart(2,'0')}</span><div style="flex:1;min-width:0"><div class="ct-name">${esc(t2.name)}</div><div class="ct-artist">${esc(t2.artists?.[0]?.name||'')}</div></div>${sharedSet.has(uri)?'<span class="ct-mark">⇄</span>':''}</div>`).join('');};
+  renderList(lMap,document.getElementById('cmpLeftList'));
+  renderList(rMap,document.getElementById('cmpRightList'));
+  const onlyL=lMap.size-shared.length,onlyR=rMap.size-shared.length;
+  document.getElementById('cmpLeftStats').innerHTML=`<span>${t('compare.onlyLeft',onlyL)}</span><span style="margin-left:auto">${t('compare.inBoth',shared.length)}</span>`;
+  document.getElementById('cmpRightStats').innerHTML=`<span>${t('compare.inBoth',shared.length)}</span><span style="margin-left:auto">${t('compare.onlyRight',onlyR)}</span>`;
 }
 
-// ══════════════════════════════════════════
-// OVERLAP (3+ playlists)
-// ══════════════════════════════════════════
+// ══ OVERLAP ══
 function renderOverlap(){
   const min=parseInt(document.getElementById('overlapMin')?.value||3);
-  document.getElementById('overlapMinVal').textContent=min;
-  const grid=document.getElementById('multiGrid');if(!grid)return;
+  const grid=document.getElementById('overlapGrid');if(!grid)return;
   const scanned=playlists.filter(p=>playlistData[p.id]?.tracks?.length);
-  if(!scanned.length){grid.innerHTML=`<div class="multi-empty">${t('overlap.none')}</div>`;return;}
+  if(!scanned.length){grid.innerHTML=`<div class="empty-msg">${t('overlap.none')}</div>`;return;}
   const trackMap=new Map();
-  scanned.forEach(pl=>{
-    (playlistData[pl.id].tracks||[]).forEach(item=>{
-      if(!item.track)return;
-      const k=item.track.uri;
-      if(!trackMap.has(k))trackMap.set(k,{track:item.track,playlists:[]});
-      trackMap.get(k).playlists.push(pl.name);
-    });
-  });
-  const results=[...trackMap.values()].filter(v=>v.playlists.length>=min);
-  results.sort((a,b)=>b.playlists.length-a.playlists.length);
-  if(!results.length){grid.innerHTML=`<div class="multi-empty">${t('overlap.none')}</div>`;return;}
-  grid.innerHTML=results.slice(0,60).map(r=>`<div class="multi-card">
-    <div class="multi-card-title">${esc(r.track.name)}</div>
-    <div class="multi-card-meta">${esc(r.track.artists?.[0]?.name||'')} · ${r.playlists.length} playlists</div>
-    <div>${r.playlists.map(p=>`<span class="multi-pl-tag">${esc(p)}</span>`).join('')}</div>
-  </div>`).join('');
+  scanned.forEach(pl=>{(playlistData[pl.id].tracks||[]).forEach(item=>{if(!item.track)return;const k=item.track.uri;if(!trackMap.has(k))trackMap.set(k,{track:item.track,playlists:[]});trackMap.get(k).playlists.push(pl.name);});});
+  const results=[...trackMap.values()].filter(v=>v.playlists.length>=min).sort((a,b)=>b.playlists.length-a.playlists.length);
+  if(!results.length){grid.innerHTML=`<div class="empty-msg">${t('overlap.none')}</div>`;return;}
+  grid.innerHTML=results.slice(0,60).map(r=>`<div class="overlap-card"><div class="oc-name">${esc(r.track.name)}</div><div class="oc-artist">${esc(r.track.artists?.[0]?.name||'')}</div><div class="oc-count">♪ ${r.playlists.length} playlists</div><div class="oc-playlists">${r.playlists.map(p=>`<span class="oc-pl-tag">${esc(p)}</span>`).join('')}</div></div>`).join('');
 }
 
-// ══════════════════════════════════════════
-// GRAPH (D3)
-// ══════════════════════════════════════════
-let simulation=null;
+// ══ GRAPH ══
+let sim=null;
 function buildGraph(){
   const scanned=playlists.filter(p=>playlistData[p.id]?.tracks?.length);
-  const statusEl=document.getElementById('graphStatus');
-  if(scanned.length<2){statusEl.textContent=t('graph.noData');return;}
-  statusEl.textContent='';
-  const svg=d3.select('#graphCanvas');
-  svg.selectAll('*').remove();
-  const W=svg.node().clientWidth||900,H=520;
+  const st=document.getElementById('graphStatus');
+  if(scanned.length<2){st.textContent=t('graph.noData');return;}
+  st.textContent='';
+  const svg=d3.select('#graphCanvas');svg.selectAll('*').remove();
+  const W=svg.node().clientWidth||900,H=480;
   svg.attr('viewBox',`0 0 ${W} ${H}`);
-
-  // Build edges
   const edges=[];
-  for(let i=0;i<scanned.length;i++){
-    for(let j=i+1;j<scanned.length;j++){
-      const aUris=new Set((playlistData[scanned[i].id].tracks||[]).map(x=>x.track?.uri).filter(Boolean));
-      const shared=(playlistData[scanned[j].id].tracks||[]).filter(x=>x.track&&aUris.has(x.track.uri)).length;
-      if(shared>0)edges.push({source:scanned[i].id,target:scanned[j].id,weight:shared});
-    }
+  for(let i=0;i<scanned.length;i++)for(let j=i+1;j<scanned.length;j++){
+    const aU=new Set((playlistData[scanned[i].id].tracks||[]).map(x=>x.track?.uri).filter(Boolean));
+    const sh=(playlistData[scanned[j].id].tracks||[]).filter(x=>x.track&&aU.has(x.track.uri)).length;
+    if(sh>0)edges.push({source:scanned[i].id,target:scanned[j].id,weight:sh});
   }
-
   const nodes=scanned.map(pl=>({id:pl.id,name:pl.name,size:pl.tracks.total||50}));
   const maxW=Math.max(...edges.map(e=>e.weight),1);
-  const sizeScale=d3.scaleSqrt().domain([0,Math.max(...nodes.map(n=>n.size))]).range([6,28]);
-
+  const sizeScale=d3.scaleSqrt().domain([0,Math.max(...nodes.map(n=>n.size))]).range([8,30]);
   const g=svg.append('g');
   svg.call(d3.zoom().scaleExtent([0.3,3]).on('zoom',e=>g.attr('transform',e.transform)));
-
-  const link=g.append('g').selectAll('line').data(edges).join('line')
-    .attr('stroke','#333').attr('stroke-opacity',0.7)
-    .attr('stroke-width',e=>Math.max(1,Math.round(e.weight/maxW*6)));
-
+  const link=g.append('g').selectAll('line').data(edges).join('line').attr('stroke','#d0cec9').attr('stroke-width',e=>Math.max(1,Math.round(e.weight/maxW*5)));
   const node=g.append('g').selectAll('g').data(nodes).join('g').call(
-    d3.drag().on('start',(e,d)=>{if(!e.active)simulation.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y;})
+    d3.drag().on('start',(e,d)=>{if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y;})
       .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;})
-      .on('end',(e,d)=>{if(!e.active)simulation.alphaTarget(0);d.fx=null;d.fy=null;})
+      .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;})
   );
-
-  node.append('circle')
-    .attr('r',d=>sizeScale(d.size))
-    .attr('fill','#1db954').attr('fill-opacity',0.15)
-    .attr('stroke','#1db954').attr('stroke-width',1.5);
-
-  node.append('text')
-    .attr('text-anchor','middle').attr('dy','0.35em')
-    .attr('font-family','Space Mono,monospace').attr('font-size','9px')
-    .attr('fill','#888').attr('pointer-events','none')
-    .text(d=>d.name.length>12?d.name.slice(0,11)+'…':d.name);
-
-  simulation=d3.forceSimulation(nodes)
-    .force('link',d3.forceLink(edges).id(d=>d.id).distance(120))
-    .force('charge',d3.forceManyBody().strength(-180))
-    .force('center',d3.forceCenter(W/2,H/2))
-    .on('tick',()=>{
-      link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
-      node.attr('transform',d=>`translate(${d.x},${d.y})`);
-    });
-  statusEl.textContent=`${nodes.length} nodes · ${edges.length} edges`;
+  node.append('circle').attr('r',d=>sizeScale(d.size)).attr('fill','#e8f5ef').attr('stroke','#1db954').attr('stroke-width',1.5);
+  node.append('text').attr('text-anchor','middle').attr('dy','0.35em').attr('font-family','Inter,sans-serif').attr('font-size','10px').attr('fill','#6b6860').attr('pointer-events','none').text(d=>d.name.length>12?d.name.slice(0,11)+'…':d.name);
+  sim=d3.forceSimulation(nodes).force('link',d3.forceLink(edges).id(d=>d.id).distance(130)).force('charge',d3.forceManyBody().strength(-200)).force('center',d3.forceCenter(W/2,H/2)).on('tick',()=>{link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);node.attr('transform',d=>`translate(${d.x},${d.y})`);});
+  st.textContent=`${nodes.length} nodes · ${edges.length} edges`;
 }
-function resetGraph(){if(simulation)simulation.stop();d3.select('#graphCanvas').selectAll('*').remove();document.getElementById('graphStatus').textContent='';}
+function resetGraph(){if(sim)sim.stop();d3.select('#graphCanvas').selectAll('*').remove();document.getElementById('graphStatus').textContent='';}
 
-// ══════════════════════════════════════════
-// DEMO
-// ══════════════════════════════════════════
+// ══ DEMO ══
 function loadDemo(){
   accessToken=null;
-  showAppTabs(true);
-  switchPanel('appPanel',document.getElementById('appTabBtn'));
+  document.getElementById('landingPanel').classList.remove('active');
+  document.getElementById('appPanel').classList.add('active');
   document.getElementById('uAvatar').textContent='🎧';
   document.getElementById('uName').textContent='Demo';
-  document.getElementById('uPlan').textContent='demo';
+  document.getElementById('uPlan').textContent='premium';
   document.getElementById('sPlaylists').textContent=5;
   playlists=[
     {id:'d1',name:'Chill Vibes',tracks:{total:142},images:[]},
     {id:'d2',name:'2024 Hits',tracks:{total:87},images:[]},
-    {id:'d3',name:'Late Night Drive',tracks:{total:203},images:[]},
+    {id:'d3',name:'Late Night',tracks:{total:203},images:[]},
     {id:'d4',name:'Workout',tracks:{total:55},images:[]},
     {id:'liked',name:'Liked Songs',tracks:{total:1204},images:[],isLiked:true},
   ];
-  const mkTrack=(id,name,artist,album)=>({track:{id,uri:`spotify:track:${id}`,name,artists:[{name:artist}],album:{name:album,images:[]}}});
-  const t1=mkTrack('a1','Midnight City','M83','Hurry Up'),t2=mkTrack('a1','Midnight City','M83','Hurry Up'),t3=mkTrack('b1','Blinding Lights','The Weeknd','After Hours'),t4=mkTrack('b2','Blinding Lights','The Weeknd','After Hours Deluxe');
-  const t5=mkTrack('c1','Starboy','The Weeknd','Starboy'),t6=mkTrack('c1','Starboy','The Weeknd','Starboy');
-  playlistData['d1']={status:'done',trackCount:142,tracks:[t1,t2,t3,t4,t5,t6,...Array(136).fill(null).map((_,i)=>mkTrack(`x${i}`,'Track '+i,'Artist','Album'))],dupeCount:4,panelOpen:true,dupeGroups:[
-    {type:'exact',name:'Midnight City',artist:'M83',albumArt:null,instances:[{position:0,addedAt:'2022-04-10T12:00:00Z',album:"Hurry Up",uri:'spotify:track:a1',trackId:'a1'},{position:1,addedAt:'2023-09-01T18:00:00Z',album:"Hurry Up",uri:'spotify:track:a1',trackId:'a1'}]},
-    {type:'similar',name:'Blinding Lights',artist:'The Weeknd',albumArt:null,instances:[{position:2,addedAt:'2021-01-05T09:00:00Z',album:'After Hours',uri:'spotify:track:b1',trackId:'b1'},{position:3,addedAt:'2021-11-20T15:00:00Z',album:'After Hours Deluxe',uri:'spotify:track:b2',trackId:'b2'}]},
+  const mk=(id,name,artist,album)=>({track:{id,uri:`spotify:track:${id}`,name,artists:[{name:artist}],album:{name:album,images:[]},added_at:'2023-01-01T00:00:00Z'}});
+  const tracks=[mk('a1','Midnight City','M83','Hurry Up'),mk('a1','Midnight City','M83','Hurry Up'),mk('b1','Blinding Lights','The Weeknd','After Hours'),mk('b2','Blinding Lights','The Weeknd','After Hours Deluxe'),...Array(138).fill(null).map((_,i)=>mk(`x${i}`,'Track '+i,'Artist','Album'))];
+  playlistData['d1']={status:'done',trackCount:142,tracks:tracks.map(t=>({track:t.track,added_at:'2023-01-01'})),dupeCount:3,panelOpen:true,dupeGroups:[
+    {type:'exact',confidence:100,name:'Midnight City',artist:'M83',albumArt:null,instances:[{position:0,addedAt:'2022-04-10T12:00:00Z',album:'Hurry Up',uri:'spotify:track:a1',trackId:'a1'},{position:1,addedAt:'2023-09-01T18:00:00Z',album:'Hurry Up',uri:'spotify:track:a1',trackId:'a1'}]},
+    {type:'similar',confidence:90,name:'Blinding Lights',artist:'The Weeknd',albumArt:null,instances:[{position:2,addedAt:'2021-01-05T09:00:00Z',album:'After Hours',uri:'spotify:track:b1',trackId:'b1'},{position:3,addedAt:'2021-11-20T15:00:00Z',album:'After Hours Deluxe',uri:'spotify:track:b2',trackId:'b2'}]},
   ]};
-  playlistData['d2']={status:'done',trackCount:87,tracks:[t3,t5,...Array(85).fill(null).map((_,i)=>mkTrack(`y${i}`,'Track '+i,'Artist','Album'))],dupeCount:0,dupeGroups:[]};
-  playlistData['d3']={status:'done',trackCount:203,tracks:[t4,t6,...Array(201).fill(null).map((_,i)=>mkTrack(`z${i}`,'Track '+i,'Artist','Album'))],dupeCount:0,dupeGroups:[]};
-  document.getElementById('plLoadingState').classList.add('hidden');
-  document.getElementById('plTable').classList.remove('hidden');
+  playlistData['d2']={status:'done',trackCount:87,tracks:[mk('b1','Blinding Lights','The Weeknd','After Hours'),...Array(86).fill(null).map((_,i)=>mk(`y${i}`,'Track'+i,'A','B'))].map(t=>({track:t.track,added_at:'2023-01-01'})),dupeCount:0,dupeGroups:[]};
+  playlistData['d3']={status:'done',trackCount:203,tracks:[mk('a1','Midnight City','M83','Hurry Up'),...Array(202).fill(null).map((_,i)=>mk(`z${i}`,'Track'+i,'A','B'))].map(t=>({track:t.track,added_at:'2023-01-01'})),dupeCount:0,dupeGroups:[]};
+  document.getElementById('plLoadingState')?.classList.add('hidden');
   renderPlaylists();
   document.getElementById('sTracks').textContent='487';
-  document.getElementById('sDupes').textContent='4';
+  document.getElementById('sDupes').textContent='3';
   document.getElementById('sAffected').textContent='1';
   populateCompareSelects();
   toast(t('toast.demo'),'inf');
 }
 
-// ══════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════
+// ══ UTILS ══
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(msg,type='inf'){
   const c=document.getElementById('toasts');
-  const el=document.createElement('div');
-  el.className=`toast ${type}`;
-  el.textContent=msg;
-  c.appendChild(el);
+  const el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;c.appendChild(el);
   setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity 0.3s';setTimeout(()=>el.remove(),300);},4000);
 }
 
-// ══════════════════════════════════════════
-// BOOT
-// ══════════════════════════════════════════
+// ══ BOOT ══
 document.addEventListener('DOMContentLoaded',()=>{
-  buildLangSwitcher();
-  applyI18n();
-  const stored=localStorage.getItem(LS_CLIENT);
-  if(stored){const el=document.getElementById('clientIdInput');if(el)el.value=stored;}
+  buildLangSwitcher();applyI18n();
+  // init settings hidden
+  document.getElementById('settingsBody').style.display='none';
   const params=new URLSearchParams(window.location.search);
   if(params.has('code')||params.has('error'))handleCallback();
   else if(checkToken())initApp();
-  // Overlap slider live update
-  document.getElementById('overlapMin')?.addEventListener('input',function(){document.getElementById('overlapMinVal').textContent=this.value;});
 });
 </script>
 </body>
