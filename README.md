@@ -1,34 +1,38 @@
-# Spotless 🎵
+# WashList 🫧
 
-> Clean your Spotify library — properly.
+> Wash your Spotify playlists clean.
 
-A modern, feature-rich alternative to spotify-dedup. Finds and removes duplicate tracks across all your playlists — including the same song from different releases.
+A modern, feature-rich Spotify duplicate cleaner by [StonerHand](https://github.com/StonerHand). Finds and removes duplicate tracks across all your playlists — including the same song from different releases.
+
+## Live
+
+👉 **[stonerhand.github.io/WashList](https://stonerhand.github.io/WashList)**
 
 ## Features
 
-- 🔍 **Smart matching** — detects exact URI duplicates AND the same track from different albums/releases
-- 🎯 **Keep control** — choose to keep the oldest or newest copy
-- 💜 **Liked Songs** — scans your saved tracks library too
-- 📊 **Full stats** — per-playlist analytics
-- ⚡ **Rate-limit safe** — throttled requests, won't get you banned
-- 🔒 **No data stored** — runs entirely in your browser
-- 🌍 **5 languages** — English, Русский, Deutsch, Español, Türkçe
+- 🔍 **Smart dedup** — URI + name/artist fuzzy match
+- 🎯 **Keep control** — keep oldest or newest copy
+- 💜 **Liked Songs** — scans saved tracks too
+- 📊 **Compare playlists** — see shared tracks
+- 🔍 **Overlap finder** — tracks in 3+ playlists
+- 🕸 **D3 connection graph** — zoomable, draggable
+- 📁 **Export** — CSV or JSON per playlist
+- 📋 **Clean history** — log with export
+- 🌍 **4 languages** — EN, RU, DE, ES
+- ⚡ **Rate-limit safe** — won't get you banned
+- 🔒 **No data stored** — runs in your browser
 
 ## Setup
 
-1. Go to [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and create an app
-2. Set Redirect URI to your deployment URL
+1. Go to [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) — create an app
+2. Set Redirect URI to `https://stonerhand.github.io/WashList/`
 3. Paste your Client ID into the app
-
-## Live Demo
-
-👉 [stonerhand.github.io/Spotless](https://stonerhand.github.io/Spotless)
 
 ## Tech
 
-Plain HTML + Vanilla JS. No frameworks, no build step, no backend.  
-Uses Spotify Web API with PKCE OAuth flow.
+Plain HTML + Vanilla JS + D3. No frameworks, no build step, no backend.
+Uses Spotify Web API with PKCE OAuth.
 
 ---
 
-Made with ♥ by [StonerHand](https://github.com/StonerHand)
+made by [StonerHand](https://github.com/StonerHand)
