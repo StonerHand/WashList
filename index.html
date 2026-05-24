@@ -1132,7 +1132,7 @@ async function genV(){const a=new Uint8Array(32);crypto.getRandomValues(a);retur
 async function genC(v){return b64url(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v))));}
 
 async function startSpotifyAuth(){
-  const cid=document.getElementById('clientIdInput')?.value.trim()||localStorage.getItem(LS_CLIENT);
+  const cid=HARDCODED_CLIENT_ID;
   if(!cid){toast(t('toast.noClientId'),'err');document.getElementById('clientIdInput')?.focus();return;}
   localStorage.setItem(LS_CLIENT,cid);
   const ver=await genV(),ch=await genC(ver);
