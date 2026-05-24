@@ -556,22 +556,32 @@ footer a:hover { color: var(--ink); }
 .l-feat:hover .l-feat-n { color: var(--green); }
 .l-feat-n { transition: color .2s; }
 
-/* Cursor dot */
+/* Cursor — скрываем системный, показываем свой */
+* { cursor: none !important; }
+
 #cursor-dot {
-  width: 6px; height: 6px; background: var(--green); border-radius: 50%;
+  width: 5px; height: 5px;
+  background: var(--green); border-radius: 50%;
   position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999;
   transform: translate(-50%,-50%);
-  transition: width .2s, height .2s, opacity .2s;
-  mix-blend-mode: screen;
+  transition: width .18s cubic-bezier(.34,1.56,.64,1),
+              height .18s cubic-bezier(.34,1.56,.64,1),
+              opacity .2s, background .2s;
+  will-change: transform;
 }
 #cursor-ring {
-  width: 32px; height: 32px;
-  border: 1.5px solid rgba(29,185,84,.4); border-radius: 50%;
+  width: 22px; height: 22px;
+  border: 1.5px solid rgba(29,185,84,.45);
+  border-radius: 50%;
   position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9998;
   transform: translate(-50%,-50%);
-  transition: width .15s, height .15s, border-color .2s;
+  transition: width .2s cubic-bezier(.34,1.4,.64,1),
+              height .2s cubic-bezier(.34,1.4,.64,1),
+              border-color .2s, opacity .2s;
+  will-change: transform;
 }
-body:not(:hover) #cursor-dot, body:not(:hover) #cursor-ring { opacity: 0; }
+/* Скрываем когда мышь покидает окно */
+#cursor-dot.hidden, #cursor-ring.hidden { opacity: 0; }
 
 /* Connect button glow */
 .btn-green {
@@ -1468,16 +1478,27 @@ function toast(msg,type='inf'){
 // ── CURSOR TRACKER ──
 const cursorDot  = document.createElement('div'); cursorDot.id  = 'cursor-dot';
 const cursorRing = document.createElement('div'); cursorRing.id = 'cursor-ring';
+cursorDot.classList.add('hidden'); cursorRing.classList.add('hidden');
 document.body.appendChild(cursorDot); document.body.appendChild(cursorRing);
 
 let mx = -999, my = -999, rx = -999, ry = -999;
-document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-document.addEventListener('mouseleave', () => { cursorDot.style.opacity='0'; cursorRing.style.opacity='0'; });
-document.addEventListener('mouseenter', () => { cursorDot.style.opacity='1'; cursorRing.style.opacity='1'; });
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursorDot.classList.remove('hidden');
+  cursorRing.classList.remove('hidden');
+});
+document.addEventListener('mouseleave', () => {
+  cursorDot.classList.add('hidden');
+  cursorRing.classList.add('hidden');
+});
+document.addEventListener('mouseenter', () => {
+  cursorDot.classList.remove('hidden');
+  cursorRing.classList.remove('hidden');
+});
 
 // Spring ring follows cursor with lag
 (function trackRing() {
-  const lag = .12;
+  const lag = .14;
   rx += (mx - rx) * lag; ry += (my - ry) * lag;
   cursorDot.style.transform  = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
   cursorRing.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
@@ -1486,15 +1507,15 @@ document.addEventListener('mouseenter', () => { cursorDot.style.opacity='1'; cur
 
 // Expand ring on interactive elements
 document.addEventListener('mouseover', e => {
-  const el = e.target.closest('.btn,.ab,.fp,.mp,.atab,.lb,.plr,.l-feat,.nav-logo');
+  const el = e.target.closest('.btn,.ab,.fp,.mp,.atab,.lb,.plr,.l-feat,.nav-logo,.theme-btn');
   if (el) {
-    cursorRing.style.width = cursorRing.style.height = '48px';
-    cursorRing.style.borderColor = 'rgba(29,185,84,.7)';
-    cursorDot.style.width = cursorDot.style.height = '4px';
+    cursorRing.style.width  = cursorRing.style.height = '36px';
+    cursorRing.style.borderColor = 'rgba(29,185,84,.75)';
+    cursorDot.style.width   = cursorDot.style.height = '3px';
   } else {
-    cursorRing.style.width = cursorRing.style.height = '32px';
-    cursorRing.style.borderColor = 'rgba(29,185,84,.35)';
-    cursorDot.style.width = cursorDot.style.height = '6px';
+    cursorRing.style.width  = cursorRing.style.height = '22px';
+    cursorRing.style.borderColor = 'rgba(29,185,84,.45)';
+    cursorDot.style.width   = cursorDot.style.height = '5px';
   }
 });
 
