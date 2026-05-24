@@ -570,14 +570,15 @@ footer a:hover { color: var(--ink); }
   will-change: transform;
 }
 #cursor-ring {
-  width: 22px; height: 22px;
-  border: 1.5px solid rgba(29,185,84,.45);
+  width: 20px; height: 20px;
+  background: rgba(29,185,84,.2);
   border-radius: 50%;
   position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9998;
   transform: translate(-50%,-50%);
-  transition: width .2s cubic-bezier(.34,1.4,.64,1),
-              height .2s cubic-bezier(.34,1.4,.64,1),
-              border-color .2s, opacity .2s;
+  mix-blend-mode: screen;
+  transition: width .22s cubic-bezier(.34,1.4,.64,1),
+              height .22s cubic-bezier(.34,1.4,.64,1),
+              background .2s, opacity .2s;
   will-change: transform;
 }
 /* Скрываем когда мышь покидает окно */
@@ -1510,11 +1511,11 @@ document.addEventListener('mouseover', e => {
   const el = e.target.closest('.btn,.ab,.fp,.mp,.atab,.lb,.plr,.l-feat,.nav-logo,.theme-btn');
   if (el) {
     cursorRing.style.width  = cursorRing.style.height = '36px';
-    cursorRing.style.borderColor = 'rgba(29,185,84,.75)';
+    cursorRing.style.background = 'rgba(29,185,84,.35)';
     cursorDot.style.width   = cursorDot.style.height = '3px';
   } else {
     cursorRing.style.width  = cursorRing.style.height = '22px';
-    cursorRing.style.borderColor = 'rgba(29,185,84,.45)';
+    cursorRing.style.background = 'rgba(29,185,84,.2)';
     cursorDot.style.width   = cursorDot.style.height = '5px';
   }
 });
