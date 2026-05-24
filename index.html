@@ -1508,14 +1508,22 @@ document.addEventListener('mouseenter', () => {
 
 // Expand ring on interactive elements
 document.addEventListener('mouseover', e => {
-  const el = e.target.closest('.btn,.ab,.fp,.mp,.atab,.lb,.plr,.l-feat,.nav-logo,.theme-btn');
-  if (el) {
+  const greenEl = e.target.closest('.btn-green');
+  const interEl = e.target.closest('.btn,.ab,.fp,.mp,.atab,.lb,.plr,.l-feat,.nav-logo,.theme-btn');
+  if (greenEl) {
+    cursorRing.style.width  = cursorRing.style.height = '36px';
+    cursorRing.style.background = 'rgba(255,255,255,.5)';
+    cursorDot.style.background = '#fff';
+    cursorDot.style.width   = cursorDot.style.height = '3px';
+  } else if (interEl) {
     cursorRing.style.width  = cursorRing.style.height = '36px';
     cursorRing.style.background = 'rgba(29,185,84,.35)';
+    cursorDot.style.background = '';
     cursorDot.style.width   = cursorDot.style.height = '3px';
   } else {
-    cursorRing.style.width  = cursorRing.style.height = '22px';
+    cursorRing.style.width  = cursorRing.style.height = '20px';
     cursorRing.style.background = 'rgba(29,185,84,.2)';
+    cursorDot.style.background = '';
     cursorDot.style.width   = cursorDot.style.height = '5px';
   }
 });
