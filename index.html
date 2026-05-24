@@ -8,152 +8,116 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
-/* ── TOKENS ── */
-:root{
-  --c-bg:       #FAFAF8;
-  --c-bg1:      #F5F4F1;
-  --c-bg2:      #EFEDE9;
-  --c-line:     #E8E6E1;
-  --c-line2:    #D8D5CF;
-  --c-ink:      #111110;
-  --c-ink2:     #6B6860;
-  --c-ink3:     #A8A49D;
-  --c-green:    #1DB954;
-  --c-green-bg: #F0FAF4;
-  --c-red:      #DC2626;
-  --c-red-bg:   #FEF2F2;
-  --c-amber:    #D97706;
-  --c-amber-bg: #FFFBEB;
-  --f-sans:     'Geist', -apple-system, sans-serif;
-  --f-mono:     'Geist Mono', monospace;
-  --r:          8px;
-  --r-sm:       6px;
+:root {
+  --bg:    #131210;
+  --bg1:   #1A1916;
+  --bg2:   #21201C;
+  --bg3:   #2A2825;
+  --line:  #2E2C28;
+  --line2: #3A3835;
+  --ink:   #F0EDE6;
+  --ink2:  #9A9690;
+  --ink3:  #5A5854;
+  --green: #1DB954;
+  --green2:#18a347;
+  --gbg:   rgba(29,185,84,.10);
+  --gbrd:  rgba(29,185,84,.18);
+  --red:   #E05252;
+  --rbg:   rgba(224,82,82,.10);
+  --amber: #D97706;
+  --abg:   rgba(217,119,6,.10);
+  --r:     8px;
+  --r-sm:  6px;
+  --f:     'Geist', -apple-system, sans-serif;
+  --fm:    'Geist Mono', monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;}
-body{font-family:var(--f-sans);background:var(--c-bg);color:var(--c-ink);min-height:100vh;font-size:14px;line-height:1.5;}
-
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:6px;height:6px;}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);min-height:100vh;font-size:14px;line-height:1.5;}
+::selection{background:var(--gbg);color:var(--green);}
+::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--c-line2);border-radius:3px;}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px;}
 
-/* ══════════════════════════════════════
-   NAV
-══════════════════════════════════════ */
+/* ── NAV ── */
 nav{
   position:sticky;top:0;z-index:100;
   height:52px;display:flex;align-items:center;
-  padding:0 24px;gap:0;
-  background:rgba(250,250,248,0.9);
-  border-bottom:1px solid var(--c-line);
-  backdrop-filter:blur(12px);
+  padding:0 24px;
+  background:rgba(19,18,16,.88);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(16px);
 }
-.nav-logo{
-  display:flex;align-items:center;gap:7px;
-  text-decoration:none;margin-right:auto;
-}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;margin-right:auto;}
 .nav-logo-icon{
-  width:24px;height:24px;background:var(--c-green);
-  border-radius:6px;display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;
+  width:26px;height:26px;background:var(--green);
+  border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
-.nav-logo-icon svg{width:14px;height:14px;fill:#fff;}
-.nav-logo-text{font-size:15px;font-weight:600;color:var(--c-ink);letter-spacing:-0.3px;}
+.nav-logo-icon svg{width:15px;height:15px;fill:#000;}
+.nav-logo-text{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.3px;}
 .lang-sw{display:flex;gap:1px;}
 .lb{
-  background:none;border:none;font-family:var(--f-sans);
-  font-size:12px;font-weight:500;color:var(--c-ink3);
+  background:none;border:none;font-family:var(--f);
+  font-size:11px;font-weight:500;color:var(--ink3);
   padding:5px 9px;border-radius:var(--r-sm);cursor:pointer;transition:all .15s;
 }
-.lb:hover{color:var(--c-ink2);}
-.lb.on{background:var(--c-bg2);color:var(--c-ink);}
+.lb:hover{color:var(--ink2);}
+.lb.on{background:var(--bg2);color:var(--ink);}
 
-/* ══════════════════════════════════════
-   PANELS
-══════════════════════════════════════ */
+/* ── PANELS ── */
 .panel{display:none;}
 .panel.on{display:block;}
 
-/* ══════════════════════════════════════
-   LANDING
-══════════════════════════════════════ */
-#landingPanel{
-  display:none;
-  min-height:calc(100vh - 52px);
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:80px 24px;
-}
+/* ── LANDING ── */
+#landingPanel{display:none;min-height:calc(100vh - 52px);flex-direction:column;align-items:center;justify-content:center;padding:80px 24px;}
 #landingPanel.on{display:flex;}
-
-.hero-wrap{width:100%;max-width:480px;text-align:center;}
+.hero-wrap{width:100%;max-width:460px;text-align:center;}
 .hero-kicker{
   display:inline-flex;align-items:center;gap:6px;
-  font-size:11px;font-weight:500;color:var(--c-green);
-  letter-spacing:0.5px;text-transform:uppercase;
-  margin-bottom:24px;
+  font-size:11px;font-weight:500;color:var(--green);
+  letter-spacing:.6px;text-transform:uppercase;margin-bottom:24px;
 }
-.hero-kicker-dot{width:5px;height:5px;background:var(--c-green);border-radius:50%;animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.hero-kicker-dot{width:5px;height:5px;background:var(--green);border-radius:50%;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 .hero-h1{
-  font-size:clamp(36px,6vw,56px);font-weight:700;
-  line-height:1.05;letter-spacing:-2px;
-  margin-bottom:16px;color:var(--c-ink);
+  font-size:clamp(38px,6vw,58px);font-weight:700;
+  line-height:1.04;letter-spacing:-2.5px;
+  color:var(--ink);margin-bottom:16px;
 }
-.hero-h1 em{font-style:normal;color:var(--c-green);}
-.hero-sub{
-  font-size:15px;color:var(--c-ink2);line-height:1.7;
-  margin-bottom:36px;
-}
+.hero-h1 em{font-style:normal;color:var(--green);}
+.hero-sub{font-size:15px;color:var(--ink2);line-height:1.75;margin-bottom:36px;max-width:380px;margin-left:auto;margin-right:auto;}
 .hero-cta{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
 
 /* buttons */
 .btn{
   display:inline-flex;align-items:center;gap:7px;
-  font-family:var(--f-sans);font-size:13px;font-weight:500;
+  font-family:var(--f);font-size:13px;font-weight:500;
   border:none;cursor:pointer;border-radius:var(--r);
-  transition:all .15s;text-decoration:none;line-height:1;
+  transition:all .15s;text-decoration:none;line-height:1;white-space:nowrap;
 }
-.btn-lg{padding:12px 20px;font-size:14px;font-weight:600;}
-.btn-green{background:var(--c-green);color:#fff;}
-.btn-green:hover{background:#18a347;transform:translateY(-1px);}
-.btn-green svg{width:16px;height:16px;fill:#fff;}
-.btn-outline{background:transparent;color:var(--c-ink2);border:1px solid var(--c-line2);}
-.btn-outline:hover{background:var(--c-bg1);color:var(--c-ink);border-color:var(--c-ink3);}
-.btn-ghost{background:transparent;color:var(--c-ink2);}
-.btn-ghost:hover{background:var(--c-bg1);color:var(--c-ink);}
-.btn-danger{background:var(--c-red);color:#fff;}
-.btn-danger:hover{background:#b91c1c;}
-.btn-danger:disabled{background:var(--c-bg2);color:var(--c-ink3);cursor:not-allowed;}
+.btn-lg{padding:13px 22px;font-size:14px;font-weight:600;}
+.btn-green{background:var(--green);color:#000;}
+.btn-green:hover{background:var(--green2);}
+.btn-green svg{width:16px;height:16px;fill:#000;}
+.btn-outline{background:transparent;color:var(--ink2);border:1px solid var(--line2);}
+.btn-outline:hover{background:var(--bg2);color:var(--ink);border-color:var(--ink3);}
+.btn-ghost{background:transparent;color:var(--ink3);}
+.btn-ghost:hover{background:var(--bg2);color:var(--ink);}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-danger:hover{background:#c94040;}
+.btn-danger:disabled{background:var(--bg3);color:var(--ink3);cursor:not-allowed;}
 
-/* hero features */
-.hero-feats{
-  display:flex;gap:20px;justify-content:center;
-  margin-top:48px;flex-wrap:wrap;
-}
-.hf{
-  display:flex;align-items:center;gap:7px;
-  font-size:12px;color:var(--c-ink3);
-}
-.hf-dot{width:4px;height:4px;background:var(--c-line2);border-radius:50%;}
+/* feats */
+.hero-feats{display:flex;gap:18px;justify-content:center;margin-top:44px;flex-wrap:wrap;}
+.hf{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink3);}
+.hf-dot{width:3px;height:3px;background:var(--ink3);border-radius:50%;}
 
 /* waveform */
-.waveform{
-  display:flex;align-items:flex-end;gap:2px;
-  height:32px;margin-top:32px;justify-content:center;
-}
-.wf-bar{
-  width:3px;background:var(--c-green);border-radius:2px;opacity:.3;
-  height:var(--h);animation:wf 1.6s ease-in-out infinite;
-  animation-delay:calc(var(--i)*0.12s);
-}
-@keyframes wf{0%,100%{opacity:.2;transform:scaleY(.5);}50%{opacity:.6;transform:scaleY(1);}}
+.waveform{display:flex;align-items:flex-end;gap:3px;height:28px;margin-top:36px;justify-content:center;}
+.wfb{width:3px;background:var(--green);border-radius:2px;height:var(--h);opacity:.25;animation:wf 1.8s ease-in-out infinite;animation-delay:calc(var(--i)*.13s);}
+@keyframes wf{0%,100%{opacity:.15;transform:scaleY(.4);}50%{opacity:.5;transform:scaleY(1);}}
 
-/* ══════════════════════════════════════
-   APP SHELL
-══════════════════════════════════════ */
+/* ── APP ── */
 #appPanel{display:none;}
 #appPanel.on{display:block;}
 
@@ -161,359 +125,284 @@ nav{
 .ubar{
   display:flex;align-items:center;gap:12px;
   padding:10px 24px;
-  border-bottom:1px solid var(--c-line);
-  background:var(--c-bg);
+  border-bottom:1px solid var(--line);
+  background:var(--bg1);
 }
 .uav{
   width:28px;height:28px;border-radius:50%;
-  background:var(--c-green-bg);border:1px solid rgba(29,185,84,.2);
+  background:var(--gbg);border:1px solid var(--gbrd);
   display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:600;color:var(--c-green);
+  font-size:11px;font-weight:600;color:var(--green);
   overflow:hidden;flex-shrink:0;
 }
 .uav img{width:100%;height:100%;object-fit:cover;}
-.uname{font-size:13px;font-weight:500;}
-.uplan{font-size:11px;color:var(--c-ink3);margin-left:2px;}
+.uname{font-size:13px;font-weight:500;color:var(--ink);}
+.uplan{font-size:11px;color:var(--ink3);margin-left:2px;}
 .ubar-stats{display:flex;gap:20px;margin-left:auto;margin-right:16px;}
-.us{display:flex;flex-direction:column;align-items:flex-end;}
-.us-v{font-size:15px;font-weight:600;line-height:1.2;letter-spacing:-0.3px;}
-.us-v.r{color:var(--c-red);}
-.us-v.a{color:var(--c-amber);}
-.us-l{font-size:10px;color:var(--c-ink3);text-transform:uppercase;letter-spacing:.5px;}
+.us-v{font-size:15px;font-weight:600;letter-spacing:-.3px;color:var(--ink);}
+.us-v.r{color:var(--red);}
+.us-v.a{color:var(--amber);}
+.us-l{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;}
+.us{display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
 
-/* app tabs */
+/* tabs */
 .atabs{
   display:flex;padding:0 24px;
-  border-bottom:1px solid var(--c-line);
-  background:var(--c-bg);gap:0;
+  border-bottom:1px solid var(--line);
+  background:var(--bg1);
 }
 .atab{
   background:none;border:none;border-bottom:2px solid transparent;
-  font-family:var(--f-sans);font-size:12px;font-weight:500;
-  color:var(--c-ink3);padding:10px 14px;cursor:pointer;
+  font-family:var(--f);font-size:12px;font-weight:500;
+  color:var(--ink3);padding:10px 14px;cursor:pointer;
   transition:all .15s;white-space:nowrap;margin-bottom:-1px;
 }
-.atab:hover{color:var(--c-ink);}
-.atab.on{color:var(--c-ink);border-bottom-color:var(--c-ink);}
+.atab:hover{color:var(--ink2);}
+.atab.on{color:var(--ink);border-bottom-color:var(--green);}
 
-/* tab bodies */
-.tab-body{display:none;padding:20px 24px;}
-.tab-body.on{display:block;}
+/* tab body */
+.tb{display:none;padding:20px 24px;}
+.tb.on{display:block;}
 
-/* ══════════════════════════════════════
-   LIBRARY TAB
-══════════════════════════════════════ */
 /* match bar */
 .mbar{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-  padding:10px 12px;
-  background:var(--c-bg1);border:1px solid var(--c-line);
-  border-radius:var(--r);margin-bottom:14px;
+  padding:9px 12px;
+  background:var(--bg1);border:1px solid var(--line);
+  border-radius:var(--r);margin-bottom:12px;
 }
-.mb-label{font-size:11px;font-weight:500;color:var(--c-ink3);margin-right:4px;}
-.mb-seg{display:flex;background:var(--c-bg);border:1px solid var(--c-line);border-radius:var(--r-sm);overflow:hidden;}
-.mb-seg-btn{
-  background:none;border:none;font-family:var(--f-sans);
-  font-size:11px;font-weight:500;color:var(--c-ink3);
-  padding:5px 11px;cursor:pointer;transition:all .15s;white-space:nowrap;
+.mb-lbl{font-size:11px;font-weight:500;color:var(--ink3);}
+.mb-seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;}
+.mb-sb{
+  background:none;border:none;font-family:var(--f);
+  font-size:11px;font-weight:500;color:var(--ink3);
+  padding:5px 11px;cursor:pointer;transition:all .15s;
 }
-.mb-seg-btn.on{background:var(--c-bg2);color:var(--c-ink);}
-.mb-seg-btn:hover:not(.on){color:var(--c-ink2);}
-.mb-check{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:var(--c-ink3);}
-.mb-check input{accent-color:var(--c-green);width:12px;height:12px;}
-.mb-check:hover{color:var(--c-ink2);}
-.mb-divider{width:1px;height:16px;background:var(--c-line);flex-shrink:0;}
+.mb-sb.on{background:var(--bg3);color:var(--ink);}
+.mb-sb:hover:not(.on){color:var(--ink2);}
+.mb-ck{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:var(--ink3);}
+.mb-ck input{accent-color:var(--green);width:12px;height:12px;}
+.mb-ck:hover{color:var(--ink2);}
+.mb-div{width:1px;height:14px;background:var(--line);flex-shrink:0;}
 
 /* toolbar */
 .tbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
-.search-wrap{flex:1;min-width:180px;position:relative;}
-.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;fill:var(--c-ink3);pointer-events:none;}
-.search-wrap input{
-  width:100%;background:var(--c-bg);border:1px solid var(--c-line2);
-  color:var(--c-ink);font-family:var(--f-sans);font-size:13px;
-  padding:8px 12px 8px 32px;border-radius:var(--r);outline:none;transition:border-color .15s;
+.sw{flex:1;min-width:180px;position:relative;}
+.sw svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:12px;height:12px;fill:var(--ink3);pointer-events:none;}
+.sw input{
+  width:100%;background:var(--bg1);border:1px solid var(--line2);
+  color:var(--ink);font-family:var(--f);font-size:13px;
+  padding:8px 12px 8px 30px;border-radius:var(--r);outline:none;transition:border-color .15s;
 }
-.search-wrap input:focus{border-color:var(--c-green);}
-.search-wrap input::placeholder{color:var(--c-ink3);}
-.sort-seg{display:flex;background:var(--c-bg);border:1px solid var(--c-line2);border-radius:var(--r);overflow:hidden;}
-.ss-btn{
-  background:none;border:none;border-right:1px solid var(--c-line);
-  font-family:var(--f-sans);font-size:11px;font-weight:500;color:var(--c-ink3);
+.sw input:focus{border-color:var(--green);}
+.sw input::placeholder{color:var(--ink3);}
+.sort-seg{display:flex;background:var(--bg1);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;}
+.ssb{
+  background:none;border:none;border-right:1px solid var(--line);
+  font-family:var(--f);font-size:11px;font-weight:500;color:var(--ink3);
   padding:7px 12px;cursor:pointer;transition:all .15s;white-space:nowrap;
 }
-.ss-btn:last-child{border-right:none;}
-.ss-btn.on{background:var(--c-bg2);color:var(--c-ink);}
-.ss-btn:hover:not(.on){color:var(--c-ink2);}
+.ssb:last-child{border-right:none;}
+.ssb.on{background:var(--bg2);color:var(--ink);}
+.ssb:hover:not(.on){color:var(--ink2);}
 
-/* playlist list */
-.pl-list{border:1px solid var(--c-line);border-radius:var(--r);overflow:hidden;background:#fff;}
-.pl-list-head{
-  display:grid;grid-template-columns:1fr 64px 64px 100px 140px;
+/* playlist table */
+.pltbl{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--bg1);}
+.pltbl-h{
+  display:grid;grid-template-columns:1fr 64px 64px 96px 144px;
   padding:8px 14px;
-  background:var(--c-bg1);border-bottom:1px solid var(--c-line);
-  font-size:10px;font-weight:500;color:var(--c-ink3);
+  background:var(--bg2);border-bottom:1px solid var(--line);
+  font-size:10px;font-weight:500;color:var(--ink3);
   text-transform:uppercase;letter-spacing:.6px;
 }
 .plr{
-  display:grid;grid-template-columns:1fr 64px 64px 100px 140px;
+  display:grid;grid-template-columns:1fr 64px 64px 96px 144px;
   padding:0 14px;min-height:48px;align-items:center;
-  border-bottom:1px solid var(--c-line);transition:background .1s;
+  border-bottom:1px solid var(--line);transition:background .1s;
   position:relative;
 }
 .plr:last-child{border-bottom:none;}
-.plr:hover{background:var(--c-bg);}
-.plr.dirty{background:#FFFCFC;}
-.plr.dirty:hover{background:#FFF5F5;}
-
-/* status dot */
+.plr:hover{background:var(--bg2);}
+.plr.dirty{background:rgba(224,82,82,.03);}
+.plr.dirty:hover{background:rgba(224,82,82,.06);}
 .plr::before{
   content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
-  width:3px;height:20px;border-radius:0 2px 2px 0;background:transparent;
-  transition:background .2s;
+  width:2px;height:18px;border-radius:0 2px 2px 0;background:transparent;transition:background .2s;
 }
-.plr.dirty::before{background:var(--c-red);}
-.plr.scanning::before{background:var(--c-amber);animation:pulse 1s infinite;}
-.plr.clean::before{background:var(--c-green);}
-
+.plr.dirty::before{background:var(--red);}
+.plr.scanning::before{background:var(--amber);animation:blink 1s infinite;}
+.plr.clean::before{background:var(--green);}
 .pl-info{display:flex;align-items:center;gap:10px;min-width:0;}
-.pl-thumb{
+.pl-th{
   width:32px;height:32px;border-radius:5px;
-  background:var(--c-bg2);flex-shrink:0;overflow:hidden;
+  background:var(--bg3);flex-shrink:0;overflow:hidden;
   display:flex;align-items:center;justify-content:center;font-size:14px;
 }
-.pl-thumb img{width:100%;height:100%;object-fit:cover;}
-.pl-n{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pl-m{font-size:11px;color:var(--c-ink3);}
-.pl-num{font-size:13px;font-weight:500;text-align:center;color:var(--c-ink3);}
-.pl-num.pos{color:var(--c-red);font-weight:600;}
+.pl-th img{width:100%;height:100%;object-fit:cover;}
+.pl-n{font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pl-m{font-size:11px;color:var(--ink3);}
+.pl-num{font-size:13px;font-weight:500;text-align:center;color:var(--ink3);}
+.pl-num.pos{color:var(--red);font-weight:600;}
 .pl-st{text-align:center;}
-.st-pill{
-  display:inline-block;font-size:10px;font-weight:500;
-  padding:2px 8px;border-radius:20px;white-space:nowrap;
-}
-.sp-idle{color:var(--c-ink3);}
-.sp-scan{color:var(--c-amber);background:var(--c-amber-bg);animation:pulse 1.2s infinite;}
-.sp-clean{color:var(--c-green);background:var(--c-green-bg);}
-.sp-dirty{color:var(--c-red);background:var(--c-red-bg);}
+.stp{display:inline-block;font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;}
+.sp-idle{color:var(--ink3);}
+.sp-scan{color:var(--amber);background:var(--abg);animation:blink 1.2s infinite;}
+.sp-clean{color:var(--green);background:var(--gbg);}
+.sp-dirty{color:var(--red);background:var(--rbg);}
 .pl-acts{display:flex;gap:4px;justify-content:flex-end;}
 .ab{
-  background:var(--c-bg);border:1px solid var(--c-line2);color:var(--c-ink2);
-  font-family:var(--f-sans);font-size:11px;font-weight:500;
+  background:var(--bg2);border:1px solid var(--line2);color:var(--ink3);
+  font-family:var(--f);font-size:11px;font-weight:500;
   padding:4px 9px;border-radius:var(--r-sm);cursor:pointer;transition:all .15s;
 }
-.ab:hover{background:var(--c-bg2);color:var(--c-ink);border-color:var(--c-ink3);}
-.ab.g{color:var(--c-green);background:var(--c-green-bg);border-color:rgba(29,185,84,.25);}
-.ab.g:hover{background:#e0f5ea;}
-.ab:disabled{opacity:.35;pointer-events:none;}
-.prog-bar{height:2px;background:var(--c-line);border-radius:1px;overflow:hidden;margin-top:2px;}
-.prog-fill{height:100%;background:var(--c-green);width:0;transition:width .3s;border-radius:1px;}
+.ab:hover{background:var(--bg3);color:var(--ink);border-color:var(--ink3);}
+.ab.g{color:var(--green);background:var(--gbg);border-color:var(--gbrd);}
+.ab.g:hover{background:rgba(29,185,84,.15);}
+.ab:disabled{opacity:.3;pointer-events:none;}
+.pgb{height:2px;background:var(--line);border-radius:1px;overflow:hidden;margin-top:2px;}
+.pgf{height:100%;background:var(--green);width:0;transition:width .3s;border-radius:1px;}
 
-/* ── DUPE PANEL ── */
-.dp{
-  background:#fff;border-bottom:1px solid var(--c-line);
-  animation:fadeDown .18s ease;
-}
-@keyframes fadeDown{from{opacity:0;transform:translateY(-4px);}to{opacity:1;}}
+/* dupe panel */
+.dp{background:var(--bg1);border-bottom:1px solid var(--line);animation:fd .18s ease;}
+@keyframes fd{from{opacity:0;transform:translateY(-4px);}to{opacity:1;}}
 .dp-head{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;
   padding:10px 14px;
-  background:var(--c-red-bg);border-bottom:1px solid #fecaca;
+  background:rgba(224,82,82,.06);border-bottom:1px solid rgba(224,82,82,.15);
 }
-.dp-title{font-size:11px;font-weight:600;color:var(--c-red);}
-.dp-meta{font-size:11px;color:var(--c-ink3);}
+.dp-title{font-size:11px;font-weight:600;color:var(--red);}
+.dp-meta{font-size:11px;color:var(--ink3);}
 .dp-acts{margin-left:auto;display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
 .sm-sel{
-  background:#fff;border:1px solid var(--c-line2);color:var(--c-ink);
-  font-family:var(--f-sans);font-size:11px;
+  background:var(--bg2);border:1px solid var(--line2);color:var(--ink);
+  font-family:var(--f);font-size:11px;
   padding:4px 8px;border-radius:var(--r-sm);outline:none;cursor:pointer;
 }
 .dp-body{padding:8px 14px;display:flex;flex-direction:column;gap:6px;}
-.dg{border:1px solid var(--c-line);border-radius:var(--r-sm);overflow:hidden;background:#fff;}
-.dg-head{
+.dg{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;background:var(--bg);}
+.dg-h{
   display:flex;align-items:center;gap:8px;
-  padding:9px 11px;background:var(--c-bg1);border-bottom:1px solid var(--c-line);
+  padding:9px 11px;background:var(--bg2);border-bottom:1px solid var(--line);
 }
 .dg-art{
-  width:34px;height:34px;border-radius:4px;background:var(--c-bg2);
+  width:34px;height:34px;border-radius:4px;background:var(--bg3);
   flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:14px;
 }
 .dg-art img{width:100%;height:100%;object-fit:cover;}
-.dg-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.dg-artist{font-size:11px;color:var(--c-ink3);}
-.conf-bar{height:2px;background:var(--c-line);border-radius:1px;margin-top:3px;overflow:hidden;}
-.conf-fill{height:100%;background:var(--c-green);border-radius:1px;}
-.dg-badge{
-  margin-left:auto;flex-shrink:0;
-  font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;
-  text-transform:uppercase;letter-spacing:.5px;
-}
-.b-exact{background:#fee2e2;color:var(--c-red);}
-.b-sim{background:var(--c-amber-bg);color:var(--c-amber);}
-.di{
-  display:flex;align-items:center;gap:9px;
-  padding:7px 11px;border-bottom:1px solid var(--c-line);font-size:12px;
-}
+.dg-n{font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dg-a{font-size:11px;color:var(--ink3);}
+.cfb{height:2px;background:var(--line);border-radius:1px;margin-top:3px;overflow:hidden;}
+.cff{height:100%;background:var(--green);border-radius:1px;}
+.dg-badge{margin-left:auto;flex-shrink:0;font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px;}
+.b-ex{background:var(--rbg);color:var(--red);}
+.b-sm{background:var(--abg);color:var(--amber);}
+.di{display:flex;align-items:center;gap:9px;padding:7px 11px;border-bottom:1px solid var(--line);font-size:12px;}
 .di:last-child{border-bottom:none;}
-.di.keep{border-left:2px solid var(--c-green);}
-.di.rem{border-left:2px solid var(--c-red);opacity:.55;}
-.di-pos{font-family:var(--f-mono);font-size:10px;color:var(--c-ink3);min-width:26px;}
+.di.keep{border-left:2px solid var(--green);}
+.di.rem{border-left:2px solid var(--red);opacity:.5;}
+.di-pos{font-family:var(--fm);font-size:10px;color:var(--ink3);min-width:26px;}
 .di-info{flex:1;min-width:0;}
-.di-alb{font-size:10px;color:var(--c-ink3);}
-.di-tag{font-size:9px;font-weight:600;padding:2px 5px;border-radius:4px;text-transform:uppercase;}
-.t-k{background:var(--c-green-bg);color:var(--c-green);}
-.t-r{background:#fee2e2;color:var(--c-red);}
+.di-n{color:var(--ink);font-weight:500;}
+.di-alb{font-size:10px;color:var(--ink3);}
+.di-tag{font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;text-transform:uppercase;}
+.t-k{background:var(--gbg);color:var(--green);}
+.t-r{background:var(--rbg);color:var(--red);}
 
-/* ══════════════════════════════════════
-   COMPARE TAB
-══════════════════════════════════════ */
-.cmp-grid{
-  display:grid;grid-template-columns:1fr 56px 1fr;
-  border:1px solid var(--c-line);border-radius:var(--r);
-  overflow:hidden;background:#fff;
-}
+/* compare */
+.cmp-grid{display:grid;grid-template-columns:1fr 52px 1fr;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--bg1);}
 .cmp-col{min-width:0;}
-.cmp-mid{
-  display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:4px;
-  background:var(--c-bg1);
-  border-left:1px solid var(--c-line);border-right:1px solid var(--c-line);
-  padding:12px 0;
-}
-.cmp-vs{font-size:10px;font-weight:600;color:var(--c-ink3);text-transform:uppercase;letter-spacing:.5px;}
-.cmp-num{font-size:20px;font-weight:700;color:var(--c-green);letter-spacing:-1px;line-height:1;}
-.cmp-lbl{font-size:9px;color:var(--c-ink3);text-transform:uppercase;letter-spacing:.5px;}
-.cmp-head{padding:10px 12px;border-bottom:1px solid var(--c-line);background:var(--c-bg1);}
-.cmp-sel{
-  width:100%;background:#fff;border:1px solid var(--c-line2);color:var(--c-ink);
-  font-family:var(--f-sans);font-size:12px;
-  padding:6px 8px;border-radius:var(--r-sm);outline:none;cursor:pointer;
-}
+.cmp-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--bg2);border-left:1px solid var(--line);border-right:1px solid var(--line);padding:12px 0;}
+.cmp-vs{font-size:9px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;}
+.cmp-num{font-size:20px;font-weight:700;color:var(--green);letter-spacing:-1px;line-height:1;}
+.cmp-lbl{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;}
+.cmp-head{padding:10px 12px;border-bottom:1px solid var(--line);background:var(--bg2);}
+.cmp-sel{width:100%;background:var(--bg1);border:1px solid var(--line2);color:var(--ink);font-family:var(--f);font-size:12px;padding:6px 8px;border-radius:var(--r-sm);outline:none;cursor:pointer;}
+.cmp-sel option{background:var(--bg2);}
 .cmp-list{max-height:340px;overflow-y:auto;}
-.ct{
-  display:flex;align-items:center;gap:8px;
-  padding:7px 12px;border-bottom:1px solid var(--c-line);font-size:12px;
-}
+.ct{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line);font-size:12px;}
 .ct:last-child{border-bottom:none;}
-.ct.sh{background:var(--c-green-bg);}
-.ct.sh .ct-n{color:var(--c-green);font-weight:500;}
-.ct-i{font-family:var(--f-mono);font-size:10px;color:var(--c-ink3);min-width:20px;}
-.ct-n{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ct-a{font-size:10px;color:var(--c-ink3);}
-.cmp-foot{padding:8px 12px;background:var(--c-bg1);border-top:1px solid var(--c-line);font-size:11px;color:var(--c-ink2);display:flex;gap:12px;}
+.ct.sh{background:var(--gbg);}
+.ct.sh .ct-n{color:var(--green);font-weight:500;}
+.ct-i{font-family:var(--fm);font-size:10px;color:var(--ink3);min-width:20px;}
+.ct-n{flex:1;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ct-a{font-size:10px;color:var(--ink3);}
+.cmp-foot{padding:8px 12px;background:var(--bg2);border-top:1px solid var(--line);font-size:11px;color:var(--ink3);display:flex;gap:12px;}
 
-/* ══════════════════════════════════════
-   OVERLAP TAB
-══════════════════════════════════════ */
+/* overlap */
 .ov-ctrl{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
-.ov-ctrl label{font-size:12px;color:var(--c-ink2);}
-.ov-ctrl input[type=range]{width:100px;accent-color:var(--c-green);}
-.ov-num{font-size:16px;font-weight:700;color:var(--c-green);letter-spacing:-0.5px;}
+.ov-ctrl label{font-size:12px;color:var(--ink2);}
+.ov-ctrl input[type=range]{width:100px;accent-color:var(--green);}
+.ov-num{font-size:16px;font-weight:700;color:var(--green);letter-spacing:-.5px;}
 .ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;}
-.ov-card{
-  background:#fff;border:1px solid var(--c-line);border-radius:var(--r);
-  padding:14px;transition:border-color .15s;
-}
-.ov-card:hover{border-color:var(--c-line2);}
-.ov-n{font-size:13px;font-weight:500;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ov-a{font-size:11px;color:var(--c-ink3);margin-bottom:8px;}
-.ov-cnt{
-  display:inline-flex;align-items:center;gap:4px;
-  font-size:10px;font-weight:600;color:var(--c-green);
-  background:var(--c-green-bg);padding:2px 7px;border-radius:10px;margin-bottom:6px;
-}
+.ov-card{background:var(--bg1);border:1px solid var(--line);border-radius:var(--r);padding:14px;transition:border-color .15s;}
+.ov-card:hover{border-color:var(--line2);}
+.ov-n{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ov-a{font-size:11px;color:var(--ink3);margin-bottom:8px;}
+.ov-cnt{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--green);background:var(--gbg);padding:2px 7px;border-radius:10px;margin-bottom:6px;}
 .ov-tags{display:flex;flex-wrap:wrap;gap:3px;}
-.ov-tag{
-  font-size:10px;color:var(--c-ink2);
-  background:var(--c-bg1);border:1px solid var(--c-line);
-  padding:2px 6px;border-radius:4px;
-}
+.ov-tag{font-size:10px;color:var(--ink3);background:var(--bg2);border:1px solid var(--line);padding:2px 6px;border-radius:4px;}
 
-/* ══════════════════════════════════════
-   GRAPH TAB
-══════════════════════════════════════ */
-.gph-wrap{border:1px solid var(--c-line);border-radius:var(--r);overflow:hidden;background:#fff;}
-.gph-bar{
-  display:flex;align-items:center;gap:7px;
-  padding:10px 14px;background:var(--c-bg1);border-bottom:1px solid var(--c-line);
-}
-#graphCanvas{width:100%;height:440px;}
-.gph-leg{
-  display:flex;gap:16px;padding:8px 14px;
-  background:var(--c-bg1);border-top:1px solid var(--c-line);
-  font-size:11px;color:var(--c-ink3);
-}
+/* graph */
+.gph-wrap{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--bg1);}
+.gph-bar{display:flex;align-items:center;gap:7px;padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--line);}
+#graphCanvas{width:100%;height:440px;background:var(--bg1);}
+.gph-leg{display:flex;gap:16px;padding:8px 14px;background:var(--bg2);border-top:1px solid var(--line);font-size:11px;color:var(--ink3);}
 .gph-leg-i{display:flex;align-items:center;gap:5px;}
-.gph-leg-dot{width:7px;height:7px;border-radius:50%;background:var(--c-green);opacity:.6;}
-.gph-leg-line{width:14px;height:1.5px;background:var(--c-line2);}
+.gph-dot{width:7px;height:7px;border-radius:50%;background:var(--green);opacity:.7;}
+.gph-line{width:14px;height:1.5px;background:var(--line2);}
 
-/* ══════════════════════════════════════
-   HISTORY TAB
-══════════════════════════════════════ */
-.hist-wrap{border:1px solid var(--c-line);border-radius:var(--r);overflow:hidden;background:#fff;}
-.hist-head{
-  display:grid;grid-template-columns:100px 1fr 70px 70px 70px;
-  padding:8px 14px;background:var(--c-bg1);border-bottom:1px solid var(--c-line);
-  font-size:10px;font-weight:500;color:var(--c-ink3);text-transform:uppercase;letter-spacing:.6px;
-}
-.hr{
-  display:grid;grid-template-columns:100px 1fr 70px 70px 70px;
-  padding:10px 14px;border-bottom:1px solid var(--c-line);font-size:12px;align-items:center;
-}
+/* history */
+.hist-wrap{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--bg1);}
+.hist-h{display:grid;grid-template-columns:100px 1fr 70px 70px 70px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--line);font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;}
+.hr{display:grid;grid-template-columns:100px 1fr 70px 70px 70px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:12px;align-items:center;}
 .hr:last-child{border-bottom:none;}
-.hr:hover{background:var(--c-bg);}
-.hr-m{font-family:var(--f-mono);font-size:11px;color:var(--c-ink3);}
-.hr-r{color:var(--c-red);font-weight:600;}
-.hr-g{color:var(--c-green);font-weight:600;}
+.hr:hover{background:var(--bg2);}
+.hr-m{font-family:var(--fm);font-size:11px;color:var(--ink3);}
+.hr-r{color:var(--red);font-weight:600;}
+.hr-g{color:var(--green);font-weight:600;}
 
-/* ══════════════════════════════════════
-   SHARED UTILS
-══════════════════════════════════════ */
-.loading{padding:40px;text-align:center;font-size:12px;color:var(--c-ink3);}
-.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--c-line2);border-top-color:var(--c-green);border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:middle;}
+/* utils */
+.loading{padding:40px;text-align:center;font-size:12px;color:var(--ink3);}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--line2);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:middle;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.empty{padding:28px;text-align:center;font-size:12px;color:var(--c-ink3);}
+.empty{padding:28px;text-align:center;font-size:12px;color:var(--ink3);}
 .hidden{display:none!important;}
 
-/* ── TOASTS ── */
+/* toasts */
 .toasts{position:fixed;bottom:16px;right:16px;z-index:999;display:flex;flex-direction:column;gap:6px;}
 .toast{
   display:flex;align-items:center;gap:9px;
-  background:#fff;border:1px solid var(--c-line2);
+  background:var(--bg2);border:1px solid var(--line2);
   border-radius:var(--r);padding:9px 13px;
-  font-size:12px;max-width:280px;
-  box-shadow:0 4px 16px rgba(0,0,0,.08);
+  font-size:12px;color:var(--ink);max-width:280px;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
   animation:tIn .2s ease;
 }
-.toast.ok{border-left:2px solid var(--c-green);}
-.toast.err{border-left:2px solid var(--c-red);}
-.toast.inf{border-left:2px solid var(--c-amber);}
+.toast.ok{border-left:2px solid var(--green);}
+.toast.err{border-left:2px solid var(--red);}
+.toast.inf{border-left:2px solid var(--amber);}
 @keyframes tIn{from{opacity:0;transform:translateX(10px);}to{opacity:1;}}
 
-/* ── FOOTER ── */
 footer{
-  border-top:1px solid var(--c-line);
-  padding:14px 24px;
+  border-top:1px solid var(--line);padding:14px 24px;
   display:flex;align-items:center;justify-content:space-between;
-  font-size:11px;color:var(--c-ink3);
+  font-size:11px;color:var(--ink3);background:var(--bg1);
 }
-footer a{color:var(--c-ink3);text-decoration:none;transition:color .15s;}
-footer a:hover{color:var(--c-ink);}
+footer a{color:var(--ink3);text-decoration:none;transition:color .15s;}
+footer a:hover{color:var(--ink);}
 
 @media(max-width:720px){
-  .pl-list-head,.plr{grid-template-columns:1fr 60px 90px;}
-  .pl-list-head>*:nth-child(3),.plr>*:nth-child(3){display:none;}
+  .pltbl-h,.plr{grid-template-columns:1fr 60px 90px;}
+  .pltbl-h>*:nth-child(3),.plr>*:nth-child(3){display:none;}
   .ubar-stats{display:none;}
   .cmp-grid{grid-template-columns:1fr;}
   .cmp-mid{display:none;}
-  .ov-grid{grid-template-columns:1fr 1fr;}
 }
 </style>
 </head>
 <body>
-
 <div class="toasts" id="toasts"></div>
 
-<!-- NAV -->
 <nav>
   <a class="nav-logo" href="#">
     <div class="nav-logo-icon">
@@ -524,15 +413,12 @@ footer a:hover{color:var(--c-ink);}
   <div class="lang-sw" id="langSw"></div>
 </nav>
 
-<!-- ══ LANDING ══ -->
+<!-- LANDING -->
 <div class="panel" id="landingPanel">
   <div class="hero-wrap">
-    <div class="hero-kicker">
-      <span class="hero-kicker-dot"></span>
-      <span data-i18n="hero.kicker">Spotify library cleaner</span>
-    </div>
+    <div class="hero-kicker"><span class="hero-kicker-dot"></span><span data-i18n="hero.kicker">Spotify library cleaner</span></div>
     <h1 class="hero-h1" data-i18n-html="hero.h1">Wash your<br>playlists <em>clean.</em></h1>
-    <p class="hero-sub" data-i18n="hero.sub">Remove duplicates, compare playlists and visualise how your library connects. Built for Spotify power users.</p>
+    <p class="hero-sub" data-i18n="hero.sub">Remove duplicates, compare playlists and visualise how your library connects.</p>
     <div class="hero-cta">
       <button class="btn btn-lg btn-green" onclick="startAuth()">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.208c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 11-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 01.207.856zm1.223-2.722a.78.78 0 01-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 01-.966-.519.781.781 0 01.519-.966c3.632-1.102 8.147-.568 11.228 1.322a.78.78 0 01.256 1.072zm.105-2.835C14.69 9.135 9.9 8.976 7.028 9.833a.937.937 0 11-.544-1.794c3.276-.994 8.724-.802 12.168 1.25a.937.937 0 01-.738 1.578z"/></svg>
@@ -542,38 +428,36 @@ footer a:hover{color:var(--c-ink);}
     </div>
     <div class="hero-feats">
       <span class="hf"><span class="hf-dot"></span><span data-i18n="hf.1">Smart dedup</span></span>
-      <span class="hf"><span class="hf-dot"></span><span data-i18n="hf.2">Playlist compare</span></span>
+      <span class="hf"><span class="hf-dot"></span><span data-i18n="hf.2">Compare</span></span>
       <span class="hf"><span class="hf-dot"></span><span data-i18n="hf.3">D3 graph</span></span>
-      <span class="hf"><span class="hf-dot"></span><span data-i18n="hf.4">CSV export</span></span>
+      <span class="hf"><span class="hf-dot"></span><span data-i18n="hf.4">Export</span></span>
       <span class="hf"><span class="hf-dot"></span><span data-i18n="hf.5">No data stored</span></span>
     </div>
     <div class="waveform" aria-hidden="true">
-      <div class="wf-bar" style="--h:35%;--i:0"></div><div class="wf-bar" style="--h:65%;--i:1"></div>
-      <div class="wf-bar" style="--h:45%;--i:2"></div><div class="wf-bar" style="--h:85%;--i:3"></div>
-      <div class="wf-bar" style="--h:55%;--i:4"></div><div class="wf-bar" style="--h:75%;--i:5"></div>
-      <div class="wf-bar" style="--h:40%;--i:6"></div><div class="wf-bar" style="--h:90%;--i:7"></div>
-      <div class="wf-bar" style="--h:50%;--i:8"></div><div class="wf-bar" style="--h:70%;--i:9"></div>
-      <div class="wf-bar" style="--h:35%;--i:10"></div><div class="wf-bar" style="--h:60%;--i:11"></div>
+      <div class="wfb" style="--h:35%;--i:0"></div><div class="wfb" style="--h:60%;--i:1"></div>
+      <div class="wfb" style="--h:45%;--i:2"></div><div class="wfb" style="--h:85%;--i:3"></div>
+      <div class="wfb" style="--h:55%;--i:4"></div><div class="wfb" style="--h:75%;--i:5"></div>
+      <div class="wfb" style="--h:40%;--i:6"></div><div class="wfb" style="--h:90%;--i:7"></div>
+      <div class="wfb" style="--h:50%;--i:8"></div><div class="wfb" style="--h:70%;--i:9"></div>
+      <div class="wfb" style="--h:35%;--i:10"></div><div class="wfb" style="--h:60%;--i:11"></div>
     </div>
   </div>
 </div>
 
-<!-- ══ APP ══ -->
+<!-- APP -->
 <div class="panel" id="appPanel">
-  <!-- user bar -->
   <div class="ubar">
     <div class="uav" id="uAv">?</div>
     <span class="uname" id="uName">—</span>
     <span class="uplan" id="uPlan"></span>
     <div class="ubar-stats">
-      <div class="us"><span class="us-v" id="sPl">—</span><span class="us-l" data-i18n="s.playlists">Playlists</span></div>
-      <div class="us"><span class="us-v" id="sSc">—</span><span class="us-l" data-i18n="s.scanned">Scanned</span></div>
-      <div class="us"><span class="us-v r" id="sDu">—</span><span class="us-l" data-i18n="s.dupes">Dupes</span></div>
-      <div class="us"><span class="us-v a" id="sAf">—</span><span class="us-l" data-i18n="s.affected">Affected</span></div>
+      <div class="us"><span class="us-v" id="sPl">—</span><span class="us-l" data-i18n="s.pl">Playlists</span></div>
+      <div class="us"><span class="us-v" id="sSc">—</span><span class="us-l" data-i18n="s.sc">Scanned</span></div>
+      <div class="us"><span class="us-v r" id="sDu">—</span><span class="us-l" data-i18n="s.du">Dupes</span></div>
+      <div class="us"><span class="us-v a" id="sAf">—</span><span class="us-l" data-i18n="s.af">Affected</span></div>
     </div>
     <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px;" onclick="logout()" data-i18n="app.logout">Log out</button>
   </div>
-  <!-- tabs -->
   <div class="atabs">
     <button class="atab on" onclick="switchTab('tLib',this)" data-i18n="tab.lib">Library</button>
     <button class="atab" onclick="switchTab('tCmp',this)" data-i18n="tab.cmp">Compare</button>
@@ -583,35 +467,35 @@ footer a:hover{color:var(--c-ink);}
   </div>
 
   <!-- LIBRARY -->
-  <div class="tab-body on" id="tLib">
+  <div class="tb on" id="tLib">
     <div class="mbar">
-      <span class="mb-label" data-i18n="mb.mode">Mode</span>
+      <span class="mb-lbl" data-i18n="mb.mode">Mode</span>
       <div class="mb-seg">
-        <button class="mb-seg-btn on" data-mode="balanced" onclick="setMode('balanced',this)" data-i18n="mb.bal">Balanced</button>
-        <button class="mb-seg-btn" data-mode="strict" onclick="setMode('strict',this)" data-i18n="mb.strict">Strict</button>
-        <button class="mb-seg-btn" data-mode="fuzzy" onclick="setMode('fuzzy',this)" data-i18n="mb.fuzzy">Fuzzy</button>
+        <button class="mb-sb on" data-mode="balanced" onclick="setMode('balanced',this)" data-i18n="mb.bal">Balanced</button>
+        <button class="mb-sb" data-mode="strict" onclick="setMode('strict',this)" data-i18n="mb.strict">Strict</button>
+        <button class="mb-sb" data-mode="fuzzy" onclick="setMode('fuzzy',this)" data-i18n="mb.fuzzy">Fuzzy</button>
       </div>
-      <div class="mb-divider"></div>
-      <label class="mb-check"><input type="checkbox" id="optR" checked onchange="rerenderAll()"><span data-i18n="mb.remasters">Remasters</span></label>
-      <label class="mb-check"><input type="checkbox" id="optL" onchange="rerenderAll()"><span data-i18n="mb.live">Live / acoustic</span></label>
-      <div class="mb-divider"></div>
-      <label class="mb-check"><input type="checkbox" id="optDry" checked><span data-i18n="mb.dry">Dry-run</span></label>
+      <div class="mb-div"></div>
+      <label class="mb-ck"><input type="checkbox" id="optR" checked onchange="rrAll()"><span data-i18n="mb.rem">Remasters</span></label>
+      <label class="mb-ck"><input type="checkbox" id="optL" onchange="rrAll()"><span data-i18n="mb.live">Live</span></label>
+      <div class="mb-div"></div>
+      <label class="mb-ck"><input type="checkbox" id="optDry" checked><span data-i18n="mb.dry">Dry-run</span></label>
     </div>
     <div class="tbar">
-      <div class="search-wrap">
+      <div class="sw">
         <svg viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM0 6.5a6.5 6.5 0 1111.596 4.02l3.442 3.442-.707.707-3.442-3.44A6.5 6.5 0 010 6.5z"/></svg>
         <input type="text" id="srch" oninput="renderPl()">
       </div>
       <div class="sort-seg">
-        <button class="ss-btn on" onclick="setSort('all',this)" data-i18n="sort.all">All</button>
-        <button class="ss-btn" onclick="setSort('dupes',this)" data-i18n="sort.dupes">Most dupes</button>
-        <button class="ss-btn" onclick="setSort('dirty',this)" data-i18n="sort.dirty">Dirty</button>
+        <button class="ssb on" onclick="setSort('all',this)" data-i18n="sort.all">All</button>
+        <button class="ssb" onclick="setSort('dupes',this)" data-i18n="sort.dupes">Most dupes</button>
+        <button class="ssb" onclick="setSort('dirty',this)" data-i18n="sort.dirty">Dirty</button>
       </div>
       <button class="btn btn-green" style="font-size:12px;padding:7px 13px;" id="scanAllBtn" onclick="scanAll()">⚡ <span data-i18n="app.scanAll">Scan all</span></button>
     </div>
     <div id="plLoading" class="loading hidden"><span class="spin"></span><span data-i18n="app.loading">Loading…</span></div>
-    <div class="pl-list" id="plWrap">
-      <div class="pl-list-head">
+    <div class="pltbl" id="plWrap">
+      <div class="pltbl-h">
         <div data-i18n="col.pl">Playlist</div>
         <div style="text-align:center" data-i18n="col.tr">Tracks</div>
         <div style="text-align:center" data-i18n="col.du">Dupes</div>
@@ -623,12 +507,12 @@ footer a:hover{color:var(--c-ink);}
   </div>
 
   <!-- COMPARE -->
-  <div class="tab-body" id="tCmp">
+  <div class="tb" id="tCmp">
     <div class="cmp-grid">
       <div class="cmp-col">
         <div class="cmp-head"><select class="cmp-sel" id="cmpL" onchange="runCmp()"></select></div>
-        <div class="cmp-list" id="cmpLList"><div class="empty" data-i18n="cmp.pick">Select a playlist</div></div>
-        <div class="cmp-foot" id="cmpLFoot"></div>
+        <div class="cmp-list" id="cmpLL"><div class="empty" data-i18n="cmp.pick">Select a playlist</div></div>
+        <div class="cmp-foot" id="cmpLF"></div>
       </div>
       <div class="cmp-mid">
         <span class="cmp-vs">VS</span>
@@ -637,14 +521,14 @@ footer a:hover{color:var(--c-ink);}
       </div>
       <div class="cmp-col">
         <div class="cmp-head"><select class="cmp-sel" id="cmpR" onchange="runCmp()"></select></div>
-        <div class="cmp-list" id="cmpRList"><div class="empty" data-i18n="cmp.pick">Select a playlist</div></div>
-        <div class="cmp-foot" id="cmpRFoot"></div>
+        <div class="cmp-list" id="cmpRL"><div class="empty" data-i18n="cmp.pick">Select a playlist</div></div>
+        <div class="cmp-foot" id="cmpRF"></div>
       </div>
     </div>
   </div>
 
   <!-- OVERLAP -->
-  <div class="tab-body" id="tOv">
+  <div class="tb" id="tOv">
     <div class="ov-ctrl">
       <label data-i18n="ov.min">Min playlists</label>
       <input type="range" min="2" max="8" value="3" id="ovMin" oninput="document.getElementById('ovNum').textContent=this.value;renderOv()">
@@ -654,35 +538,32 @@ footer a:hover{color:var(--c-ink);}
   </div>
 
   <!-- GRAPH -->
-  <div class="tab-body" id="tGph">
+  <div class="tb" id="tGph">
     <div class="gph-wrap">
       <div class="gph-bar">
         <button class="btn btn-green" style="font-size:12px;padding:7px 13px;" onclick="buildGraph()" data-i18n="gph.build">Build graph</button>
         <button class="btn btn-outline" style="font-size:12px;padding:6px 12px;" onclick="resetGraph()" data-i18n="gph.reset">Reset</button>
-        <span style="font-size:11px;color:var(--c-ink3);margin-left:4px;" id="gphSt"></span>
+        <span style="font-size:11px;color:var(--ink3);margin-left:4px;" id="gphSt"></span>
       </div>
       <svg id="graphCanvas"></svg>
       <div class="gph-leg">
-        <span class="gph-leg-i"><span class="gph-leg-dot"></span><span data-i18n="gph.ln">Playlist node (size = tracks)</span></span>
-        <span class="gph-leg-i"><span class="gph-leg-line"></span><span data-i18n="gph.le">Shared tracks (thickness = count)</span></span>
+        <span class="gph-leg-i"><span class="gph-dot"></span><span data-i18n="gph.ln">Playlist node (size = tracks)</span></span>
+        <span class="gph-leg-i"><span class="gph-line"></span><span data-i18n="gph.le">Shared tracks (thickness = count)</span></span>
       </div>
     </div>
   </div>
 
   <!-- HISTORY -->
-  <div class="tab-body" id="tHist">
+  <div class="tb" id="tHist">
     <div style="display:flex;gap:6px;margin-bottom:12px;justify-content:flex-end;">
-      <button class="btn btn-outline" style="font-size:11px;padding:6px 11px;" onclick="expHist('csv')" data-i18n="h.csv">Export CSV</button>
-      <button class="btn btn-outline" style="font-size:11px;padding:6px 11px;" onclick="expHist('json')" data-i18n="h.json">Export JSON</button>
-      <button class="btn btn-outline" style="font-size:11px;padding:6px 11px;color:var(--c-red);" onclick="clearHist()" data-i18n="h.clear">Clear</button>
+      <button class="btn btn-outline" style="font-size:11px;padding:6px 11px;" onclick="expH('csv')" data-i18n="h.csv">Export CSV</button>
+      <button class="btn btn-outline" style="font-size:11px;padding:6px 11px;" onclick="expH('json')" data-i18n="h.json">Export JSON</button>
+      <button class="btn btn-outline" style="font-size:11px;padding:6px 11px;color:var(--red);" onclick="clearH()" data-i18n="h.clear">Clear</button>
     </div>
     <div class="hist-wrap">
-      <div class="hist-head">
-        <div data-i18n="h.date">Date</div>
-        <div data-i18n="h.pl">Playlist</div>
-        <div data-i18n="h.rm">Removed</div>
-        <div data-i18n="h.kp">Kept</div>
-        <div data-i18n="h.md">Mode</div>
+      <div class="hist-h">
+        <div data-i18n="h.date">Date</div><div data-i18n="h.pl">Playlist</div>
+        <div data-i18n="h.rm">Removed</div><div data-i18n="h.kp">Kept</div><div data-i18n="h.md">Mode</div>
       </div>
       <div id="histRows"></div>
     </div>
@@ -697,23 +578,171 @@ footer a:hover{color:var(--c-ink);}
 <script>
 /* ══ I18N ══ */
 const L={
-  en:{f:'🇬🇧',n:'EN','hero.kicker':'Spotify library cleaner','hero.h1':'Wash your<br>playlists <em>clean.</em>','hero.sub':'Remove duplicates, compare playlists and visualise how your library connects. Built for Spotify power users.','hero.connect':'Connect Spotify','hero.demo':'Try demo','hf.1':'Smart dedup','hf.2':'Compare','hf.3':'D3 graph','hf.4':'CSV export','hf.5':'No data stored','s.playlists':'Playlists','s.scanned':'Scanned','s.dupes':'Dupes','s.affected':'Affected','app.logout':'Log out','app.scanAll':'Scan all','app.loading':'Loading…','tab.lib':'Library','tab.cmp':'Compare','tab.ov':'Overlap','tab.gph':'Graph','tab.hist':'History','mb.mode':'Mode','mb.bal':'Balanced','mb.strict':'Strict','mb.fuzzy':'Fuzzy','mb.remasters':'Remasters','mb.live':'Live / acoustic','mb.dry':'Dry-run','sort.all':'All','sort.dupes':'Most dupes','sort.dirty':'Dirty','col.pl':'Playlist','col.tr':'Tracks','col.du':'Dupes','col.st':'Status','col.ac':'Actions','pl.scan':'Scan','pl.scanning':'Scanning','pl.rescan':'Rescan','pl.view':'Dupes','pl.tracks':'tracks','st.idle':'—','st.scan':'Scanning','st.clean':'Clean','st.dirty':(n)=>`${n} dupes`,'dupe.exact':'Exact','dupe.sim':'Diff release','dupe.keep':'keep','dupe.rem':'remove','dupe.kFirst':'Keep first added','dupe.kLast':'Keep last added','dupe.groups':(n)=>`${n} group${n!==1?'s':''}  found`,'dupe.total':(n)=>`${n} duplicate${n!==1?'s':''}  total`,'dupe.more':(n)=>`+${n} more`,'dupe.collapse':'Collapse','dupe.rm':(n)=>`Remove ${n}`,'dupe.rming':'Removing…','dupe.added':'added','exp.csv':'CSV','exp.json':'JSON','cmp.pick':'Select a playlist','cmp.shared':'shared','cmp.only':(n)=>`${n} unique`,'cmp.both':(n)=>`${n} shared`,'ov.min':'Min playlists','ov.none':'No tracks found — scan more playlists first.','gph.build':'Build graph','gph.reset':'Reset','gph.ln':'Playlist node (size = tracks)','gph.le':'Shared tracks (thickness = count)','gph.nodata':'Scan at least 2 playlists first.','h.date':'Date','h.pl':'Playlist','h.rm':'Removed','h.kp':'Kept','h.md':'Mode','h.csv':'Export CSV','h.json':'Export JSON','h.clear':'Clear','h.empty':'No cleanups yet.','t.done':'All playlists scanned!','t.removed':(n,p)=>`Removed ${n} dupe${n!==1?'s':''}  from "${p}"`,'t.dry':'Dry-run — nothing deleted','t.cancel':'Auth cancelled','t.miss':'Auth data missing','t.pErr':(e)=>`Profile error: ${e}`,'t.sErr':(p,e)=>`Scan failed: ${p}`,'t.rErr':(e)=>`Remove failed: ${e}`,'t.out':'Logged out','t.demo':'Demo loaded','footer.tl':'Spotify library cleaner','srch.ph':'Search playlists…'},
-  ru:{f:'🇷🇺',n:'RU','hero.kicker':'Очиститель Spotify-библиотеки','hero.h1':'Чистые плейлисты —<br><em>без лишнего.</em>','hero.sub':'Удаляйте дубли, сравнивайте плейлисты и смотрите как устроена ваша библиотека.','hero.connect':'Войти через Spotify','hero.demo':'Демо','hf.1':'Умный поиск','hf.2':'Сравнение','hf.3':'D3-граф','hf.4':'Экспорт CSV','hf.5':'Данные не хранятся','s.playlists':'Плейлисты','s.scanned':'Проверено','s.dupes':'Дубли','s.affected':'Затронуто','app.logout':'Выйти','app.scanAll':'Сканировать всё','app.loading':'Загружаем…','tab.lib':'Библиотека','tab.cmp':'Сравнение','tab.ov':'Пересечения','tab.gph':'Граф','tab.hist':'История','mb.mode':'Режим','mb.bal':'Сбалансировано','mb.strict':'Строго','mb.fuzzy':'Гибко','mb.remasters':'Ремастеры','mb.live':'Live / acoustic','mb.dry':'Dry-run','sort.all':'Все','sort.dupes':'Больше дублей','sort.dirty':'Грязные','col.pl':'Плейлист','col.tr':'Треки','col.du':'Дубли','col.st':'Статус','col.ac':'Действия','pl.scan':'Сканировать','pl.scanning':'Сканирую','pl.rescan':'Заново','pl.view':'Дубли','pl.tracks':'треков','st.idle':'—','st.scan':'Сканирую','st.clean':'Чисто','st.dirty':(n)=>`${n} дублей`,'dupe.exact':'Точный','dupe.sim':'Другой релиз','dupe.keep':'оставить','dupe.rem':'удалить','dupe.kFirst':'Оставить первый','dupe.kLast':'Оставить последний','dupe.groups':(n)=>`${n} ${pru(n,'группа','группы','групп')}`,'dupe.total':(n)=>`${n} ${pru(n,'дубликат','дубликата','дубликатов')}`,'dupe.more':(n)=>`+${n} ещё`,'dupe.collapse':'Свернуть','dupe.rm':(n)=>`Удалить ${n}`,'dupe.rming':'Удаляю…','dupe.added':'добавлено','exp.csv':'CSV','exp.json':'JSON','cmp.pick':'Выберите плейлист','cmp.shared':'общих','cmp.only':(n)=>`${n} уникальных`,'cmp.both':(n)=>`${n} общих`,'ov.min':'Мин. плейлистов','ov.none':'Нет треков в таком количестве плейлистов.','gph.build':'Построить граф','gph.reset':'Сбросить','gph.ln':'Плейлист (размер = треки)','gph.le':'Связь (толщина = общие треки)','gph.nodata':'Сначала отсканируйте хотя бы 2 плейлиста.','h.date':'Дата','h.pl':'Плейлист','h.rm':'Удалено','h.kp':'Оставлено','h.md':'Режим','h.csv':'CSV','h.json':'JSON','h.clear':'Очистить','h.empty':'Очисток ещё не было.','t.done':'Все плейлисты отсканированы!','t.removed':(n,p)=>`Удалено ${n} ${pru(n,'дубликат','дубликата','дубликатов')} из «${p}»`,'t.dry':'Dry-run — ничего не удалено','t.cancel':'Авторизация отменена','t.miss':'Нет данных авторизации','t.pErr':(e)=>`Ошибка профиля: ${e}`,'t.sErr':(p,e)=>`Ошибка сканирования: ${p}`,'t.rErr':(e)=>`Ошибка удаления: ${e}`,'t.out':'Отключено','t.demo':'Демо загружено','footer.tl':'очиститель Spotify-библиотеки','srch.ph':'Поиск плейлистов…'},
-  de:{f:'🇩🇪',n:'DE','hero.kicker':'Spotify Bibliothek Bereiniger','hero.h1':'Playlists <em>sauber</em><br>waschen.','hero.sub':'Duplikate entfernen, Playlists vergleichen und Verbindungen visualisieren.','hero.connect':'Spotify verbinden','hero.demo':'Demo','hf.1':'Smarte Erkennung','hf.2':'Vergleich','hf.3':'D3-Graph','hf.4':'CSV-Export','hf.5':'Keine Datenspeicherung','s.playlists':'Playlists','s.scanned':'Gescannt','s.dupes':'Duplikate','s.affected':'Betroffen','app.logout':'Abmelden','app.scanAll':'Alles scannen','app.loading':'Laden…','tab.lib':'Bibliothek','tab.cmp':'Vergleich','tab.ov':'Überlappung','tab.gph':'Graph','tab.hist':'Verlauf','mb.mode':'Modus','mb.bal':'Ausgewogen','mb.strict':'Streng','mb.fuzzy':'Flexibel','mb.remasters':'Remasters','mb.live':'Live / akustisch','mb.dry':'Dry-run','sort.all':'Alle','sort.dupes':'Meiste Dupl.','sort.dirty':'Schmutzig','col.pl':'Playlist','col.tr':'Tracks','col.du':'Dupl.','col.st':'Status','col.ac':'Aktionen','pl.scan':'Scannen','pl.scanning':'Scannt','pl.rescan':'Neu scannen','pl.view':'Dupl.','pl.tracks':'Tracks','st.idle':'—','st.scan':'Scannt','st.clean':'Sauber','st.dirty':(n)=>`${n} Dupl.`,'dupe.exact':'Exakt','dupe.sim':'And. Release','dupe.keep':'behalten','dupe.rem':'löschen','dupe.kFirst':'Erstes behalten','dupe.kLast':'Letztes behalten','dupe.groups':(n)=>`${n} Gruppe${n!==1?'n':''}`,'dupe.total':(n)=>`${n} Duplikat${n!==1?'e':''} gesamt`,'dupe.more':(n)=>`+${n} mehr`,'dupe.collapse':'Zuklappen','dupe.rm':(n)=>`${n} entfernen`,'dupe.rming':'Entfernt…','dupe.added':'hinzugefügt','exp.csv':'CSV','exp.json':'JSON','cmp.pick':'Playlist wählen','cmp.shared':'gemeinsam','cmp.only':(n)=>`${n} einzigartig`,'cmp.both':(n)=>`${n} gemeinsam`,'ov.min':'Min. Playlists','ov.none':'Keine Tracks in so vielen Playlists.','gph.build':'Graph erstellen','gph.reset':'Zurücksetzen','gph.ln':'Playlist-Knoten','gph.le':'Verbindung (Dicke = gemeinsame Tracks)','gph.nodata':'Zuerst min. 2 Playlists scannen.','h.date':'Datum','h.pl':'Playlist','h.rm':'Entfernt','h.kp':'Behalten','h.md':'Modus','h.csv':'CSV','h.json':'JSON','h.clear':'Löschen','h.empty':'Noch keine Bereinigungen.','t.done':'Alle Playlists gescannt!','t.removed':(n,p)=>`${n} Duplikat${n!==1?'e':''} aus "${p}" entfernt`,'t.dry':'Dry-Run — nichts gelöscht','t.cancel':'Auth abgebrochen','t.miss':'Auth-Daten fehlen','t.pErr':(e)=>`Profil-Fehler: ${e}`,'t.sErr':(p)=>`Scan-Fehler: ${p}`,'t.rErr':(e)=>`Entfernen fehlgeschlagen`,'t.out':'Abgemeldet','t.demo':'Demo geladen','footer.tl':'Spotify Bibliothek Bereiniger','srch.ph':'Playlists suchen…'},
-  es:{f:'🇪🇸',n:'ES','hero.kicker':'Limpiador de biblioteca Spotify','hero.h1':'Lava tus playlists<br><em>de verdad.</em>','hero.sub':'Elimina duplicados, compara listas y visualiza cómo se conecta tu biblioteca.','hero.connect':'Conectar Spotify','hero.demo':'Demo','hf.1':'Búsqueda inteligente','hf.2':'Comparar','hf.3':'Grafo D3','hf.4':'Exportar CSV','hf.5':'Sin almacenamiento','s.playlists':'Listas','s.scanned':'Analizadas','s.dupes':'Dupl.','s.affected':'Afectadas','app.logout':'Salir','app.scanAll':'Analizar todo','app.loading':'Cargando…','tab.lib':'Biblioteca','tab.cmp':'Comparar','tab.ov':'Solapamiento','tab.gph':'Grafo','tab.hist':'Historial','mb.mode':'Modo','mb.bal':'Equilibrado','mb.strict':'Estricto','mb.fuzzy':'Flexible','mb.remasters':'Remasters','mb.live':'Live / acústico','mb.dry':'Dry-run','sort.all':'Todas','sort.dupes':'Más dupl.','sort.dirty':'Sucias','col.pl':'Lista','col.tr':'Pistas','col.du':'Dupl.','col.st':'Estado','col.ac':'Acciones','pl.scan':'Analizar','pl.scanning':'Analizando','pl.rescan':'Re-analizar','pl.view':'Dupl.','pl.tracks':'pistas','st.idle':'—','st.scan':'Analizando','st.clean':'Limpia','st.dirty':(n)=>`${n} dupl.`,'dupe.exact':'Exacto','dupe.sim':'Otro lanzamiento','dupe.keep':'conservar','dupe.rem':'eliminar','dupe.kFirst':'Conservar primero','dupe.kLast':'Conservar último','dupe.groups':(n)=>`${n} grupo${n!==1?'s':''}`,'dupe.total':(n)=>`${n} duplicado${n!==1?'s':''} total`,'dupe.more':(n)=>`+${n} más`,'dupe.collapse':'Cerrar','dupe.rm':(n)=>`Eliminar ${n}`,'dupe.rming':'Eliminando…','dupe.added':'añadido','exp.csv':'CSV','exp.json':'JSON','cmp.pick':'Elige una lista','cmp.shared':'compartidas','cmp.only':(n)=>`${n} únicas`,'cmp.both':(n)=>`${n} compartidas`,'ov.min':'Mín. listas','ov.none':'No hay pistas en tantas listas.','gph.build':'Construir grafo','gph.reset':'Reiniciar','gph.ln':'Nodo de lista','gph.le':'Conexión (grosor = pistas compartidas)','gph.nodata':'Escanea al menos 2 listas primero.','h.date':'Fecha','h.pl':'Lista','h.rm':'Eliminadas','h.kp':'Conservadas','h.md':'Modo','h.csv':'CSV','h.json':'JSON','h.clear':'Limpiar','h.empty':'Aún no hay limpiezas.','t.done':'¡Todas analizadas!','t.removed':(n,p)=>`${n} duplicado${n!==1?'s':''} eliminado${n!==1?'s':''} de "${p}"`,'t.dry':'Dry-run — nada eliminado','t.cancel':'Auth cancelada','t.miss':'Faltan datos de auth','t.pErr':(e)=>`Error de perfil: ${e}`,'t.sErr':(p)=>`Error al analizar: ${p}`,'t.rErr':(e)=>`Error al eliminar`,'t.out':'Sesión cerrada','t.demo':'Demo cargada','footer.tl':'limpiador de biblioteca Spotify','srch.ph':'Buscar listas…'}
+  en:{f:'🇬🇧',n:'EN',
+    'hero.kicker':'Spotify library cleaner',
+    'hero.h1':'Wash your<br>playlists <em>clean.</em>',
+    'hero.sub':'Remove duplicates, compare playlists and visualise how your library connects.',
+    'hero.connect':'Connect Spotify','hero.demo':'Try demo',
+    'hf.1':'Smart dedup','hf.2':'Compare','hf.3':'D3 graph','hf.4':'Export','hf.5':'No data stored',
+    's.pl':'Playlists','s.sc':'Scanned','s.du':'Dupes','s.af':'Affected',
+    'app.logout':'Log out','app.scanAll':'Scan all','app.loading':'Loading…',
+    'tab.lib':'Library','tab.cmp':'Compare','tab.ov':'Overlap','tab.gph':'Graph','tab.hist':'History',
+    'mb.mode':'Mode','mb.bal':'Balanced','mb.strict':'Strict','mb.fuzzy':'Fuzzy',
+    'mb.rem':'Remasters','mb.live':'Live','mb.dry':'Dry-run',
+    'sort.all':'All','sort.dupes':'Most dupes','sort.dirty':'Dirty',
+    'col.pl':'Playlist','col.tr':'Tracks','col.du':'Dupes','col.st':'Status','col.ac':'Actions',
+    'pl.scan':'Scan','pl.scanning':'Scanning','pl.rescan':'Rescan','pl.view':'View dupes','pl.tracks':'tracks',
+    'st.idle':'—','st.scan':'Scanning','st.clean':'Clean','st.dirty':(n)=>`${n} dupes`,
+    'dupe.exact':'Exact','dupe.sim':'Diff release',
+    'dupe.keep':'keep','dupe.rem':'remove',
+    'dupe.kF':'Keep first','dupe.kL':'Keep last',
+    'dupe.groups':(n)=>`${n} group${n!==1?'s':''} found`,
+    'dupe.total':(n)=>`${n} duplicate${n!==1?'s':''} total`,
+    'dupe.more':(n)=>`+${n} more`,
+    'dupe.col':'Collapse','dupe.rm':(n)=>`Remove ${n}`,'dupe.rming':'Removing…','dupe.added':'added',
+    'exp.csv':'CSV','exp.json':'JSON',
+    'cmp.pick':'Select a playlist','cmp.shared':'shared',
+    'cmp.only':(n)=>`${n} unique`,'cmp.both':(n)=>`${n} shared`,
+    'ov.min':'Min playlists','ov.none':'No tracks — scan more playlists first.',
+    'gph.build':'Build graph','gph.reset':'Reset',
+    'gph.ln':'Playlist node (size = tracks)','gph.le':'Shared tracks (thickness = count)',
+    'gph.nodata':'Scan at least 2 playlists first.',
+    'h.date':'Date','h.pl':'Playlist','h.rm':'Removed','h.kp':'Kept','h.md':'Mode',
+    'h.csv':'Export CSV','h.json':'Export JSON','h.clear':'Clear','h.empty':'No cleanups yet.',
+    't.done':'All playlists scanned!',
+    't.removed':(n,p)=>`Removed ${n} dupe${n!==1?'s':''} from "${p}"`,
+    't.dry':'Dry-run — nothing deleted',
+    't.cancel':'Auth cancelled','t.miss':'Auth data missing',
+    't.pErr':(e)=>`Profile error: ${e}`,'t.sErr':(p)=>`Scan failed: ${p}`,
+    't.rErr':'Remove failed','t.out':'Logged out','t.demo':'Demo loaded',
+    'srch.ph':'Search playlists…'},
+  ru:{f:'🇷🇺',n:'RU',
+    'hero.kicker':'Очиститель Spotify-библиотеки',
+    'hero.h1':'Чистые плейлисты —<br><em>без лишнего.</em>',
+    'hero.sub':'Удаляйте дубли, сравнивайте плейлисты и смотрите как устроена ваша библиотека.',
+    'hero.connect':'Войти через Spotify','hero.demo':'Демо',
+    'hf.1':'Умный поиск','hf.2':'Сравнение','hf.3':'D3-граф','hf.4':'Экспорт','hf.5':'Данные не хранятся',
+    's.pl':'Плейлисты','s.sc':'Проверено','s.du':'Дубли','s.af':'Затронуто',
+    'app.logout':'Выйти','app.scanAll':'Сканировать всё','app.loading':'Загружаем…',
+    'tab.lib':'Библиотека','tab.cmp':'Сравнение','tab.ov':'Пересечения','tab.gph':'Граф','tab.hist':'История',
+    'mb.mode':'Режим','mb.bal':'Сбалансировано','mb.strict':'Строго','mb.fuzzy':'Гибко',
+    'mb.rem':'Ремастеры','mb.live':'Live','mb.dry':'Dry-run',
+    'sort.all':'Все','sort.dupes':'Больше дублей','sort.dirty':'Грязные',
+    'col.pl':'Плейлист','col.tr':'Треки','col.du':'Дубли','col.st':'Статус','col.ac':'Действия',
+    'pl.scan':'Сканировать','pl.scanning':'Сканирую','pl.rescan':'Заново','pl.view':'Дубли','pl.tracks':'треков',
+    'st.idle':'—','st.scan':'Сканирую','st.clean':'Чисто','st.dirty':(n)=>`${n} дублей`,
+    'dupe.exact':'Точный','dupe.sim':'Другой релиз',
+    'dupe.keep':'оставить','dupe.rem':'удалить',
+    'dupe.kF':'Оставить первый','dupe.kL':'Оставить последний',
+    'dupe.groups':(n)=>`${n} ${pru(n,'группа','группы','групп')}`,
+    'dupe.total':(n)=>`${n} ${pru(n,'дубликат','дубликата','дубликатов')}`,
+    'dupe.more':(n)=>`+${n} ещё`,
+    'dupe.col':'Свернуть','dupe.rm':(n)=>`Удалить ${n}`,'dupe.rming':'Удаляю…','dupe.added':'добавлено',
+    'exp.csv':'CSV','exp.json':'JSON',
+    'cmp.pick':'Выберите плейлист','cmp.shared':'общих',
+    'cmp.only':(n)=>`${n} уникальных`,'cmp.both':(n)=>`${n} общих`,
+    'ov.min':'Мин. плейлистов','ov.none':'Нет треков — отсканируйте больше плейлистов.',
+    'gph.build':'Построить граф','gph.reset':'Сбросить',
+    'gph.ln':'Плейлист (размер = треки)','gph.le':'Связь (толщина = общие треки)',
+    'gph.nodata':'Сначала отсканируйте минимум 2 плейлиста.',
+    'h.date':'Дата','h.pl':'Плейлист','h.rm':'Удалено','h.kp':'Оставлено','h.md':'Режим',
+    'h.csv':'CSV','h.json':'JSON','h.clear':'Очистить','h.empty':'Очисток ещё не было.',
+    't.done':'Все плейлисты отсканированы!',
+    't.removed':(n,p)=>`Удалено ${n} ${pru(n,'дубликат','дубликата','дубликатов')} из «${p}»`,
+    't.dry':'Dry-run — ничего не удалено',
+    't.cancel':'Авторизация отменена','t.miss':'Нет данных авторизации',
+    't.pErr':(e)=>`Ошибка профиля: ${e}`,'t.sErr':(p)=>`Ошибка сканирования: ${p}`,
+    't.rErr':'Ошибка удаления','t.out':'Отключено','t.demo':'Демо загружено',
+    'srch.ph':'Поиск плейлистов…'},
+  de:{f:'🇩🇪',n:'DE',
+    'hero.kicker':'Spotify Bibliothek Bereiniger',
+    'hero.h1':'Playlists <em>sauber</em><br>waschen.',
+    'hero.sub':'Duplikate entfernen, Playlists vergleichen, Verbindungen visualisieren.',
+    'hero.connect':'Spotify verbinden','hero.demo':'Demo',
+    'hf.1':'Erkennung','hf.2':'Vergleich','hf.3':'D3-Graph','hf.4':'Export','hf.5':'Keine Datenspeicherung',
+    's.pl':'Playlists','s.sc':'Gescannt','s.du':'Dupl.','s.af':'Betroffen',
+    'app.logout':'Abmelden','app.scanAll':'Alles scannen','app.loading':'Laden…',
+    'tab.lib':'Bibliothek','tab.cmp':'Vergleich','tab.ov':'Überlappung','tab.gph':'Graph','tab.hist':'Verlauf',
+    'mb.mode':'Modus','mb.bal':'Ausgewogen','mb.strict':'Streng','mb.fuzzy':'Flexibel',
+    'mb.rem':'Remasters','mb.live':'Live','mb.dry':'Dry-run',
+    'sort.all':'Alle','sort.dupes':'Meiste Dupl.','sort.dirty':'Schmutzig',
+    'col.pl':'Playlist','col.tr':'Tracks','col.du':'Dupl.','col.st':'Status','col.ac':'Aktionen',
+    'pl.scan':'Scannen','pl.scanning':'Scannt','pl.rescan':'Neu scannen','pl.view':'Dupl.','pl.tracks':'Tracks',
+    'st.idle':'—','st.scan':'Scannt','st.clean':'Sauber','st.dirty':(n)=>`${n} Dupl.`,
+    'dupe.exact':'Exakt','dupe.sim':'And. Release',
+    'dupe.keep':'behalten','dupe.rem':'löschen',
+    'dupe.kF':'Erstes behalten','dupe.kL':'Letztes behalten',
+    'dupe.groups':(n)=>`${n} Gruppe${n!==1?'n':''}`,
+    'dupe.total':(n)=>`${n} Duplikat${n!==1?'e':''} gesamt`,
+    'dupe.more':(n)=>`+${n} mehr`,
+    'dupe.col':'Zuklappen','dupe.rm':(n)=>`${n} entfernen`,'dupe.rming':'Entfernt…','dupe.added':'hinzugefügt',
+    'exp.csv':'CSV','exp.json':'JSON',
+    'cmp.pick':'Playlist wählen','cmp.shared':'gemeinsam',
+    'cmp.only':(n)=>`${n} einzigartig`,'cmp.both':(n)=>`${n} gemeinsam`,
+    'ov.min':'Min. Playlists','ov.none':'Keine Tracks — mehr Playlists zuerst scannen.',
+    'gph.build':'Graph erstellen','gph.reset':'Zurücksetzen',
+    'gph.ln':'Playlist-Knoten','gph.le':'Verbindung (Dicke = gemeinsame Tracks)',
+    'gph.nodata':'Zuerst min. 2 Playlists scannen.',
+    'h.date':'Datum','h.pl':'Playlist','h.rm':'Entfernt','h.kp':'Behalten','h.md':'Modus',
+    'h.csv':'CSV','h.json':'JSON','h.clear':'Löschen','h.empty':'Noch keine Bereinigungen.',
+    't.done':'Alle Playlists gescannt!',
+    't.removed':(n,p)=>`${n} Duplikat${n!==1?'e':''} aus "${p}" entfernt`,
+    't.dry':'Dry-Run — nichts gelöscht',
+    't.cancel':'Auth abgebrochen','t.miss':'Auth-Daten fehlen',
+    't.pErr':(e)=>`Profil-Fehler: ${e}`,'t.sErr':(p)=>`Scan-Fehler: ${p}`,
+    't.rErr':'Entfernen fehlgeschlagen','t.out':'Abgemeldet','t.demo':'Demo geladen',
+    'srch.ph':'Playlists suchen…'},
+  es:{f:'🇪🇸',n:'ES',
+    'hero.kicker':'Limpiador de biblioteca Spotify',
+    'hero.h1':'Lava tus playlists<br><em>de verdad.</em>',
+    'hero.sub':'Elimina duplicados, compara listas y visualiza cómo se conecta tu biblioteca.',
+    'hero.connect':'Conectar Spotify','hero.demo':'Demo',
+    'hf.1':'Búsqueda','hf.2':'Comparar','hf.3':'Grafo D3','hf.4':'Exportar','hf.5':'Sin almacenamiento',
+    's.pl':'Listas','s.sc':'Analizadas','s.du':'Dupl.','s.af':'Afectadas',
+    'app.logout':'Salir','app.scanAll':'Analizar todo','app.loading':'Cargando…',
+    'tab.lib':'Biblioteca','tab.cmp':'Comparar','tab.ov':'Solapamiento','tab.gph':'Grafo','tab.hist':'Historial',
+    'mb.mode':'Modo','mb.bal':'Equilibrado','mb.strict':'Estricto','mb.fuzzy':'Flexible',
+    'mb.rem':'Remasters','mb.live':'Live','mb.dry':'Dry-run',
+    'sort.all':'Todas','sort.dupes':'Más dupl.','sort.dirty':'Sucias',
+    'col.pl':'Lista','col.tr':'Pistas','col.du':'Dupl.','col.st':'Estado','col.ac':'Acciones',
+    'pl.scan':'Analizar','pl.scanning':'Analizando','pl.rescan':'Re-analizar','pl.view':'Dupl.','pl.tracks':'pistas',
+    'st.idle':'—','st.scan':'Analizando','st.clean':'Limpia','st.dirty':(n)=>`${n} dupl.`,
+    'dupe.exact':'Exacto','dupe.sim':'Otro lanzamiento',
+    'dupe.keep':'conservar','dupe.rem':'eliminar',
+    'dupe.kF':'Conservar primero','dupe.kL':'Conservar último',
+    'dupe.groups':(n)=>`${n} grupo${n!==1?'s':''} encontrado${n!==1?'s':''}`,
+    'dupe.total':(n)=>`${n} duplicado${n!==1?'s':''} en total`,
+    'dupe.more':(n)=>`+${n} más`,
+    'dupe.col':'Cerrar','dupe.rm':(n)=>`Eliminar ${n}`,'dupe.rming':'Eliminando…','dupe.added':'añadido',
+    'exp.csv':'CSV','exp.json':'JSON',
+    'cmp.pick':'Elige una lista','cmp.shared':'compartidas',
+    'cmp.only':(n)=>`${n} únicas`,'cmp.both':(n)=>`${n} compartidas`,
+    'ov.min':'Mín. listas','ov.none':'No hay pistas — escanea más listas primero.',
+    'gph.build':'Construir grafo','gph.reset':'Reiniciar',
+    'gph.ln':'Nodo de lista (tamaño = pistas)','gph.le':'Conexión (grosor = pistas compartidas)',
+    'gph.nodata':'Escanea al menos 2 listas primero.',
+    'h.date':'Fecha','h.pl':'Lista','h.rm':'Eliminadas','h.kp':'Conservadas','h.md':'Modo',
+    'h.csv':'CSV','h.json':'JSON','h.clear':'Limpiar','h.empty':'Aún no hay limpiezas.',
+    't.done':'¡Todas las listas analizadas!',
+    't.removed':(n,p)=>`${n} duplicado${n!==1?'s':''} eliminado${n!==1?'s':''} de "${p}"`,
+    't.dry':'Dry-run — nada eliminado',
+    't.cancel':'Auth cancelada','t.miss':'Faltan datos de auth',
+    't.pErr':(e)=>`Error de perfil: ${e}`,'t.sErr':(p)=>`Error al analizar: ${p}`,
+    't.rErr':'Error al eliminar','t.out':'Sesión cerrada','t.demo':'Demo cargada',
+    'srch.ph':'Buscar listas…'}
 };
 function pru(n,a,b,c){const m=n%10,h=n%100;if(m===1&&h!==11)return a;if(m>=2&&m<=4&&(h<10||h>=20))return b;return c;}
-const LSL='wl_l';
-let lang=localStorage.getItem(LSL)||'en';
+const LSL='wl_l';let lang=localStorage.getItem(LSL)||'en';
 function t(k,...a){const v=L[lang]?.[k]??L.en[k];return typeof v==='function'?v(...a):v??k;}
-function applyI18n(){
+function i18n(){
   document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.dataset.i18n));
   document.querySelectorAll('[data-i18n-html]').forEach(el=>el.innerHTML=t(el.dataset.i18nHtml));
   const si=document.getElementById('srch');if(si)si.placeholder=t('srch.ph');
   document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('on',b.dataset.lang===lang));
+  document.documentElement.lang=lang;
 }
-function setLang(l){lang=l;localStorage.setItem(LSL,l);applyI18n();renderPl();renderHist();}
-function buildLangSw(){
+function setLang(l){lang=l;localStorage.setItem(LSL,l);i18n();renderPl();renderH();}
+function buildSw(){
   document.getElementById('langSw').innerHTML=Object.entries(L).map(([c,d])=>
     `<button class="lb${c===lang?' on':''}" data-lang="${c}" onclick="setLang('${c}')">${d.f} ${d.n}</button>`
   ).join('');
@@ -724,7 +753,7 @@ const SCOPES='playlist-read-private playlist-read-collaborative playlist-modify-
 const RU=location.href.split('?')[0].split('#')[0];
 const CID='5ce8326e147f46b3b11ebc24ac37bf7c';
 const LT='wl_t',LE='wl_e',LV='wl_v';
-let pls=[],pd={},sort='all',acc=null;
+let pls=[],pd={},srt='all',acc=null,mm='balanced';
 
 function b64u(a){return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
 async function gv(){const a=new Uint8Array(32);crypto.getRandomValues(a);return b64u(a);}
@@ -748,18 +777,16 @@ async function handleCb(){
     if(!r.ok)throw new Error(await r.text());
     const d=await r.json();
     acc=d.access_token;
-    localStorage.setItem(LT,d.access_token);
-    localStorage.setItem(LE,Date.now()+d.expires_in*1000);
-    localStorage.removeItem(LV);
-    initApp();
+    localStorage.setItem(LT,d.access_token);localStorage.setItem(LE,Date.now()+d.expires_in*1000);
+    localStorage.removeItem(LV);initApp();
   }catch(e){toast('Auth: '+e.message,'err');}
 }
-function chkToken(){const tk=localStorage.getItem(LT),ex=parseInt(localStorage.getItem(LE)||'0');if(tk&&ex>Date.now()+6e4){acc=tk;return true;}return false;}
+function chkTk(){const tk=localStorage.getItem(LT),ex=parseInt(localStorage.getItem(LE)||'0');if(tk&&ex>Date.now()+6e4){acc=tk;return true;}return false;}
 function logout(){localStorage.removeItem(LT);localStorage.removeItem(LE);acc=null;pls=[];pd={};show('landingPanel');hide('appPanel');toast(t('t.out'),'inf');}
 
 /* ══ API ══ */
-async function sp(url,opts={},retry=3){
-  for(let i=0;i<retry;i++){
+async function sp(url,opts={},rt=3){
+  for(let i=0;i<rt;i++){
     const r=await fetch(url,{...opts,headers:{'Authorization':`Bearer ${acc}`,'Content-Type':'application/json',...(opts.headers||{})}});
     if(r.status===429){await sl((parseInt(r.headers.get('Retry-After'))||1<<i)*1000);continue;}
     if(!r.ok)throw new Error(r.status);
@@ -773,8 +800,7 @@ async function sl(ms){return new Promise(r=>setTimeout(r,ms));}
 
 /* ══ INIT ══ */
 async function initApp(){
-  show('appPanel');hide('landingPanel');
-  show('plLoading');
+  show('appPanel');hide('landingPanel');show('plLoading');
   try{
     const me=await sp('https://api.spotify.com/v1/me');
     const av=document.getElementById('uAv');
@@ -785,61 +811,52 @@ async function initApp(){
     await loadPls();
   }catch(e){toast(t('t.pErr',e.message),'err');}
 }
-
 async function loadPls(){
   try{
     const items=await pages('https://api.spotify.com/v1/me/playlists?limit=50');
     pls=[{id:'liked',name:'Liked Songs',images:[],tracks:{total:0},isLiked:true},...items.filter(p=>p&&p.id)];
     try{const lk=await sp('https://api.spotify.com/v1/me/tracks?limit=1');pls[0].tracks={total:lk.total};}catch(e){}
     document.getElementById('sPl').textContent=pls.length;
-    hide('plLoading');renderPl();popCmpSels();
-  }catch(e){toast('Load failed: '+e.message,'err');}
+    hide('plLoading');renderPl();popCmp();
+  }catch(e){toast('Load failed','err');}
 }
 
 /* ══ TABS ══ */
 function switchTab(id,btn){
-  document.querySelectorAll('.tab-body').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tb').forEach(p=>p.classList.remove('on'));
   document.getElementById(id)?.classList.add('on');
   document.querySelectorAll('.atab').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  if(id==='tHist')renderHist();
-  if(id==='tCmp')popCmpSels();
+  if(id==='tHist')renderH();
+  if(id==='tCmp')popCmp();
   if(id==='tOv')renderOv();
 }
 
 /* ══ MODE ══ */
-let matchMode='balanced';
-function setMode(m,btn){
-  matchMode=m;
-  document.querySelectorAll('.mb-seg-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');rerenderAll();
-}
-function rerenderAll(){
-  Object.keys(pd).forEach(id=>{if(pd[id]?.tracks?.length){const{dg,dc}=findDupes(pd[id].tracks);pd[id].dg=dg;pd[id].dc=dc;}});
-  renderPl();updStats();
-}
+function setMode(m,btn){mm=m;document.querySelectorAll('.mb-sb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rrAll();}
+function rrAll(){Object.keys(pd).forEach(id=>{if(pd[id]?.tracks?.length){const{dg,dc}=findDupes(pd[id].tracks);pd[id].dg=dg;pd[id].dc=dc;}});renderPl();updSt();}
 
 /* ══ RENDER PLAYLISTS ══ */
 function renderPl(){
   const srch=(document.getElementById('srch')?.value||'').toLowerCase();
   let list=pls.filter(p=>!srch||p.name.toLowerCase().includes(srch));
-  if(sort==='dupes')list=[...list].sort((a,b)=>(pd[b.id]?.dc||0)-(pd[a.id]?.dc||0));
-  if(sort==='dirty')list=list.filter(p=>pd[p.id]?.dc>0);
+  if(srt==='dupes')list=[...list].sort((a,b)=>(pd[b.id]?.dc||0)-(pd[a.id]?.dc||0));
+  if(srt==='dirty')list=list.filter(p=>pd[p.id]?.dc>0);
   const el=document.getElementById('plList');if(!el)return;
   el.innerHTML='';
   if(!list.length){el.innerHTML=`<div class="empty">No playlists found</div>`;return;}
   list.forEach(pl=>{
     const d=pd[pl.id]||{};
-    const cover=pl.images?.[0]?.url;
-    const cov=cover?`<div class="pl-thumb"><img src="${cover}" alt=""></div>`:`<div class="pl-thumb">${pl.isLiked?'♥':'♪'}</div>`;
+    const cov=pl.images?.[0]?.url;
+    const covEl=cov?`<div class="pl-th"><img src="${cov}" alt=""></div>`:`<div class="pl-th">${pl.isLiked?'♥':'♪'}</div>`;
     const dc=d.dc||0;
-    let stCls='sp-idle',stTx=t('st.idle');
-    if(d.status==='scanning'){stCls='sp-scan';stTx=t('st.scan');}
-    else if(d.status==='done')stCls=dc>0?'sp-dirty':'sp-clean',stTx=dc>0?(typeof t('st.dirty')==='function'?t('st.dirty',dc):dc+' dupes'):t('st.clean');
-    let rowCls='plr';
-    if(d.status==='scanning')rowCls+=' scanning';
-    else if(d.status==='done'&&dc>0)rowCls+=' dirty';
-    else if(d.status==='done'&&dc===0)rowCls+=' clean';
+    let sc='sp-idle',st=t('st.idle');
+    if(d.status==='scanning'){sc='sp-scan';st=t('st.scan');}
+    else if(d.status==='done'){sc=dc>0?'sp-dirty':'sp-clean';st=dc>0?(typeof t('st.dirty')==='function'?t('st.dirty',dc):dc+' dupes'):t('st.clean');}
+    let rc='plr';
+    if(d.status==='scanning')rc+=' scanning';
+    else if(d.status==='done'&&dc>0)rc+=' dirty';
+    else if(d.status==='done'&&dc===0)rc+=' clean';
     let acts='';
     if(!d.status||d.status==='idle')acts=`<button class="ab" onclick="scanPl('${pl.id}')">${t('pl.scan')}</button>`;
     else if(d.status==='scanning')acts=`<button class="ab" disabled>${t('pl.scanning')}</button>`;
@@ -847,66 +864,61 @@ function renderPl(){
       if(dc>0)acts=`<button class="ab g" onclick="toggleDp('${pl.id}')">${t('pl.view')}</button>`;
       acts+=`<button class="ab" onclick="scanPl('${pl.id}')">${t('pl.rescan')}</button>`;
     }
-    const prog=d.status==='scanning'?`<div class="prog-bar"><div class="prog-fill" id="pg-${pl.id}" style="width:${d.prog||0}%"></div></div>`:'';
+    const prog=d.status==='scanning'?`<div class="pgb"><div class="pgf" id="pg-${pl.id}" style="width:${d.prog||0}%"></div></div>`:'';
     const row=document.createElement('div');
-    row.className=rowCls;row.id=`row-${pl.id}`;
+    row.className=rc;row.id=`row-${pl.id}`;
     row.innerHTML=`
-      <div class="pl-info">${cov}<div><div class="pl-n">${esc(pl.name)}</div><div class="pl-m">${pl.tracks.total} ${t('pl.tracks')}${prog}</div></div></div>
+      <div class="pl-info">${covEl}<div><div class="pl-n">${esc(pl.name)}</div><div class="pl-m">${pl.tracks.total} ${t('pl.tracks')}${prog}</div></div></div>
       <div class="pl-num">${pl.tracks.total}</div>
       <div class="pl-num${dc>0?' pos':''}">${d.dc!==undefined?d.dc:'—'}</div>
-      <div class="pl-st"><span class="st-pill ${stCls}">${stTx}</span></div>
+      <div class="pl-st"><span class="stp ${sc}">${st}</span></div>
       <div class="pl-acts">${acts}</div>`;
     const wrap=document.createElement('div');wrap.appendChild(row);
     if(d.status==='done'&&dc>0&&d.open)wrap.appendChild(buildDp(pl));
     el.appendChild(wrap);
   });
-  updStats();
+  updSt();
 }
 
 function buildDp(pl){
   const d=pd[pl.id];
-  const panel=document.createElement('div');
-  panel.className='dp';panel.id=`dp-${pl.id}`;
+  const panel=document.createElement('div');panel.className='dp';panel.id=`dp-${pl.id}`;
   const dry=document.getElementById('optDry')?.checked;
   let html=`<div class="dp-head">
     <span class="dp-title">${t('dupe.groups',d.dg.length)}</span>
     <span class="dp-meta">${t('dupe.total',d.dc)}</span>
     <div class="dp-acts">
-      <button class="ab" style="font-size:10px" onclick="expDupes('${pl.id}','csv')">${t('exp.csv')}</button>
-      <button class="ab" style="font-size:10px" onclick="expDupes('${pl.id}','json')">${t('exp.json')}</button>
-      <select class="sm-sel" id="md-${pl.id}"><option value="first">${t('dupe.kFirst')}</option><option value="last">${t('dupe.kLast')}</option></select>
-      <button class="btn btn-danger" style="font-size:11px;padding:5px 10px;" id="rmbtn-${pl.id}" onclick="remDupes('${pl.id}')">${t('dupe.rm',d.dc)}${dry?' (dry)':''}</button>
-      <button class="ab" style="font-size:10px" onclick="toggleDp('${pl.id}')">${t('dupe.collapse')}</button>
+      <button class="ab" style="font-size:10px" onclick="expDu('${pl.id}','csv')">${t('exp.csv')}</button>
+      <button class="ab" style="font-size:10px" onclick="expDu('${pl.id}','json')">${t('exp.json')}</button>
+      <select class="sm-sel" id="md-${pl.id}"><option value="first">${t('dupe.kF')}</option><option value="last">${t('dupe.kL')}</option></select>
+      <button class="btn btn-danger" style="font-size:11px;padding:5px 10px;" id="rmbtn-${pl.id}" onclick="remDu('${pl.id}')">${t('dupe.rm',d.dc)}${dry?' (dry)':''}</button>
+      <button class="ab" style="font-size:10px" onclick="toggleDp('${pl.id}')">${t('dupe.col')}</button>
     </div>
   </div><div class="dp-body">`;
   d.dg.slice(0,25).forEach(g=>{
     const art=g.art?`<div class="dg-art"><img src="${g.art}" alt=""></div>`:`<div class="dg-art">♪</div>`;
-    const badge=g.type==='sim'?`<span class="dg-badge b-sim">${t('dupe.sim')}</span>`:`<span class="dg-badge b-exact">${t('dupe.exact')}</span>`;
-    html+=`<div class="dg"><div class="dg-head">${art}<div style="flex:1;min-width:0"><div class="dg-name">${esc(g.name)}</div><div class="dg-artist">${esc(g.artist)}</div><div class="conf-bar"><div class="conf-fill" style="width:${g.conf}%"></div></div></div>${badge}</div><div>`;
+    const badge=g.type==='sim'?`<span class="dg-badge b-sm">${t('dupe.sim')}</span>`:`<span class="dg-badge b-ex">${t('dupe.exact')}</span>`;
+    html+=`<div class="dg"><div class="dg-h">${art}<div style="flex:1;min-width:0"><div class="dg-n">${esc(g.name)}</div><div class="dg-a">${esc(g.artist)}</div><div class="cfb"><div class="cff" style="width:${g.conf}%"></div></div></div>${badge}</div><div>`;
     g.insts.forEach((inst,i)=>{
       const cls=i===0?'keep':'rem';
       const tag=i===0?`<span class="di-tag t-k">${t('dupe.keep')}</span>`:`<span class="di-tag t-r">${t('dupe.rem')}</span>`;
       const dt=inst.at?new Date(inst.at).toLocaleDateString(lang==='ru'?'ru-RU':lang==='de'?'de-DE':lang==='es'?'es-ES':'en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
-      html+=`<div class="di ${cls}"><span class="di-pos">#${inst.pos+1}</span><div class="di-info"><div style="font-weight:500">${esc(inst.name||g.name)}</div><div class="di-alb">${esc(inst.alb||'')} · ${t('dupe.added')} ${dt}</div></div>${tag}</div>`;
+      html+=`<div class="di ${cls}"><span class="di-pos">#${inst.pos+1}</span><div class="di-info"><div class="di-n">${esc(inst.name||g.name)}</div><div class="di-alb">${esc(inst.alb||'')} · ${t('dupe.added')} ${dt}</div></div>${tag}</div>`;
     });
     html+=`</div></div>`;
   });
   if(d.dg.length>25)html+=`<div class="empty">${t('dupe.more',d.dg.length-25)}</div>`;
-  html+=`</div>`;
-  panel.innerHTML=html;return panel;
+  html+=`</div>`;panel.innerHTML=html;return panel;
 }
 
-function toggleDp(id){
-  if(!pd[id])return;pd[id].open=!pd[id].open;renderPl();
-  if(pd[id].open)setTimeout(()=>document.getElementById(`dp-${id}`)?.scrollIntoView({behavior:'smooth',block:'nearest'}),80);
-}
-function updStats(){
+function toggleDp(id){if(!pd[id])return;pd[id].open=!pd[id].open;renderPl();if(pd[id].open)setTimeout(()=>document.getElementById(`dp-${id}`)?.scrollIntoView({behavior:'smooth',block:'nearest'}),80);}
+function updSt(){
   const sc=Object.values(pd).filter(d=>d.status==='done');if(!sc.length)return;
   document.getElementById('sSc').textContent=sc.reduce((s,d)=>s+(d.tc||0),0).toLocaleString();
   document.getElementById('sDu').textContent=sc.reduce((s,d)=>s+(d.dc||0),0);
   document.getElementById('sAf').textContent=sc.filter(d=>d.dc>0).length;
 }
-function setSort(s,btn){sort=s;document.querySelectorAll('.ss-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderPl();}
+function setSort(s,btn){srt=s;document.querySelectorAll('.ssb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderPl();}
 
 /* ══ SCAN ══ */
 async function scanAll(){
@@ -922,7 +934,7 @@ async function scanPl(id){
     const tracks=await pagesP(url,id,pl.tracks.total);
     const{dg,dc}=findDupes(tracks);
     pd[id]={status:'done',tracks,dg,dc,tc:tracks.length,open:dc>0};renderPl();
-  }catch(e){pd[id]={status:'idle'};toast(t('t.sErr',pl.name,e.message),'err');renderPl();}
+  }catch(e){pd[id]={status:'idle'};toast(t('t.sErr',pl.name),'err');renderPl();}
 }
 async function pagesP(url,id,total){
   let res=[],nx=url,fetched=0;
@@ -939,8 +951,7 @@ async function pagesP(url,id,total){
 
 /* ══ DUPE DETECTION ══ */
 function norm(s){
-  const r=document.getElementById('optR')?.checked;
-  const lv=document.getElementById('optL')?.checked;
+  const r=document.getElementById('optR')?.checked,lv=document.getElementById('optL')?.checked;
   let x=(s||'').toLowerCase();
   if(r)x=x.replace(/\s*[\(\[].{0,40}[\)\]]\s*/g,'').replace(/\s*-\s*(remaster|remastered)/gi,'');
   if(lv)x=x.replace(/\s*-\s*(live|acoustic|unplugged|session)/gi,'');
@@ -952,16 +963,16 @@ function findDupes(items){
     const tr=item.track;if(!tr||!tr.id)return;
     const sk=norm(tr.name)+'|'+norm(tr.artists?.[0]?.name||'');
     if(!bU[tr.uri])bU[tr.uri]=[];bU[tr.uri].push({idx,item,tr});
-    if(matchMode!=='strict'){if(!bS[sk])bS[sk]=[];bS[sk].push({idx,item,tr,uri:tr.uri});}
+    if(mm!=='strict'){if(!bS[sk])bS[sk]=[];bS[sk].push({idx,item,tr,uri:tr.uri});}
   });
   Object.entries(bU).forEach(([,es])=>{
     if(es.length<2)return;const tr=es[0].tr;dc+=es.length-1;
     dg.push({type:'exact',conf:100,name:tr.name,artist:tr.artists?.[0]?.name||'',art:tr.album?.images?.[1]?.url||tr.album?.images?.[0]?.url,insts:es.map(e=>({pos:e.idx,at:e.item.added_at,alb:e.tr.album?.name,name:e.tr.name,uri:e.tr.uri,tid:e.tr.id}))});
   });
-  if(matchMode!=='strict'){Object.entries(bS).forEach(([,es])=>{
+  if(mm!=='strict'){Object.entries(bS).forEach(([,es])=>{
     const uris=[...new Set(es.map(e=>e.uri))];if(uris.length<2)return;
     const dd=es.filter((e,i,a)=>a.findIndex(x=>x.uri===e.uri)===i);if(dd.length<2)return;
-    const tr=dd[0].tr;const conf=matchMode==='fuzzy'?75:90;dc+=dd.length-1;
+    const tr=dd[0].tr;const conf=mm==='fuzzy'?75:90;dc+=dd.length-1;
     dg.push({type:'sim',conf,name:tr.name,artist:tr.artists?.[0]?.name||'',art:tr.album?.images?.[1]?.url||tr.album?.images?.[0]?.url,insts:dd.map(e=>({pos:e.idx,at:e.item.added_at,alb:e.tr.album?.name,name:e.tr.name,uri:e.tr.uri,tid:e.tr.id}))});
   });}
   dg.sort((a,b)=>b.insts.length-a.insts.length);
@@ -969,7 +980,7 @@ function findDupes(items){
 }
 
 /* ══ REMOVE ══ */
-async function remDupes(id){
+async function remDu(id){
   const pl=pls.find(p=>p.id===id),d=pd[id];if(!pl||!d)return;
   const dry=document.getElementById('optDry')?.checked;
   const mode=document.getElementById(`md-${id}`)?.value||'first';
@@ -981,14 +992,13 @@ async function remDupes(id){
     if(dry){toast(t('t.dry'),'inf');if(btn){btn.disabled=false;btn.textContent=t('dupe.rm',d.dc)+(dry?' (dry)':'');}return;}
     if(pl.isLiked){const ids=toRm.map(x=>x.tid).filter(Boolean);for(let i=0;i<ids.length;i+=50){await sp('https://api.spotify.com/v1/me/tracks',{method:'DELETE',body:JSON.stringify({ids:ids.slice(i,i+50)})});await sl(200);}
     }else{const snap=await sp(`https://api.spotify.com/v1/playlists/${id}`);const tracks=toRm.map(x=>({uri:x.uri}));for(let i=0;i<tracks.length;i+=100){await sp(`https://api.spotify.com/v1/playlists/${id}/tracks`,{method:'DELETE',body:JSON.stringify({tracks:tracks.slice(i,i+100),snapshot_id:snap.snapshot_id})});await sl(200);}}
-    addHist({date:new Date().toISOString(),playlist:pl.name,removed:toRm.length,kept:d.tc-toRm.length,mode});
-    toast(t('t.removed',toRm.length,pl.name),'ok');
-    await scanPl(id);
-  }catch(e){toast(t('t.rErr',e.message),'err');if(btn){btn.disabled=false;btn.textContent=t('dupe.rm',d.dc);}}
+    addH({date:new Date().toISOString(),playlist:pl.name,removed:toRm.length,kept:d.tc-toRm.length,mode});
+    toast(t('t.removed',toRm.length,pl.name),'ok');await scanPl(id);
+  }catch(e){toast(t('t.rErr'),'err');if(btn){btn.disabled=false;btn.textContent=t('dupe.rm',d.dc);}}
 }
 
 /* ══ EXPORT ══ */
-function expDupes(id,fmt){
+function expDu(id,fmt){
   const pl=pls.find(p=>p.id===id),d=pd[id];if(!pl||!d)return;
   const data=d.dg.flatMap(g=>g.insts.map((inst,i)=>({playlist:pl.name,track:g.name,artist:g.artist,type:g.type,confidence:g.conf,position:inst.pos+1,album:inst.alb||'',added:inst.at||'',action:i===0?'keep':'remove'})));
   if(fmt==='json')dl(JSON.stringify(data,null,2),`washlist-${pl.name}.json`,'application/json');
@@ -999,22 +1009,22 @@ function dl(c,f,ty){const a=document.createElement('a');a.href=URL.createObjectU
 /* ══ HISTORY ══ */
 const LH='wl_h';
 function getH(){try{return JSON.parse(localStorage.getItem(LH)||'[]');}catch(e){return[];}}
-function addHist(e){const h=getH();h.unshift(e);localStorage.setItem(LH,JSON.stringify(h.slice(0,200)));}
-function clearHist(){localStorage.removeItem(LH);renderHist();}
-function renderHist(){
+function addH(e){const h=getH();h.unshift(e);localStorage.setItem(LH,JSON.stringify(h.slice(0,200)));}
+function clearH(){localStorage.removeItem(LH);renderH();}
+function renderH(){
   const el=document.getElementById('histRows');if(!el)return;
   const h=getH();
   if(!h.length){el.innerHTML=`<div class="empty">${t('h.empty')}</div>`;return;}
-  el.innerHTML=h.map(e=>`<div class="hr"><div class="hr-m">${new Date(e.date).toLocaleDateString()}</div><div style="font-weight:500">${esc(e.playlist)}</div><div class="hr-r">−${e.removed}</div><div class="hr-g">${e.kept}</div><div class="hr-m">${e.mode}</div></div>`).join('');
+  el.innerHTML=h.map(e=>`<div class="hr"><div class="hr-m">${new Date(e.date).toLocaleDateString()}</div><div style="font-weight:500;color:var(--ink)">${esc(e.playlist)}</div><div class="hr-r">−${e.removed}</div><div class="hr-g">${e.kept}</div><div class="hr-m">${e.mode}</div></div>`).join('');
 }
-function expHist(fmt){
+function expH(fmt){
   const h=getH();if(!h.length)return;
   if(fmt==='json')dl(JSON.stringify(h,null,2),'washlist-history.json','application/json');
   else{const rows=[['date','playlist','removed','kept','mode'].join(','),...h.map(e=>[e.date,`"${e.playlist}"`,e.removed,e.kept,e.mode].join(','))];dl(rows.join('\n'),'washlist-history.csv','text/csv');}
 }
 
 /* ══ COMPARE ══ */
-function popCmpSels(){
+function popCmp(){
   ['cmpL','cmpR'].forEach(sid=>{
     const sel=document.getElementById(sid);if(!sel)return;
     const prev=sel.value;
@@ -1033,12 +1043,11 @@ function runCmp(){
   const sh=[...lm.keys()].filter(u=>rm.has(u));
   document.getElementById('cmpN').textContent=sh.length;
   const ss=new Set(sh);
-  const rl=(map,el)=>{el.innerHTML=[...map.entries()].map(([u,tr],i)=>`<div class="ct${ss.has(u)?' sh':''}"><span class="ct-i">${String(i+1).padStart(2,'0')}</span><div style="flex:1;min-width:0"><div class="ct-n">${esc(tr.name)}</div><div class="ct-a">${esc(tr.artists?.[0]?.name||'')}</div></div>${ss.has(u)?'<span style="font-size:12px;color:var(--c-green)">⇄</span>':''}</div>`).join('');};
-  rl(lm,document.getElementById('cmpLList'));
-  rl(rm,document.getElementById('cmpRList'));
+  const rl=(map,el)=>{el.innerHTML=[...map.entries()].map(([u,tr],i)=>`<div class="ct${ss.has(u)?' sh':''}"><span class="ct-i">${String(i+1).padStart(2,'0')}</span><div style="flex:1;min-width:0"><div class="ct-n">${esc(tr.name)}</div><div class="ct-a">${esc(tr.artists?.[0]?.name||'')}</div></div>${ss.has(u)?'<span style="color:var(--green);font-size:12px">⇄</span>':''}</div>`).join('');};
+  rl(lm,document.getElementById('cmpLL'));rl(rm,document.getElementById('cmpRL'));
   const ol=lm.size-sh.length,or=rm.size-sh.length;
-  document.getElementById('cmpLFoot').innerHTML=`<span>${t('cmp.only',ol)}</span><span style="margin-left:auto">${t('cmp.both',sh.length)}</span>`;
-  document.getElementById('cmpRFoot').innerHTML=`<span>${t('cmp.both',sh.length)}</span><span style="margin-left:auto">${t('cmp.only',or)}</span>`;
+  document.getElementById('cmpLF').innerHTML=`<span>${t('cmp.only',ol)}</span><span style="margin-left:auto">${t('cmp.both',sh.length)}</span>`;
+  document.getElementById('cmpRF').innerHTML=`<span>${t('cmp.both',sh.length)}</span><span style="margin-left:auto">${t('cmp.only',or)}</span>`;
 }
 
 /* ══ OVERLAP ══ */
@@ -1059,11 +1068,9 @@ let sim=null;
 function buildGraph(){
   const sc=pls.filter(p=>pd[p.id]?.tracks?.length);
   const st=document.getElementById('gphSt');
-  if(sc.length<2){st.textContent=t('gph.nodata');return;}
-  st.textContent='';
+  if(sc.length<2){st.textContent=t('gph.nodata');return;}st.textContent='';
   const svg=d3.select('#graphCanvas');svg.selectAll('*').remove();
-  const W=svg.node().clientWidth||900,H=440;
-  svg.attr('viewBox',`0 0 ${W} ${H}`);
+  const W=svg.node().clientWidth||900,H=440;svg.attr('viewBox',`0 0 ${W} ${H}`);
   const edges=[];
   for(let i=0;i<sc.length;i++)for(let j=i+1;j<sc.length;j++){
     const aU=new Set((pd[sc[i].id].tracks||[]).map(x=>x.track?.uri).filter(Boolean));
@@ -1075,14 +1082,14 @@ function buildGraph(){
   const ss=d3.scaleSqrt().domain([0,Math.max(...nodes.map(n=>n.size))]).range([8,28]);
   const g=svg.append('g');
   svg.call(d3.zoom().scaleExtent([.3,3]).on('zoom',e=>g.attr('transform',e.transform)));
-  const link=g.append('g').selectAll('line').data(edges).join('line').attr('stroke','#D8D5CF').attr('stroke-width',e=>Math.max(1,Math.round(e.weight/maxW*5)));
+  const link=g.append('g').selectAll('line').data(edges).join('line').attr('stroke','#3A3835').attr('stroke-width',e=>Math.max(1,Math.round(e.weight/maxW*5)));
   const node=g.append('g').selectAll('g').data(nodes).join('g').call(
     d3.drag().on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;})
       .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;})
       .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;})
   );
-  node.append('circle').attr('r',d=>ss(d.size)).attr('fill','#F0FAF4').attr('stroke','#1DB954').attr('stroke-width',1.5);
-  node.append('text').attr('text-anchor','middle').attr('dy','.35em').attr('font-family','Geist,sans-serif').attr('font-size','10px').attr('fill','#6B6860').attr('pointer-events','none').text(d=>d.name.length>12?d.name.slice(0,11)+'…':d.name);
+  node.append('circle').attr('r',d=>ss(d.size)).attr('fill','rgba(29,185,84,.1)').attr('stroke','#1DB954').attr('stroke-width',1.5);
+  node.append('text').attr('text-anchor','middle').attr('dy','.35em').attr('font-family','Geist,sans-serif').attr('font-size','10px').attr('fill','#9A9690').attr('pointer-events','none').text(d=>d.name.length>12?d.name.slice(0,11)+'…':d.name);
   sim=d3.forceSimulation(nodes).force('link',d3.forceLink(edges).id(d=>d.id).distance(120)).force('charge',d3.forceManyBody().strength(-180)).force('center',d3.forceCenter(W/2,H/2)).on('tick',()=>{link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);node.attr('transform',d=>`translate(${d.x},${d.y})`);});
   st.textContent=`${nodes.length} nodes · ${edges.length} edges`;
 }
@@ -1102,16 +1109,14 @@ function loadDemo(){
   pd['d2']={status:'done',tc:87,tracks:[mk('b1','Blinding Lights','The Weeknd','After Hours'),...Array(86).fill(null).map((_,i)=>mk(`y${i}`,'Track'+i,'A','B'))],dc:0,dg:[]};
   pd['d3']={status:'done',tc:203,tracks:[mk('a1','Midnight City','M83','Hurry Up'),...Array(202).fill(null).map((_,i)=>mk(`z${i}`,'Track'+i,'A','B'))],dc:0,dg:[]};
   hide('plLoading');renderPl();
-  document.getElementById('sSc').textContent='487';
-  document.getElementById('sDu').textContent='3';
-  document.getElementById('sAf').textContent='1';
-  popCmpSels();toast(t('t.demo'),'inf');
+  document.getElementById('sSc').textContent='487';document.getElementById('sDu').textContent='3';document.getElementById('sAf').textContent='1';
+  popCmp();toast(t('t.demo'),'inf');
 }
 
 /* ══ UTILS ══ */
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function show(id){const el=document.getElementById(id);if(el){el.classList.add('on');}}
-function hide(id){const el=document.getElementById(id);if(el){el.classList.remove('on');}}
+function show(id){document.getElementById(id)?.classList.add('on');}
+function hide(id){document.getElementById(id)?.classList.remove('on');}
 function toast(msg,type='inf'){
   const c=document.getElementById('toasts');
   const el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;c.appendChild(el);
@@ -1120,10 +1125,10 @@ function toast(msg,type='inf'){
 
 /* ══ BOOT ══ */
 document.addEventListener('DOMContentLoaded',()=>{
-  buildLangSw();applyI18n();
+  buildSw();i18n();
   const p=new URLSearchParams(location.search);
   if(p.has('code')||p.has('error'))handleCb();
-  else if(chkToken())initApp();
+  else if(chkTk())initApp();
   else show('landingPanel');
 });
 </script>
