@@ -705,24 +705,7 @@ footer a:hover{color:var(--pale);}
     </div>
   </div>
 
-  <div id="setupSection" style="padding:0 24px 80px;">
-    <div class="setup-box">
-      <div class="setup-head">
-        <span data-i18n="setup.title">Setup</span>
-        <span class="setup-head-badge" data-i18n="setup.once">ONE-TIME</span>
-      </div>
-      <div class="setup-body">
-        <ol class="setup-steps" id="setupSteps"></ol>
-        <div class="input-row">
-          <input type="text" id="clientIdInput" oninput="saveClientId(this.value)">
-          <button class="btn-primary" onclick="startSpotifyAuth()">
-            <span data-i18n="hero.connect">Connect</span>
-          </button>
-        </div>
-        <p style="font-size:10px;color:var(--dim);margin-top:12px;" data-i18n="setup.note">Client ID stored locally. Never transmitted except to Spotify.</p>
-      </div>
-    </div>
-  </div>
+
 </div>
 
 <!-- ══════════════════════════════════════
@@ -1124,6 +1107,7 @@ function buildLangSwitcher(){
 const CLIENT_SCOPES='playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private user-library-read user-library-modify user-read-private user-read-email';
 const REDIRECT_URI=window.location.href.split('?')[0].split('#')[0];
 const LS_TOKEN='sp_token',LS_EXP='sp_exp',LS_CLIENT='sp_client',LS_VER='sp_ver';
+const HARDCODED_CLIENT_ID='5ce8326e147f46b3b11ebc24ac37bf7c';
 
 let playlists=[],playlistData={},sortMode='default',accessToken=null;
 
