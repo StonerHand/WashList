@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>WashList</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
 /* ── TOKENS ── */
@@ -104,6 +104,7 @@ nav {
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
   white-space: nowrap; user-select: none;
 }
+.lang-trigger:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .lang-trigger:hover { background: var(--bg3); color: var(--ink); border-color: var(--line2); }
 .lang-trigger svg { width: 10px; height: 10px; fill: currentColor; opacity: .5; transition: transform var(--dur-base) var(--ease-spring); }
 .lang-wrap.open .lang-trigger svg { transform: rotate(180deg); }
@@ -111,25 +112,27 @@ nav {
   position: absolute; top: calc(100% + 6px); right: 0;
   background: var(--bg1); border: 1px solid var(--line);
   border-radius: var(--r-lg); padding: 4px;
-  min-width: 120px; z-index: 200;
+  min-width: 160px; z-index: 200;
   box-shadow: 0 8px 24px rgba(0,0,0,.15), 0 2px 6px rgba(0,0,0,.08);
-  opacity: 0; transform: translateY(-6px) scale(.97);
+  opacity: 0; transform: translateY(-4px) scale(.98);
   transform-origin: top right;
   pointer-events: none;
-  transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-spring);
+  transition: opacity 140ms var(--ease-out), transform 140ms var(--ease-spring);
 }
 .lang-wrap.open .lang-dropdown { opacity: 1; transform: none; pointer-events: all; }
 .lang-opt {
   display: flex; align-items: center; gap: 8px;
-  padding: 7px 10px; border-radius: 5px;
-  font-family: var(--f); font-size: 12px; font-weight: 500; color: var(--ink2);
+  padding: 8px 10px; border-radius: 5px;
+  font-family: var(--f); font-size: 13px; font-weight: 400; color: var(--ink2);
   cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
-  white-space: nowrap;
+  white-space: nowrap; outline: none;
 }
-.lang-opt:hover { background: var(--bg3); color: var(--ink); }
-.lang-opt.on { color: var(--green); background: var(--gbg); }
-.lang-opt-flag { font-size: 14px; line-height: 1; }
-.lang-opt-check { margin-left: auto; font-size: 11px; color: var(--green); opacity: 0; }
+.lang-opt:hover, .lang-opt:focus { background: var(--bg3); color: var(--ink); }
+.lang-opt.on { color: var(--ink); font-weight: 500; }
+.lang-opt-flag { font-size: 15px; line-height: 1; flex-shrink: 0; }
+.lang-opt-native { flex: 1; }
+.lang-opt-code { font-size: 11px; color: var(--ink3); }
+.lang-opt-check { font-size: 11px; color: var(--green); opacity: 0; margin-left: 4px; }
 .lang-opt.on .lang-opt-check { opacity: 1; }
 
 /* ── PANELS ── */
@@ -243,6 +246,7 @@ nav {
 .ustat {
   display: flex; flex-direction: column; align-items: center;
   padding: 0 24px; border-right: 1px solid var(--line); height: 52px; justify-content: center; gap: 2px;
+  min-width: 80px; /* prevent layout shift */
 }
 .ustat:last-child { border-right: none; }
 .ustat-v { font-size: 18px; font-weight: 700; letter-spacing: -.5px; color: var(--ink); }
@@ -256,7 +260,11 @@ nav {
   padding: 0 24px;
   border-bottom: 1px solid var(--line);
   background: var(--bg);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.atabs::-webkit-scrollbar { display: none; }
 .atab {
   background: none; border: none; border-bottom: 2px solid transparent;
   font-family: var(--f); font-size: 13px; font-weight: 500;
@@ -543,11 +551,10 @@ footer a:hover { color: var(--ink); }
   opacity: 0;
   animation: springIn var(--dur-slow) var(--ease-spring) both;
   transition: background var(--dur-fast) var(--ease);
-  will-change: transform;
 }
 @keyframes springIn {
-  from { opacity:0; transform: translateY(10px); }
-  to   { opacity:1; transform: none; }
+  from { opacity:0; transform:translateY(8px); }
+  to   { opacity:1; transform:none; }
 }
 
 /* Stat counter bounce */
@@ -555,8 +562,15 @@ footer a:hover { color: var(--ink); }
 .stat-pop { animation: statBounce .5s cubic-bezier(.34,1.56,.64,1) both; }
 
 /* Tab transition */
-@keyframes tabIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:none;} }
-.tb.on { animation: tabIn var(--dur-slow) var(--ease-out) both; }
+.tb { opacity: 0; }
+.tb.on {
+  opacity: 1;
+  animation: tabIn var(--dur-base) var(--ease-out) both;
+}
+@keyframes tabIn {
+  from { opacity:0; transform:translateY(4px); }
+  to   { opacity:1; transform:none; }
+}
 
 /* Dupe panel — spring expand */
 .dp { transform-origin: top; animation: dpSpring var(--dur-slow) var(--ease-spring) both; }
@@ -571,24 +585,21 @@ footer a:hover { color: var(--ink); }
 }
 @keyframes shimmer { to { transform: translateX(350%); } }
 
-/* Scan status ring */
-.sp-scan { position: relative; }
-.sp-scan::after {
-  content:''; position:absolute; inset:-4px; border-radius:20px;
-  border: 1px solid var(--amber); opacity: 0;
-  animation: ringOut 1.6s ease-out infinite;
-}
-@keyframes ringOut { 0%{opacity:.7;transform:scale(1);} 100%{opacity:0;transform:scale(1.6);} }
+/* Scan status — simple opacity pulse */
+.sp-scan { animation: pulse 1.2s ease-in-out infinite; }
 
 /* Smooth theme — handled per-element */
 
 /* Feature cards — magnetic handled by JS, CSS fallback */
-.l-feat { transition: transform .25s cubic-bezier(.34,1.4,.64,1), color .2s; cursor: default; will-change: transform; }
+.l-feat { transition: transform var(--dur-base) var(--ease), color var(--dur-base) var(--ease); cursor: default; }
+.l-feat:hover { transform: translateY(-3px); }
 .l-feat:hover .l-feat-n { color: var(--green); }
 .l-feat-n { transition: color .2s; }
 
-/* Cursor — скрываем системный, показываем свой */
-* { cursor: none !important; }
+/* Cursor — скрываем системный только на desktop */
+body:not(.no-custom-cursor) * { cursor: none !important; }
+body.no-custom-cursor #cursor-dot,
+body.no-custom-cursor #cursor-ring { display: none !important; }
 
 #cursor-dot {
   width: 5px; height: 5px;
@@ -620,10 +631,10 @@ footer a:hover { color: var(--ink); }
 
 /* Connect button glow */
 .btn-green {
-  transition: background .15s, box-shadow .3s, transform .2s cubic-bezier(.34,1.4,.64,1) !important;
+  transition: background var(--dur-fast) var(--ease), box-shadow var(--dur-base) var(--ease) !important;
 }
-.btn-green:hover { box-shadow: 0 0 28px rgba(29,185,84,.3); transform: translateY(-2px) scale(1.02) !important; }
-.btn-green:active { transform: scale(.97) !important; }
+.btn-green:hover { box-shadow: 0 0 20px rgba(29,185,84,.2); }
+.btn-green:active { opacity: .9; }
 
 /* Scan button */
 #scanAllBtn:not(:disabled):hover { box-shadow: 0 0 16px rgba(29,185,84,.25); }
@@ -637,7 +648,6 @@ footer a:hover { color: var(--ink); }
 .nav-logo:hover .nav-logo-mark { transform: rotate(-8deg) scale(1.08); }
 
 /* Tab active indicator spring */
-.atab { transition: color .15s; }
 .atab { transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease); }
 
 /* Toast spring */
@@ -656,6 +666,11 @@ footer a:hover { color: var(--ink); }
 .dg:hover { transform: translateX(3px); border-color: var(--line2); }
 
 @media(max-width:768px) {
+  html, body { overflow-x: hidden; }
+  /* Touch targets */
+  .atab { padding: 14px 12px; min-height: 44px; }
+  .ab, .fp { min-height: 36px; padding: 8px 12px; }
+  .btn-lg { min-height: 48px; padding: 14px 20px; }
   .pl-head,.plr { grid-template-columns: 1fr 70px 100px; }
   .pl-head>*:nth-child(3),.plr>*:nth-child(3) { display: none; }
   nav { padding: 0 16px; gap: 12px; }
@@ -676,6 +691,16 @@ footer a:hover { color: var(--ink); }
   border-radius: var(--r);
 }
 button:focus:not(:focus-visible) { outline: none; }
+
+/* Respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .wfb { animation: none !important; opacity: .3 !important; }
+}
 </style>
 </head>
 <body>
@@ -689,8 +714,8 @@ button:focus:not(:focus-visible) { outline: none; }
     </div>
     <span class="nav-logo-text">WashList</span>
   </a>
-  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">☀</button>
-  <div class="lang-wrap" id="langWrap"><button class="lang-trigger" id="langTrigger" onclick="toggleLangDropdown()"><span id="langCurrent">🇬🇧 EN</span><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4"/></svg></button><div class="lang-dropdown" id="langDropdown"></div></div>
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">☀</button>
+  <div class="lang-wrap" id="langWrap"><button class="lang-trigger" id="langTrigger" onclick="toggleLangDropdown()" aria-haspopup="listbox" aria-expanded="false" aria-label="Language"><span id="langCurrent">🇬🇧 EN</span><svg viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button><div class="lang-dropdown" id="langDropdown" role="listbox" aria-label="Select language"></div></div>
 </nav>
 
 <!-- LANDING -->
@@ -756,12 +781,12 @@ button:focus:not(:focus-visible) { outline: none; }
   </div>
 
   <!-- tabs -->
-  <div class="atabs">
-    <button class="atab on" onclick="switchTab('tLib',this)" data-i18n="tab.lib">Library</button>
-    <button class="atab" onclick="switchTab('tCmp',this)" data-i18n="tab.cmp">Compare</button>
-    <button class="atab" onclick="switchTab('tOv',this)" data-i18n="tab.ov">Overlap</button>
-    <button class="atab" onclick="switchTab('tGph',this)" data-i18n="tab.gph">Graph</button>
-    <button class="atab" onclick="switchTab('tHist',this)" data-i18n="tab.hist">History</button>
+  <div class="atabs" role="tablist">
+    <button class="atab on" onclick="switchTab('tLib',this)" data-i18n="tab.lib" role="tab" aria-selected="true" aria-controls="tLib">Library</button>
+    <button class="atab" onclick="switchTab('tCmp',this)" data-i18n="tab.cmp" role="tab" aria-selected="false" aria-controls="tCmp">Compare</button>
+    <button class="atab" onclick="switchTab('tOv',this)" data-i18n="tab.ov" role="tab" aria-selected="false" aria-controls="tOv">Overlap</button>
+    <button class="atab" onclick="switchTab('tGph',this)" data-i18n="tab.gph" role="tab" aria-selected="false" aria-controls="tGph">Graph</button>
+    <button class="atab" onclick="switchTab('tHist',this)" data-i18n="tab.hist" role="tab" aria-selected="false" aria-controls="tHist">History</button>
   </div>
 
   <!-- LIBRARY -->
@@ -796,7 +821,7 @@ button:focus:not(:focus-visible) { outline: none; }
         </div>
       </div>
 
-      <div id="plLoading" class="loading hidden"><span class="spin"></span><span data-i18n="app.loading">Loading…</span></div>
+      <div id="plLoading" class="loading hidden" role="status" aria-live="polite"><span class="spin" aria-hidden="true"></span><span data-i18n="app.loading">Loading…</span></div>
       <div class="pl-list" id="plWrap">
         <div class="pl-head">
           <div data-i18n="col.pl">Playlist</div>
@@ -820,7 +845,7 @@ button:focus:not(:focus-visible) { outline: none; }
           <div class="cmp-foot" id="cmpLF"></div>
         </div>
         <div class="cmp-mid">
-          <span class="cmp-vs">VS</span>
+          <span class="cmp-vs" data-i18n="cmp.vs">VS</span>
           <span class="cmp-n" id="cmpN">—</span>
           <span class="cmp-l" data-i18n="cmp.shared">shared</span>
         </div>
@@ -893,7 +918,7 @@ button:focus:not(:focus-visible) { outline: none; }
 <script>
 /* ══ I18N ══ */
 const L={
-  en:{f:'🇬🇧',n:'EN',
+  en:{f:'🇬🇧',n:'EN',native:'English',locale:'en-GB',
     'hero.kicker':'Spotify library cleaner',
     'hero.h1':'Wash your<br>playlists <em>clean</em>',
     'hero.sub':'Remove duplicates, compare playlists and visualise how your library connects',
@@ -920,7 +945,7 @@ const L={
     'dupe.more':(n)=>`+${n} more`,
     'dupe.col':'Collapse','dupe.rm':(n)=>`Remove ${n}`,'dupe.rming':'Removing…','dupe.added':'added',
     'exp.csv':'CSV','exp.json':'JSON',
-    'cmp.pick':'Select a playlist','cmp.shared':'shared',
+    'cmp.vs':'VS','cmp.pick':'Select a playlist','cmp.shared':'shared',
     'cmp.only':(n)=>`${n} unique`,'cmp.both':(n)=>`${n} shared`,
     'ov.min':'Min playlists','ov.none':'No tracks — scan more playlists first',
     'gph.build':'Build graph','gph.reset':'Reset',
@@ -934,8 +959,12 @@ const L={
     't.cancel':'Auth cancelled','t.miss':'Auth data missing',
     't.pErr':(e)=>`Profile error: ${e}`,'t.sErr':(p)=>`Scan failed: ${p}`,
     't.rErr':'Remove failed','t.out':'Logged out','t.demo':'Demo loaded',
-    'srch.ph':'Search playlists…'},
-  ru:{f:'🇷🇺',n:'RU',
+    'srch.ph':'Search playlists…',
+    'empty.search':'No playlists match your search',
+    'empty.dirty':'No playlists with duplicates — all clean',
+    'empty.loading':'Loading your playlists…',
+    'common.retry':'Try again'},
+  ru:{f:'🇷🇺',n:'RU',native:'Русский',locale:'ru-RU',
     'hero.kicker':'Очиститель Spotify-библиотеки',
     'hero.h1':'Чистые плейлисты —<br><em>без лишнего</em>',
     'hero.sub':'Удаляйте дубли, сравнивайте плейлисты и смотрите как устроена ваша библиотека',
@@ -962,7 +991,7 @@ const L={
     'dupe.more':(n)=>`+${n} ещё`,
     'dupe.col':'Свернуть','dupe.rm':(n)=>`Удалить ${n}`,'dupe.rming':'Удаляю…','dupe.added':'добавлено',
     'exp.csv':'CSV','exp.json':'JSON',
-    'cmp.pick':'Выберите плейлист','cmp.shared':'общих',
+    'cmp.vs':'VS','cmp.pick':'Выберите плейлист','cmp.shared':'общих',
     'cmp.only':(n)=>`${n} уникальных`,'cmp.both':(n)=>`${n} общих`,
     'ov.min':'Мин. плейлистов','ov.none':'Нет треков — отсканируйте больше плейлистов',
     'gph.build':'Построить граф','gph.reset':'Сбросить',
@@ -976,8 +1005,12 @@ const L={
     't.cancel':'Авторизация отменена','t.miss':'Нет данных авторизации',
     't.pErr':(e)=>`Ошибка профиля: ${e}`,'t.sErr':(p)=>`Ошибка сканирования: ${p}`,
     't.rErr':'Ошибка удаления','t.out':'Отключено','t.demo':'Демо загружено',
-    'srch.ph':'Поиск плейлистов…'},
-  de:{f:'🇩🇪',n:'DE',
+    'srch.ph':'Поиск плейлистов…',
+    'empty.search':'Нет плейлистов по запросу',
+    'empty.dirty':'Дублей не найдено — всё чисто',
+    'empty.loading':'Загружаем ваши плейлисты…',
+    'common.retry':'Попробовать снова'},
+  de:{f:'🇩🇪',n:'DE',native:'Deutsch',locale:'de-DE',
     'hero.kicker':'Spotify Bibliothek Bereiniger',
     'hero.h1':'Playlists <em>sauber</em><br>waschen',
     'hero.sub':'Duplikate entfernen, Playlists vergleichen und Verbindungen visualisieren',
@@ -1004,7 +1037,7 @@ const L={
     'dupe.more':(n)=>`+${n} mehr`,
     'dupe.col':'Zuklappen','dupe.rm':(n)=>`${n} entfernen`,'dupe.rming':'Entfernt…','dupe.added':'hinzugefügt',
     'exp.csv':'CSV','exp.json':'JSON',
-    'cmp.pick':'Playlist wählen','cmp.shared':'gemeinsam',
+    'cmp.vs':'VS','cmp.pick':'Playlist wählen','cmp.shared':'gemeinsam',
     'cmp.only':(n)=>`${n} einzigartig`,'cmp.both':(n)=>`${n} gemeinsam`,
     'ov.min':'Min. Playlists','ov.none':'Keine Tracks — mehr Playlists zuerst scannen',
     'gph.build':'Graph erstellen','gph.reset':'Zurücksetzen',
@@ -1018,8 +1051,12 @@ const L={
     't.cancel':'Auth abgebrochen','t.miss':'Auth-Daten fehlen',
     't.pErr':(e)=>`Profil-Fehler: ${e}`,'t.sErr':(p)=>`Scan-Fehler: ${p}`,
     't.rErr':'Entfernen fehlgeschlagen','t.out':'Abgemeldet','t.demo':'Demo geladen',
-    'srch.ph':'Playlists suchen…'},
-  es:{f:'🇪🇸',n:'ES',
+    'srch.ph':'Playlists suchen…',
+    'empty.search':'Keine Playlists gefunden',
+    'empty.dirty':'Keine Duplikate — alles sauber',
+    'empty.loading':'Playlists werden geladen…',
+    'common.retry':'Erneut versuchen'},
+  es:{f:'🇪🇸',n:'ES',native:'Español',locale:'es-ES',
     'hero.kicker':'Limpiador de biblioteca Spotify',
     'hero.h1':'Lava tus playlists<br><em>de verdad</em>',
     'hero.sub':'Elimina duplicados, compara listas y visualiza cómo se conecta tu biblioteca',
@@ -1046,7 +1083,7 @@ const L={
     'dupe.more':(n)=>`+${n} más`,
     'dupe.col':'Cerrar','dupe.rm':(n)=>`Eliminar ${n}`,'dupe.rming':'Eliminando…','dupe.added':'añadido',
     'exp.csv':'CSV','exp.json':'JSON',
-    'cmp.pick':'Elige una lista','cmp.shared':'compartidas',
+    'cmp.vs':'VS','cmp.pick':'Elige una lista','cmp.shared':'compartidas',
     'cmp.only':(n)=>`${n} únicas`,'cmp.both':(n)=>`${n} compartidas`,
     'ov.min':'Mín. listas','ov.none':'No hay pistas — escanea más listas primero',
     'gph.build':'Construir grafo','gph.reset':'Reiniciar',
@@ -1060,8 +1097,12 @@ const L={
     't.cancel':'Auth cancelada','t.miss':'Faltan datos de auth',
     't.pErr':(e)=>`Error de perfil: ${e}`,'t.sErr':(p)=>`Error al analizar: ${p}`,
     't.rErr':'Error al eliminar','t.out':'Sesión cerrada','t.demo':'Demo cargada',
-    'srch.ph':'Buscar listas…'},
-  fr:{f:'🇫🇷',n:'FR',
+    'srch.ph':'Buscar listas…',
+    'empty.search':'No hay listas que coincidan',
+    'empty.dirty':'Sin duplicados — todo limpio',
+    'empty.loading':'Cargando tus listas…',
+    'common.retry':'Reintentar'},
+  fr:{f:'🇫🇷',n:'FR',native:'Français',locale:'fr-FR',
     'hero.kicker':'Nettoyeur de bibliothèque Spotify',
     'hero.h1':'Lavez vos playlists<br><em>proprement</em>',
     'hero.sub':'Supprimez les doublons, comparez les playlists et visualisez les connexions de votre bibliothèque',
@@ -1088,7 +1129,7 @@ const L={
     'dupe.more':(n)=>`+${n} autres`,
     'dupe.col':'Réduire','dupe.rm':(n)=>`Supprimer ${n}`,'dupe.rming':'Suppression…','dupe.added':'ajouté le',
     'exp.csv':'CSV','exp.json':'JSON',
-    'cmp.pick':'Choisir une playlist','cmp.shared':'communs',
+    'cmp.vs':'VS','cmp.pick':'Choisir une playlist','cmp.shared':'communs',
     'cmp.only':(n)=>`${n} unique${n!==1?'s':''}`,'cmp.both':(n)=>`${n} commun${n!==1?'s':''}`,
     'ov.min':'Min. playlists','ov.none':'Aucun titre — analysez d\'abord plus de playlists',
     'gph.build':'Construire le graphe','gph.reset':'Réinitialiser',
@@ -1102,7 +1143,11 @@ const L={
     't.cancel':'Auth annulée','t.miss':'Données d\'auth manquantes',
     't.pErr':(e)=>`Erreur profil : ${e}`,'t.sErr':(p)=>`Échec analyse : ${p}`,
     't.rErr':'Échec suppression','t.out':'Déconnecté','t.demo':'Démo chargée',
-    'srch.ph':'Rechercher des playlists…'}
+    'srch.ph':'Rechercher des playlists…',
+    'empty.search':'Aucune playlist trouvée',
+    'empty.dirty':'Aucun doublon — tout est propre',
+    'empty.loading':'Chargement de vos playlists…',
+    'common.retry':'Réessayer'}
 };
 function pru(n,a,b,c){const m=n%10,h=n%100;if(m===1&&h!==11)return a;if(m>=2&&m<=4&&(h<10||h>=20))return b;return c;}
 const LSL='wl_l';let lang=localStorage.getItem(LSL)||'en';
@@ -1115,32 +1160,57 @@ function i18n(){
   document.documentElement.lang=lang;
 }
 function setLang(l){
-  lang=l;localStorage.setItem(LSL,l);i18n();renderPl();renderH();
-  const cur=document.getElementById('langCurrent');
-  if(cur) cur.textContent=L[l].f+' '+L[l].n;
+  if(l===lang) return; // no-op if same
+  lang=l;localStorage.setItem(LSL,l);
+  document.documentElement.lang=l;
+  i18n();renderPl();renderH();
   buildLangDropdown();
 }
 function buildLangDropdown(){
   const dd = document.getElementById('langDropdown');
   if (!dd) return;
-  dd.innerHTML = Object.entries(L).map(([c,d]) =>
-    `<div class="lang-opt${c===lang?' on':''}" onclick="setLang('${c}');toggleLangDropdown(false)">
-      <span class="lang-opt-flag">${d.f}</span>
-      <span>${d.n}</span>
-      <span class="lang-opt-check">✓</span>
+  const entries = Object.entries(L);
+  dd.innerHTML = entries.map(([c,d],i) =>
+    `<div class="lang-opt${c===lang?' on':''}" role="option" aria-selected="${c===lang}"
+      data-lang="${c}" tabindex="-1"
+      onclick="setLang('${c}');toggleLangDropdown(false)">
+      <span class="lang-opt-flag" aria-hidden="true">${d.f}</span>
+      <span class="lang-opt-native">${d.native||d.n}</span>
+      <span class="lang-opt-code">${d.n}</span>
+      <span class="lang-opt-check" aria-hidden="true">✓</span>
     </div>`
   ).join('');
   const cur = document.getElementById('langCurrent');
-  if (cur) cur.textContent = L[lang].f + ' ' + L[lang].n;
+  if (cur) cur.textContent = L[lang].f + ' ' + (L[lang].native||L[lang].n);
 }
 function buildSw(){ buildLangDropdown(); }
 
 let langOpen = false;
 function toggleLangDropdown(force) {
   const wrap = document.getElementById('langWrap');
+  const trigger = document.getElementById('langTrigger');
   langOpen = force !== undefined ? force : !langOpen;
   wrap.classList.toggle('open', langOpen);
+  if (trigger) trigger.setAttribute('aria-expanded', langOpen);
+  if (langOpen) {
+    // Focus first/active option after open
+    setTimeout(() => {
+      const active = wrap.querySelector('.lang-opt.on') || wrap.querySelector('.lang-opt');
+      if (active) active.focus();
+    }, 50);
+  }
 }
+// Keyboard: Escape closes, arrows navigate
+document.addEventListener('keydown', e => {
+  if (!langOpen) return;
+  const opts = [...document.querySelectorAll('.lang-opt')];
+  const focused = document.activeElement;
+  const idx = opts.indexOf(focused);
+  if (e.key === 'Escape') { toggleLangDropdown(false); document.getElementById('langTrigger')?.focus(); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); opts[Math.min(idx+1, opts.length-1)]?.focus(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); opts[Math.max(idx-1, 0)]?.focus(); }
+  else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); focused?.click(); }
+});
 // Close on outside click
 document.addEventListener('click', e => {
   if (!e.target.closest('#langWrap') && langOpen) toggleLangDropdown(false);
@@ -1240,8 +1310,11 @@ async function loadPls(){
 function switchTab(id,btn){
   document.querySelectorAll('.tb').forEach(p=>p.classList.remove('on'));
   document.getElementById(id)?.classList.add('on');
-  document.querySelectorAll('.atab').forEach(b=>b.classList.remove('on'));
-  if(btn)btn.classList.add('on');
+  document.querySelectorAll('.atab').forEach(b=>{
+    b.classList.remove('on');
+    b.setAttribute('aria-selected','false');
+  });
+  if(btn){ btn.classList.add('on'); btn.setAttribute('aria-selected','true'); }
   if(id==='tHist')renderH();
   if(id==='tCmp')popCmp();
   if(id==='tOv')renderOv();
@@ -1259,7 +1332,11 @@ function renderPl(){
   if(srt==='dirty')list=list.filter(p=>pd[p.id]?.dc>0);
   const el=document.getElementById('plList');if(!el)return;
   el.innerHTML='';
-  if(!list.length){el.innerHTML=`<div class="empty">No playlists found</div>`;return;}
+  if(!list.length){
+    const msg = srt==='dirty' ? t('empty.dirty') : t('empty.search');
+    el.innerHTML=`<div class="empty" role="status">${msg}</div>`;
+    return;
+  }
   list.forEach(pl=>{
     const d=pd[pl.id]||{};
     const cov=pl.images?.[0]?.url;
@@ -1319,7 +1396,7 @@ function buildDp(pl){
     g.insts.forEach((inst,i)=>{
       const cls=i===0?'keep':'rem';
       const tag=i===0?`<span class="di-tag t-k">${t('dupe.keep')}</span>`:`<span class="di-tag t-r">${t('dupe.rem')}</span>`;
-      const dt=inst.at?new Date(inst.at).toLocaleDateString(lang==='ru'?'ru-RU':lang==='de'?'de-DE':lang==='es'?'es-ES':'en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+      const dt=fmtDate(inst.at);
       html+=`<div class="di ${cls}"><span class="di-pos">#${inst.pos+1}</span><div class="di-info"><div class="di-name">${esc(inst.name||g.name)}</div><div class="di-alb">${esc(inst.alb||'')} · ${t('dupe.added')} ${dt}</div></div>${tag}</div>`;
     });
     html+=`</div></div>`;
@@ -1529,6 +1606,26 @@ function loadDemo(){
   setTimeout(initWaveInteract, 100);
 }
 
+
+// ── INTL FORMATTERS ──
+function fmtNum(n, decimals=0) {
+  const locale = L[lang]?.locale || 'en-GB';
+  return new Intl.NumberFormat(locale, {maximumFractionDigits:decimals}).format(n);
+}
+function fmtDate(dateStr) {
+  if (!dateStr) return '—';
+  const locale = L[lang]?.locale || 'en-GB';
+  return new Intl.DateTimeFormat(locale, {day:'numeric',month:'short',year:'numeric'}).format(new Date(dateStr));
+}
+function fmtRelDate(dateStr) {
+  if (!dateStr) return '—';
+  const locale = L[lang]?.locale || 'en-GB';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return locale.startsWith('ru') ? 'сегодня' : locale.startsWith('de') ? 'heute' : locale.startsWith('fr') ? "aujourd'hui" : locale.startsWith('es') ? 'hoy' : 'today';
+  if (days === 1) return locale.startsWith('ru') ? 'вчера' : locale.startsWith('de') ? 'gestern' : locale.startsWith('fr') ? 'hier' : locale.startsWith('es') ? 'ayer' : 'yesterday';
+  return new Intl.DateTimeFormat(locale, {day:'numeric',month:'short',year:'numeric'}).format(new Date(dateStr));
+}
 /* ══ UTILS ══ */
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function show(id){document.getElementById(id)?.classList.add('on');}
@@ -1541,35 +1638,36 @@ function toast(msg,type='inf'){
 
 /* ══ ANIMATIONS ══ */
 
-// ── CURSOR TRACKER ──
+// ── CURSOR TRACKER (desktop only) ──
+const isTouch = window.matchMedia('(hover: none)').matches;
 const cursorDot  = document.createElement('div'); cursorDot.id  = 'cursor-dot';
 const cursorRing = document.createElement('div'); cursorRing.id = 'cursor-ring';
-cursorDot.classList.add('hidden'); cursorRing.classList.add('hidden');
-document.body.appendChild(cursorDot); document.body.appendChild(cursorRing);
-
+if (isTouch) { document.body.classList.add('no-custom-cursor'); }
+else {
+  cursorDot.classList.add('hidden'); cursorRing.classList.add('hidden');
+  document.body.appendChild(cursorDot); document.body.appendChild(cursorRing);
+}
 let mx = -999, my = -999, rx = -999, ry = -999;
-document.addEventListener('mousemove', e => {
-  mx = e.clientX; my = e.clientY;
-  cursorDot.classList.remove('hidden');
-  cursorRing.classList.remove('hidden');
-});
-document.addEventListener('mouseleave', () => {
-  cursorDot.classList.add('hidden');
-  cursorRing.classList.add('hidden');
-});
-document.addEventListener('mouseenter', () => {
-  cursorDot.classList.remove('hidden');
-  cursorRing.classList.remove('hidden');
-});
-
-// Spring ring follows cursor with lag
-(function trackRing() {
-  const lag = .14;
-  rx += (mx - rx) * lag; ry += (my - ry) * lag;
-  cursorDot.style.transform  = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
-  cursorRing.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
-  requestAnimationFrame(trackRing);
-})();
+if (!isTouch) {
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursorDot.classList.remove('hidden');
+    cursorRing.classList.remove('hidden');
+  });
+  document.addEventListener('mouseleave', () => {
+    cursorDot.classList.add('hidden'); cursorRing.classList.add('hidden');
+  });
+  document.addEventListener('mouseenter', () => {
+    cursorDot.classList.remove('hidden'); cursorRing.classList.remove('hidden');
+  });
+  (function trackRing() {
+    const lag = .14;
+    rx += (mx - rx) * lag; ry += (my - ry) * lag;
+    cursorDot.style.transform  = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
+    cursorRing.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+    requestAnimationFrame(trackRing);
+  })();
+}
 
 // Expand ring on interactive elements
 document.addEventListener('mouseover', e => {
@@ -1611,30 +1709,19 @@ document.addEventListener('click', e => {
   if (btn) addRipple({currentTarget: btn, clientX: e.clientX, clientY: e.clientY});
 });
 
-// ── MAGNETIC FEATURE CARDS ──
+// ── FEATURE CARDS (subtle lift only) ──
 function initMagnetic() {
-  document.querySelectorAll('.l-feat').forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const r = card.getBoundingClientRect();
-      const cx = r.left + r.width/2, cy = r.top + r.height/2;
-      const dx = (e.clientX - cx) / r.width  * 10;
-      const dy = (e.clientY - cy) / r.height * 10;
-      card.style.transform = `translate(${dx}px, ${dy}px)`;
-    });
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = '';
-    });
-  });
+  // Handled via CSS :hover — no JS needed
 }
 
-// ── MAGNETIC BUTTONS ──
+// ── MAGNETIC BUTTONS (subtle only on logo) ──
 function initMagneticBtns() {
-  document.querySelectorAll('.btn-lg, .nav-logo').forEach(btn => {
+  document.querySelectorAll('.nav-logo').forEach(btn => {
     btn.addEventListener('mousemove', e => {
       const r = btn.getBoundingClientRect();
       const cx = r.left + r.width/2, cy = r.top + r.height/2;
-      const dx = (e.clientX - cx) / r.width  * 8;
-      const dy = (e.clientY - cy) / r.height * 6;
+      const dx = (e.clientX - cx) / r.width  * 4;
+      const dy = (e.clientY - cy) / r.height * 3;
       btn.style.transform = `translate(${dx}px, ${dy}px)`;
     });
     btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
@@ -1643,7 +1730,6 @@ function initMagneticBtns() {
 
 // ── PARALLAX LANDING ──
 function initParallax() {
-  const h1 = document.querySelector('.l-headline');
   const eyebrow = document.querySelector('.l-eyebrow');
   const rule = document.querySelector('.l-rule');
   const landing = document.getElementById('landingPanel');
@@ -1653,30 +1739,30 @@ function initParallax() {
     const cx = rect.width/2, cy = rect.height/2;
     const dx = (e.clientX - rect.left - cx) / cx;
     const dy = (e.clientY - rect.top  - cy) / cy;
-    if (h1) h1.style.transform = `translate(${dx*6}px, ${dy*4}px)`;
-    if (eyebrow) eyebrow.style.transform = `translate(${dx*3}px, ${dy*2}px)`;
-    if (rule) rule.style.transform = `scaleX(${1 + Math.abs(dx)*.03}) translateX(${dx*2}px)`;
+    // Subtle parallax only on eyebrow and desc
+    if (eyebrow) eyebrow.style.transform = `translate(${dx*4}px, ${dy*2}px)`;
+    if (rule) rule.style.transform = `translateX(${dx*3}px)`;
   });
   landing.addEventListener('mouseleave', () => {
-    if (h1) h1.style.transform = '';
     if (eyebrow) eyebrow.style.transform = '';
     if (rule) rule.style.transform = '';
   });
 }
 
 // ── ANIMATED COUNTER ──
-function animCount(el, target, duration=700) {
+function animCount(el, target, duration=500) {
   if (!el) return;
+  const locale = L[lang]?.locale || 'en-GB';
   const start = performance.now();
   const from = parseFloat(el.textContent.replace(/[^0-9.]/g,'')) || 0;
+  if (from === target) return; // no-op if same value
   el.classList.add('stat-pop');
   function step(now) {
     const p = Math.min((now - start) / duration, 1);
-    // Spring easing
-    const ease = p < 1 ? 1 - Math.pow(1 - p, 4) : 1;
-    el.textContent = Math.round(from + (target - from) * ease).toLocaleString();
+    const ease = p < 1 ? 1 - Math.pow(1 - p, 3) : 1;
+    el.textContent = new Intl.NumberFormat(locale).format(Math.round(from + (target - from) * ease));
     if (p < 1) requestAnimationFrame(step);
-    else { el.textContent = target.toLocaleString(); el.classList.remove('stat-pop'); }
+    else { el.textContent = new Intl.NumberFormat(locale).format(target); el.classList.remove('stat-pop'); }
   }
   requestAnimationFrame(step);
 }
@@ -1709,8 +1795,10 @@ function revealHeadline() {
 
 // ── STAGGER ROWS ──
 function staggerRows() {
-  document.querySelectorAll('.plr').forEach((row, i) => {
-    row.style.animationDelay = `${i * 32}ms`;
+  const rows = document.querySelectorAll('.plr');
+  // Cap stagger at 12 rows max to avoid long delays
+  rows.forEach((row, i) => {
+    row.style.animationDelay = `${Math.min(i, 12) * 28}ms`;
   });
 }
 
@@ -1721,11 +1809,11 @@ function initRowPhysics() {
     row.addEventListener('mouseenter', () => {
       cancelAnimationFrame(rafId);
       function spring() {
-        const target = 4;
-        const k = 0.18, damping = 0.72;
+        const target = 2;
+        const k = 0.22, damping = 0.75;
         vx += (target - px) * k; vx *= damping; px += vx;
         row.style.transform = `translateX(${px}px)`;
-        if (Math.abs(px - target) > .1 || Math.abs(vx) > .1) rafId = requestAnimationFrame(spring);
+        if (Math.abs(px - target) > .05 || Math.abs(vx) > .05) rafId = requestAnimationFrame(spring);
       }
       spring();
     });
@@ -1752,25 +1840,9 @@ function updSt() {
   animCount(document.getElementById('sAf'), sc.filter(d=>d.dc>0).length);
 }
 
-// ── WAVEFORM MOUSE INTERACT ──
+// ── WAVEFORM ──
 function initWaveInteract() {
-  document.querySelectorAll('.waveform').forEach(wf => {
-    wf.addEventListener('mousemove', e => {
-      const bars = wf.querySelectorAll('.wfb');
-      const rect = wf.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      bars.forEach((bar, i) => {
-        const bx = (i / bars.length) * rect.width;
-        const dist = Math.abs(mx - bx);
-        const boost = Math.max(0, 1 - dist/60);
-        bar.style.opacity = (.2 + boost * .7).toFixed(2);
-        bar.style.transform = `scaleY(${1 + boost * .6})`;
-      });
-    });
-    wf.addEventListener('mouseleave', () => {
-      wf.querySelectorAll('.wfb').forEach(bar => { bar.style.opacity=''; bar.style.transform=''; });
-    });
-  });
+  // CSS-only hover effect, no JS needed
 }
 
 /* ══ BOOT ══ */
