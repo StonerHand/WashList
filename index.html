@@ -1513,19 +1513,21 @@ document.addEventListener('mouseenter', () => {
 document.addEventListener('mouseover', e => {
   const greenEl = e.target.closest('.btn-green');
   const interEl = e.target.closest('.btn,.ab,.fp,.mp,.atab,.lb,.plr,.l-feat,.nav-logo,.theme-btn');
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
   if (greenEl) {
+    // На зелёной кнопке — белый в тёмной, тёмный в светлой
     cursorRing.style.width  = cursorRing.style.height = '36px';
-    cursorRing.style.background = 'rgba(255,255,255,.5)';
-    cursorDot.style.background = '#fff';
+    cursorRing.style.background = isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.18)';
+    cursorDot.style.background = isDark ? '#fff' : 'rgba(0,0,0,.7)';
     cursorDot.style.width   = cursorDot.style.height = '3px';
   } else if (interEl) {
     cursorRing.style.width  = cursorRing.style.height = '36px';
-    cursorRing.style.background = 'rgba(29,185,84,.35)';
+    cursorRing.style.background = isDark ? 'rgba(29,185,84,.35)' : 'rgba(26,158,73,.25)';
     cursorDot.style.background = '';
     cursorDot.style.width   = cursorDot.style.height = '3px';
   } else {
     cursorRing.style.width  = cursorRing.style.height = '20px';
-    cursorRing.style.background = 'rgba(29,185,84,.2)';
+    cursorRing.style.background = isDark ? 'rgba(29,185,84,.2)' : 'rgba(26,158,73,.18)';
     cursorDot.style.background = '';
     cursorDot.style.width   = cursorDot.style.height = '5px';
   }
