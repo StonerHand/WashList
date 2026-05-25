@@ -2,15 +2,11 @@
 
 Clean your Spotify library — properly.
 
-![WashList Landing](docs/screenshot-landing.png)
-
 ---
 
 ## What it does
 
 Finds and removes duplicate tracks across all your playlists. Detects exact copies and the same song from different releases. Built for Spotify power users.
-
-![WashList App](docs/screenshot-app.png)
 
 ---
 
