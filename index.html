@@ -1229,7 +1229,7 @@ async function initApp(){
 async function loadPls(){
   try{
     const items=await pages('https://api.spotify.com/v1/me/playlists?limit=50');
-    pls=[{id:'liked',name:'Liked Songs',images:[],tracks:{total:0},isLiked:true},...items.filter(p=>p&&p.id)];
+    pls=[{id:'liked',name:'Liked Songs',images:[],tracks:{total:0},isLiked:true},...items.filter(p=>p&&p.id).map(p=>({...p,tracks:p.tracks||{total:0}}))];
     try{const lk=await sp('https://api.spotify.com/v1/me/tracks?limit=1');pls[0].tracks={total:lk.total};}catch(e){}
     document.getElementById('sPl').textContent=pls.length;
     hide('plLoading');renderPl();popCmp();
@@ -1283,8 +1283,8 @@ function renderPl(){
     const row=document.createElement('div');
     row.className=rc;row.id=`row-${pl.id}`;
     row.innerHTML=`
-      <div class="pl-info">${covEl}<div><div class="pl-name">${esc(pl.name)}</div><div class="pl-meta">${pl.tracks.total} ${t('pl.tracks')}${prog}</div></div></div>
-      <div class="pl-num">${pl.tracks.total}</div>
+      <div class="pl-info">${covEl}<div><div class="pl-name">${esc(pl.name)}</div><div class="pl-meta">${pl.tracks?.total ?? 0} ${t('pl.tracks')}${prog}</div></div></div>
+      <div class="pl-num">${pl.tracks?.total ?? 0}</div>
       <div class="pl-num${dc>0?' pos':''}">${d.dc!==undefined?d.dc:'—'}</div>
       <div class="pl-st"><span class="stpill ${sc}">${st}</span></div>
       <div class="pl-acts">${acts}</div>`;
@@ -1343,7 +1343,7 @@ async function scanPl(id){
   pd[id]={status:'scanning',prog:0,dc:0};renderPl();
   try{
     const url=pl.isLiked?'https://api.spotify.com/v1/me/tracks?limit=50':`https://api.spotify.com/v1/playlists/${id}/tracks?limit=50`;
-    const tracks=await pagesP(url,id,pl.tracks.total);
+    const tracks=await pagesP(url,id,pl.tracks?.total??0);
     const{dg,dc}=findDupes(tracks);
     pd[id]={status:'done',tracks,dg,dc,tc:tracks.length,open:dc>0};renderPl();
   }catch(e){pd[id]={status:'idle'};toast(t('t.sErr',pl.name),'err');renderPl();}
@@ -1466,7 +1466,7 @@ function runCmp(){
 function renderOv(){
   const min=parseInt(document.getElementById('ovMin')?.value||3);
   const grid=document.getElementById('ovGrid');if(!grid)return;
-  const sc=pls.filter(p=>pd[p.id]?.tracks?.length);
+  const sc=pls.filter(p=>pd[p.id]?.tracks?.length>0);
   if(!sc.length){grid.innerHTML=`<div class="empty">${t('ov.none')}</div>`;return;}
   const tm=new Map();
   sc.forEach(pl=>{(pd[pl.id].tracks||[]).forEach(item=>{if(!item.track)return;const k=item.track.uri;if(!tm.has(k))tm.set(k,{track:item.track,playlists:[]});tm.get(k).playlists.push(pl.name);});});
@@ -1478,7 +1478,7 @@ function renderOv(){
 /* ══ GRAPH ══ */
 let sim=null;
 function buildGraph(){
-  const sc=pls.filter(p=>pd[p.id]?.tracks?.length);
+  const sc=pls.filter(p=>pd[p.id]?.tracks?.length>0);
   const st=document.getElementById('gphSt');
   if(sc.length<2){st.textContent=t('gph.nodata');return;}st.textContent='';
   const svg=d3.select('#graphCanvas');svg.selectAll('*').remove();
@@ -1489,7 +1489,7 @@ function buildGraph(){
     const sh=(pd[sc[j].id].tracks||[]).filter(x=>x.track&&aU.has(x.track.uri)).length;
     if(sh>0)edges.push({source:sc[i].id,target:sc[j].id,weight:sh});
   }
-  const nodes=sc.map(pl=>({id:pl.id,name:pl.name,size:pl.tracks.total||50}));
+  const nodes=sc.map(pl=>({id:pl.id,name:pl.name,size:pl.tracks?.total||50}));
   const maxW=Math.max(...edges.map(e=>e.weight),1);
   const ss=d3.scaleSqrt().domain([0,Math.max(...nodes.map(n=>n.size))]).range([8,28]);
   const g=svg.append('g');
