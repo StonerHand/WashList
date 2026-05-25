@@ -1,37 +1,51 @@
-# WashList 🫧
+# WashList
 
-> Wash your Spotify playlists clean.
+Clean your Spotify library — properly.
 
-A modern, feature-rich Spotify duplicate cleaner by [StonerHand](https://github.com/StonerHand). Finds and removes duplicate tracks across all your playlists — including the same song from different releases.
+![WashList Landing](docs/screenshot-landing.png)
 
-## Live
+---
 
-👉 **[stonerhand.github.io/WashList](https://stonerhand.github.io/WashList)**
+## What it does
+
+Finds and removes duplicate tracks across all your playlists. Detects exact copies and the same song from different releases. Built for Spotify power users.
+
+![WashList App](docs/screenshot-app.png)
+
+---
 
 ## Features
 
-- 🔍 **Smart dedup** — URI + name/artist fuzzy match
-- 🎯 **Keep control** — keep oldest or newest copy
-- 💜 **Liked Songs** — scans saved tracks too
-- 📊 **Compare playlists** — see shared tracks
-- 🔍 **Overlap finder** — tracks in 3+ playlists
-- 🕸 **D3 connection graph** — zoomable, draggable
-- 📁 **Export** — CSV or JSON per playlist
-- 📋 **Clean history** — log with export
-- 🌍 **4 languages** — EN, RU, DE, ES
-- ⚡ **Rate-limit safe** — won't get you banned
-- 🔒 **No data stored** — runs in your browser
+| | |
+|---|---|
+| **Smart dedup** | URI match + fuzzy name/artist. Handles remasters, live versions |
+| **Dry-run mode** | Preview everything before any changes are made |
+| **Compare** | See shared tracks between any two playlists |
+| **Overlap** | Find tracks living in 3+ playlists simultaneously |
+| **Graph** | Interactive D3 force-graph of playlist connections |
+| **Export** | CSV or JSON per playlist. Full history stored locally |
+| **5 languages** | EN · RU · DE · ES · FR |
+| **Dark / Light** | Both themes, fully consistent |
+
+---
+
+## Live
+
+**[stonerhand.github.io/WashList](https://stonerhand.github.io/WashList)**
+
+---
 
 ## Setup
 
 1. Go to [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) — create an app
-2. Set Redirect URI to `https://stonerhand.github.io/WashList/`
-3. Paste your Client ID into the app
+2. Set Redirect URI: `https://stonerhand.github.io/WashList/`
+3. Hit **Connect Spotify** — no Client ID needed
+
+---
 
 ## Tech
 
-Plain HTML + Vanilla JS + D3. No frameworks, no build step, no backend.
-Uses Spotify Web API with PKCE OAuth.
+Single `index.html` · Vanilla JS · D3.js · Spotify Web API · PKCE OAuth · No backend · No tracking
 
 ---
 
