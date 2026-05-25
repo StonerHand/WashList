@@ -1439,31 +1439,106 @@ async function pagesP(url,id,total){
 }
 
 /* ══ DUPE DETECTION ══ */
-function norm(s){
-  const r=document.getElementById('optR')?.checked,lv=document.getElementById('optL')?.checked;
-  let x=(s||'').toLowerCase();
-  if(r)x=x.replace(/\s*[\(\[].{0,40}[\)\]]\s*/g,'').replace(/\s*-\s*(remaster|remastered)/gi,'');
-  if(lv)x=x.replace(/\s*-\s*(live|acoustic|unplugged|session)/gi,'');
-  return x.replace(/\s*-\s*(radio edit|single|album version)/gi,'').replace(/[^a-z0-9]/g,'').trim();
+// Нормализация только суффиксов — НЕ трогает основное название
+function norm(s, stripVariants=false){
+  let x=(s||'').toLowerCase().trim();
+  if(stripVariants){
+    const r=document.getElementById('optR')?.checked;
+    const lv=document.getElementById('optL')?.checked;
+    // Убираем ТОЛЬКО известные суффиксы в скобках/через дефис
+    // НЕ убираем feat, потому что "Song (feat. X)" и "Song" — это одна песня
+    // НО "Song A (feat. X)" и "Song B (feat. X)" — разные песни!
+    if(r) x=x
+      .replace(/\s*[\(\[](remaster(ed)?|remastered \d{4}|\d{4} remaster)[^\)]*[\)\]]/gi,'')
+      .replace(/\s*-\s*(remaster(ed)?(\s+\d{4})?)/gi,'');
+    if(lv) x=x
+      .replace(/\s*[\(\[](live[^\)]*|acoustic[^\)]*|unplugged[^\)]*|session[^\)]*|live at[^\)]*)[\)\]]/gi,'')
+      .replace(/\s*-\s*(live|acoustic|unplugged)(\s+version)?/gi,'');
+    // Убираем общие маркеры редакций
+    x=x
+      .replace(/\s*[\(\[](radio edit|single version|album version|explicit|clean|edit)[^\)]*[\)\]]/gi,'')
+      .replace(/\s*-\s*(radio edit|single version|album version)/gi,'');
+  }
+  // Нормализация: убрать только пунктуацию и пробелы, НО сохранить слова
+  return x.replace(/[^\w\s]/g,'').replace(/\s+/g,' ').trim();
 }
+
+// Similarity score между двумя строками (Jaccard на словах)
+function similarity(a, b){
+  const wa=new Set(a.split(' ').filter(w=>w.length>1));
+  const wb=new Set(b.split(' ').filter(w=>w.length>1));
+  if(!wa.size||!wb.size) return 0;
+  const intersection=[...wa].filter(w=>wb.has(w)).length;
+  const union=new Set([...wa,...wb]).size;
+  return intersection/union;
+}
+
 function findDupes(items){
-  const bU={},bS={};const dg=[];let dc=0;
+  const bU={},bS={};
+  const dg=[];let dc=0;
+  const optR=document.getElementById('optR')?.checked;
+  const optL=document.getElementById('optL')?.checked;
+
   items.forEach((item,idx)=>{
     const tr=item.track;if(!tr||!tr.id)return;
-    const sk=norm(tr.name)+'|'+norm(tr.artists?.[0]?.name||'');
-    if(!bU[tr.uri])bU[tr.uri]=[];bU[tr.uri].push({idx,item,tr});
-    if(mm!=='strict'){if(!bS[sk])bS[sk]=[];bS[sk].push({idx,item,tr,uri:tr.uri});}
+    // Ключ для fuzzy: нормализованное название БЕЗ вариантов + все артисты
+    const allArtists=(tr.artists||[]).map(a=>norm(a.name)).sort().join(',');
+    const normName=norm(tr.name, true); // с обрезкой вариантов
+    const sk=normName+'||'+allArtists;
+    if(!bU[tr.uri])bU[tr.uri]=[];
+    bU[tr.uri].push({idx,item,tr});
+    if(mm!=='strict'){
+      if(!bS[sk])bS[sk]=[];
+      bS[sk].push({idx,item,tr,uri:tr.uri});
+    }
   });
+
+  // 1. Точные дубли по URI
   Object.entries(bU).forEach(([,es])=>{
-    if(es.length<2)return;const tr=es[0].tr;dc+=es.length-1;
-    dg.push({type:'exact',conf:100,name:tr.name,artist:tr.artists?.[0]?.name||'',art:tr.album?.images?.[1]?.url||tr.album?.images?.[0]?.url,insts:es.map(e=>({pos:e.idx,at:e.item.added_at,alb:e.tr.album?.name,name:e.tr.name,uri:e.tr.uri,tid:e.tr.id}))});
+    if(es.length<2)return;
+    const tr=es[0].tr;dc+=es.length-1;
+    dg.push({
+      type:'exact',conf:100,
+      name:tr.name,artist:(tr.artists||[]).map(a=>a.name).join(', '),
+      art:tr.album?.images?.[1]?.url||tr.album?.images?.[0]?.url,
+      insts:es.map(e=>({pos:e.idx,at:e.item.added_at,alb:e.tr.album?.name,name:e.tr.name,uri:e.tr.uri,tid:e.tr.id}))
+    });
   });
-  if(mm!=='strict'){Object.entries(bS).forEach(([,es])=>{
-    const uris=[...new Set(es.map(e=>e.uri))];if(uris.length<2)return;
-    const dd=es.filter((e,i,a)=>a.findIndex(x=>x.uri===e.uri)===i);if(dd.length<2)return;
-    const tr=dd[0].tr;const conf=mm==='fuzzy'?75:90;dc+=dd.length-1;
-    dg.push({type:'sim',conf,name:tr.name,artist:tr.artists?.[0]?.name||'',art:tr.album?.images?.[1]?.url||tr.album?.images?.[0]?.url,insts:dd.map(e=>({pos:e.idx,at:e.item.added_at,alb:e.tr.album?.name,name:e.tr.name,uri:e.tr.uri,tid:e.tr.id}))});
-  });}
+
+  // 2. Похожие треки — ТОЛЬКО если разные URI И один и тот же ключ после нормализации
+  if(mm!=='strict'){
+    Object.entries(bS).forEach(([sk,es])=>{
+      // Проверяем что у всех в группе разные URI (не exact dupes)
+      const uris=[...new Set(es.map(e=>e.uri))];
+      if(uris.length<2)return;
+      // Проверяем через similarity что названия ДЕЙСТВИТЕЛЬНО похожи
+      // а не просто совпали после агрессивной нормализации
+      const dd=es.filter((e,i,a)=>a.findIndex(x=>x.uri===e.uri)===i);
+      if(dd.length<2)return;
+      // Проверка: все треки в группе должны иметь высокую схожесть названий
+      const baseName=norm(dd[0].tr.name, true);
+      const allSimilar=dd.every(e=>{
+        const sim=similarity(baseName, norm(e.tr.name, true));
+        return mm==='fuzzy' ? sim>=0.5 : sim>=0.7;
+      });
+      if(!allSimilar)return;
+      const tr=dd[0].tr;
+      const conf=mm==='fuzzy'?75:88;
+      dc+=dd.length-1;
+      dg.push({
+        type:'sim',conf,
+        name:tr.name,
+        artist:(tr.artists||[]).map(a=>a.name).join(', '),
+        art:tr.album?.images?.[1]?.url||tr.album?.images?.[0]?.url,
+        insts:dd.map(e=>({
+          pos:e.idx,at:e.item.added_at,
+          alb:e.tr.album?.name,name:e.tr.name,
+          uri:e.tr.uri,tid:e.tr.id
+        }))
+      });
+    });
+  }
+
   dg.sort((a,b)=>b.insts.length-a.insts.length);
   return{dg,dc};
 }
