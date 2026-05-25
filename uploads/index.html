@@ -1,0 +1,2255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>WashList</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+/* ── TOKENS ── */
+:root {
+  color-scheme: dark;
+  --bg:     #171B21;
+  --bg1:    #20262E;
+  --bg2:    #2A313B;
+  --bg3:    #343D49;
+  --panel:  rgba(32,38,46,.88);
+  --line:   rgba(226,232,240,.10);
+  --line2:  rgba(226,232,240,.18);
+  --ink:    #F7FAFC;
+  --ink2:   #C5CED9;
+  --ink3:   #8B98A8;
+  --green:  #30D477;
+  --green2: #20B965;
+  --gbg:    rgba(48,212,119,.12);
+  --gbrd:   rgba(48,212,119,.26);
+  --red:    #FF7A7A;
+  --rbg:    rgba(255,122,122,.12);
+  --amber:  #F7B955;
+  --abg:    rgba(247,185,85,.13);
+  --blue:   #7DB7FF;
+  --shadow: 0 18px 58px rgba(0,0,0,.22);
+  --cursor: rgba(48,212,119,.26);
+  --f:      'Geist', -apple-system, sans-serif;
+  --fm:     'Geist Mono', monospace;
+  --r:      8px;
+  --r-lg:   14px;
+  /* Motion system */
+  --dur-fast:   120ms;
+  --dur-base:   200ms;
+  --dur-slow:   320ms;
+  --ease:       cubic-bezier(.4,0,.2,1);
+  --ease-out:   cubic-bezier(0,0,.2,1);
+  --ease-spring: cubic-bezier(.34,1.4,.64,1);
+  --ease-spring2: cubic-bezier(.34,1.56,.64,1);
+}
+[data-theme="light"] {
+  color-scheme: light;
+  --bg:     #F2F5F2;
+  --bg1:    #FFFFFF;
+  --bg2:    #EEF3EF;
+  --bg3:    #E2E9E4;
+  --panel:  rgba(255,255,255,.92);
+  --line:   rgba(15,23,42,.10);
+  --line2:  rgba(15,23,42,.16);
+  --ink:    #101418;
+  --ink2:   #4D5866;
+  --ink3:   #7E8896;
+  --green:  #16A34A;
+  --green2: #15803D;
+  --gbg:    rgba(22,163,74,.08);
+  --gbrd:   rgba(22,163,74,.18);
+  --red:    #DC2626;
+  --rbg:    rgba(220,38,38,.08);
+  --amber:  #D97706;
+  --abg:    rgba(217,119,6,.08);
+  --blue:   #2563EB;
+  --shadow: 0 18px 50px rgba(15,23,42,.10);
+  --cursor: rgba(22,163,74,.22);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--f); background: radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--green) 6%, transparent), transparent 28%), var(--bg); color: var(--ink); min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; font-size: 15px; line-height: 1.55; letter-spacing: 0; }
+::selection { background: var(--gbg); color: var(--green); }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line2); border-radius: 2px; }
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  height: 64px; display: flex; align-items: center;
+  padding: 0 32px; gap: 24px;
+  background: color-mix(in srgb, var(--bg) 78%, transparent); border-bottom: 1px solid var(--line); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+}
+.nav-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; margin-right: auto; }
+.nav-logo-mark {
+  width: 28px; height: 28px; background: var(--green);
+  border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.nav-logo-mark svg { width: 15px; height: 15px; fill: #000; }
+.nav-logo-text { font-size: 16px; font-weight: 700; color: var(--ink); letter-spacing: 0; }
+
+/* theme toggle */
+.theme-btn {
+  width: 38px; height: 38px; border-radius: var(--r);
+  background: var(--panel); border: 1px solid var(--line);
+  color: var(--ink2); cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); flex-shrink: 0;
+}
+.theme-btn:hover { background: var(--bg2); color: var(--ink); border-color: var(--line2); transform: translateY(-1px); }
+
+/* lang */
+.lang-wrap { position: relative; }
+.lang-trigger {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--panel); border: 1px solid var(--line);
+  color: var(--ink2); font-family: var(--f); font-size: 13px; font-weight: 600;
+  padding: 9px 12px; border-radius: var(--r); cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+  white-space: nowrap; user-select: none;
+}
+.lang-trigger:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.lang-trigger:hover { background: var(--bg2); color: var(--ink); border-color: var(--line2); transform: translateY(-1px); }
+.lang-trigger svg { width: 10px; height: 10px; fill: currentColor; opacity: .5; transition: transform var(--dur-base) var(--ease-spring); }
+.lang-wrap.open .lang-trigger svg { transform: rotate(180deg); }
+.lang-dropdown {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--r-lg); padding: 4px;
+  min-width: 160px; z-index: 200;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  opacity: 0; transform: translateY(-4px) scale(.98);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity 140ms var(--ease-out), transform 140ms var(--ease-spring);
+}
+.lang-wrap.open .lang-dropdown { opacity: 1; transform: none; pointer-events: all; }
+.lang-opt {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 5px;
+  font-family: var(--f); font-size: 13px; font-weight: 400; color: var(--ink2);
+  cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  white-space: nowrap; outline: none;
+}
+.lang-opt:hover, .lang-opt:focus { background: var(--bg3); color: var(--ink); }
+.lang-opt.on { color: var(--ink); font-weight: 500; }
+.lang-opt-flag { font-size: 15px; line-height: 1; flex-shrink: 0; }
+.lang-opt-native { flex: 1; }
+.lang-opt-code { font-size: 11px; color: var(--ink3); }
+.lang-opt-check { font-size: 11px; color: var(--green); opacity: 0; margin-left: 4px; }
+.lang-opt.on .lang-opt-check { opacity: 1; }
+
+/* ── PANELS ── */
+.panel { display: none; }
+.panel.on { display: block; flex: 0 0 auto; }
+
+/* ══════════════════════════════════════
+   LANDING
+══════════════════════════════════════ */
+#landingPanel { display: none; }
+#landingPanel.on { display: block; }
+
+.landing {
+  max-width: 1180px; margin: 0 auto;
+  padding: clamp(72px, 10vw, 128px) 32px 72px;
+}
+
+/* Big editorial headline */
+.l-eyebrow {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 500; color: var(--green);
+  letter-spacing: .8px; text-transform: uppercase;
+  margin-bottom: 32px;
+}
+.l-eyebrow-dot { width: 5px; height: 5px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+.l-headline {
+  font-size: clamp(52px, 7.5vw, 96px);
+  font-weight: 760; line-height: .96;
+  color: var(--ink);
+  margin-bottom: 0;
+}
+.l-headline em { font-style: normal; color: var(--green); }
+
+/* divider line like PYE */
+.l-rule { width: 100%; height: 1px; background: var(--line); margin: 48px 0; }
+
+/* bottom row */
+.l-bottom {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 48px; flex-wrap: wrap;
+}
+.l-desc { max-width: 500px; font-size: 17px; color: var(--ink2); line-height: 1.7; font-weight: 400; }
+.l-actions { display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+
+/* buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--f); border: none; cursor: pointer;
+  border-radius: var(--r); transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), box-shadow var(--dur-base) var(--ease); text-decoration: none;
+  font-weight: 500; white-space: nowrap; line-height: 1;
+}
+.btn-lg { padding: 14px 24px; font-size: 14px; font-weight: 600; }
+.btn-green { background: var(--green); color: #000; }
+.btn-green:hover { background: var(--green2); transform: translateY(-1px); }
+.btn-green svg { width: 16px; height: 16px; fill: #000; }
+.btn-outline { background: var(--panel); color: var(--ink2); border: 1px solid var(--line); }
+.btn-outline:hover { background: var(--bg2); color: var(--ink); border-color: var(--line2); transform: translateY(-1px); }
+.btn-ghost { background: transparent; color: var(--ink3); padding: 10px 0; font-size: 13px; }
+.btn-ghost:hover { color: var(--ink2); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { opacity: .85; }
+.btn-danger:disabled { background: var(--bg3); color: var(--ink3); cursor: not-allowed; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-xs { padding: 4px 8px; font-size: 11px; }
+
+/* features strip */
+.l-feats {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px;
+  padding-top: 48px; border-top: 1px solid var(--line);
+  margin-top: 48px;
+}
+.l-feat { display: flex; flex-direction: column; gap: 6px; padding: 16px; min-height: 118px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: 0 1px 0 rgba(255,255,255,.04) inset; }
+.l-feat-n { font-size: 13px; font-weight: 600; color: var(--ink); }
+.l-feat-d { font-size: 12px; color: var(--ink3); line-height: 1.5; max-width: 190px; }
+
+/* waveform */
+.waveform { display: flex; align-items: flex-end; gap: 3px; height: 24px; }
+.wfb { width: 3px; background: var(--green); border-radius: 2px; height: var(--h); opacity: .2; animation: wf 1.8s ease-in-out infinite; animation-delay: calc(var(--i)*.12s); }
+@keyframes wf { 0%,100%{opacity:.15;transform:scaleY(.4);} 50%{opacity:.45;transform:scaleY(1);} }
+
+/* ══════════════════════════════════════
+   APP
+══════════════════════════════════════ */
+#appPanel { display: none; }
+#appPanel.on { display: block; }
+
+/* user strip */
+.ustrip {
+  display: flex; align-items: center; gap: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+.ustrip-cell {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 24px; height: 52px;
+  border-right: 1px solid var(--line);
+}
+.ustrip-cell:last-child { border-right: none; }
+.uav {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--gbg); border: 1px solid var(--gbrd);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: var(--green);
+  overflow: hidden; flex-shrink: 0;
+}
+.uav img { width: 100%; height: 100%; object-fit: cover; }
+.uname { font-size: 13px; font-weight: 500; }
+.uplan { font-size: 11px; color: var(--ink3); }
+.ustrip-stats { flex: 1; display: flex; justify-content: flex-end; }
+.ustat {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 0 24px; border-right: 1px solid var(--line); height: 52px; justify-content: center; gap: 2px;
+  min-width: 80px; /* prevent layout shift */
+}
+.ustat:last-child { border-right: none; }
+.ustat-v { font-size: 18px; font-weight: 700; letter-spacing: 0; color: var(--ink); }
+.ustat-v.r { color: var(--red); }
+.ustat-v.a { color: var(--amber); }
+.ustat-l { font-size: 9px; font-weight: 500; color: var(--ink3); text-transform: uppercase; letter-spacing: .6px; }
+
+/* app tabs — minimal underline style */
+.atabs {
+  display: flex; align-items: center; gap: 0;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.atabs::-webkit-scrollbar { display: none; }
+.atab {
+  background: none; border: none; border-bottom: 2px solid transparent;
+  font-family: var(--f); font-size: 13px; font-weight: 500;
+  color: var(--ink3); padding: 14px 16px; cursor: pointer;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); white-space: nowrap; margin-bottom: -1px;
+  letter-spacing: 0;
+}
+.atab:hover { color: var(--ink2); background: color-mix(in srgb, var(--bg2) 55%, transparent); }
+.atab.on { color: var(--ink); border-bottom-color: var(--green); }
+
+/* tab content */
+.tb { display: none; }
+.tb.on { display: block; }
+
+/* ── LIBRARY TAB ── */
+.lib-wrap { max-width: 1320px; margin: 0 auto; padding: 28px 28px; }
+
+/* controls row — very clean */
+.ctrl-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+}
+/* search */
+.srch-wrap { position: relative; flex: 1; min-width: 200px; max-width: 360px; }
+.srch-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 13px; height: 13px; fill: var(--ink3); pointer-events: none; }
+.srch-wrap input {
+  width: 100%; background: var(--bg1); border: 1px solid var(--line);
+  color: var(--ink); font-family: var(--f); font-size: 14px;
+  padding: 11px 14px 11px 34px; border-radius: var(--r); outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.srch-wrap input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--gbg); }
+.srch-wrap input::placeholder { color: var(--ink3); }
+
+/* filter pills */
+.filter-pills { display: flex; gap: 4px; }
+.fp {
+  background: var(--bg1); border: 1px solid var(--line);
+  color: var(--ink3); font-family: var(--f);
+  font-size: 13px; font-weight: 600; padding: 9px 15px;
+  border-radius: 20px; cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.fp:hover { color: var(--ink2); border-color: var(--line2); }
+.fp.on { background: var(--bg2); color: var(--ink); border-color: var(--line2); }
+
+.scan-summary {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px; margin-bottom: 14px;
+}
+.metric-card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--r-lg); padding: 13px 14px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.035) inset;
+}
+.metric-v { font-size: 22px; line-height: 1; font-weight: 720; color: var(--ink); }
+.metric-v.good { color: var(--green); }
+.metric-v.warn { color: var(--amber); }
+.metric-v.bad { color: var(--red); }
+.metric-l { margin-top: 6px; font-size: 10px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: .6px; }
+.result-note {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 12px; margin-bottom: 14px;
+  border: 1px solid var(--line); border-radius: var(--r);
+  color: var(--ink2); background: color-mix(in srgb, var(--bg2) 52%, transparent);
+  font-size: 12px; line-height: 1.5;
+}
+
+/* match settings — collapsed inline */
+.match-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; background: var(--bg1); border: 1px solid var(--line);
+  border-radius: var(--r); margin-bottom: 12px; flex-wrap: wrap;
+}
+.match-lbl { font-size: 12px; color: var(--ink3); font-weight: 600; flex-shrink: 0; }
+.mode-pills { display: flex; gap: 2px; }
+.mp {
+  background: none; border: none;
+  font-family: var(--f); font-size: 12px; font-weight: 600; color: var(--ink3);
+  padding: 6px 11px; border-radius: 6px; cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.mp.on { background: var(--bg3); color: var(--ink); }
+.mp:hover:not(.on) { color: var(--ink2); }
+.match-div { width: 1px; height: 14px; background: var(--line); }
+.match-ck { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: var(--ink3); }
+.match-ck input { accent-color: var(--green); width: 12px; height: 12px; }
+.match-ck:hover { color: var(--ink2); }
+
+/* playlist list */
+.pl-list {
+  border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+.pl-head {
+  display: grid; grid-template-columns: 1fr 88px 88px 132px 180px;
+  padding: 12px 18px;
+  background: color-mix(in srgb, var(--bg2) 80%, transparent); border-bottom: 1px solid var(--line);
+  font-size: 11px; font-weight: 700; color: var(--ink3);
+  text-transform: uppercase; letter-spacing: .7px;
+}
+.plr {
+  display: grid; grid-template-columns: 1fr 88px 88px 132px 180px;
+  padding: 0 18px; min-height: 68px; align-items: center;
+  border-bottom: 1px solid var(--line); cursor: default;
+  transition: background var(--dur-fast) var(--ease); position: relative;
+}
+.plr:last-child { border-bottom: none; }
+.plr:hover { background: color-mix(in srgb, var(--bg2) 72%, transparent); }
+.plr.dirty { background: rgba(224,82,82,.03); }
+.plr.dirty:hover { background: rgba(224,82,82,.05); }
+/* left accent bar */
+.plr::before {
+  content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 2px; height: 20px; border-radius: 0 2px 2px 0; background: transparent; transition: background .2s;
+}
+.plr.dirty::before { background: var(--red); }
+.plr.scanning::before { background: var(--amber); animation: pulse 1s infinite; }
+.plr.clean::before { background: var(--green); }
+
+.pl-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pl-thumb {
+  width: 44px; height: 44px; border-radius: 7px; flex-shrink: 0;
+  background: var(--bg3); overflow: hidden;
+  display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--ink3);
+}
+.pl-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.pl-name { font-size: 14px; font-weight: 650; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-meta { font-size: 12px; color: var(--ink3); }
+.pl-num { font-size: 14px; font-weight: 600; text-align: center; color: var(--ink3); }
+.pl-num.pos { color: var(--red); font-weight: 600; }
+.pl-st { text-align: center; }
+.stpill { display: inline-block; font-size: 10px; font-weight: 500; padding: 3px 9px; border-radius: 20px; }
+.sp-idle { color: var(--ink3); }
+.sp-scan { color: var(--amber); background: var(--abg); animation: pulse 1.2s infinite; }
+.sp-clean { color: var(--green); background: var(--gbg); }
+.sp-dirty { color: var(--red); background: var(--rbg); }
+.sp-review { color: var(--amber); background: var(--abg); }
+.pl-acts { display: flex; gap: 5px; justify-content: flex-end; }
+.ab {
+  background: var(--bg2); border: 1px solid var(--line2); color: var(--ink3);
+  font-family: var(--f); font-size: 12px; font-weight: 600;
+  padding: 7px 12px; border-radius: var(--r); cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.ab:hover { background: var(--bg3); color: var(--ink); border-color: var(--ink3); }
+.ab.g { color: var(--green); background: var(--gbg); border-color: var(--gbrd); }
+.ab.g:hover { background: rgba(29,185,84,.13); }
+.ab:disabled { opacity: .3; pointer-events: none; }
+.pgb { height: 2px; background: var(--line); border-radius: 1px; overflow: hidden; margin-top: 2px; }
+.pgf { height: 100%; background: var(--green); width: 0; transition: width .3s; }
+
+/* ── DUPE PANEL ── */
+.dp {
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.dp-head {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.dp-title { font-size: 13px; font-weight: 700; color: var(--red); }
+.dp-meta { font-size: 12px; color: var(--ink3); }
+.dp-acts { margin-left: auto; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.sm-sel {
+  background: var(--bg2); border: 1px solid var(--line2); color: var(--ink);
+  font-family: var(--f); font-size: 11px; padding: 5px 9px;
+  border-radius: var(--r); outline: none; cursor: pointer;
+}
+.sm-sel option { background: var(--bg2); }
+.dp-body { padding: 12px 18px; display: flex; flex-direction: column; gap: 10px; }
+.dg { border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--bg1); }
+.dg-head { display: flex; align-items: center; gap: 12px; padding: 14px 14px; border-bottom: 1px solid var(--line); background: var(--bg2); }
+.dg-art { width: 46px; height: 46px; border-radius: 7px; background: var(--bg3); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--ink3); }
+.dg-art img { width: 100%; height: 100%; object-fit: cover; }
+.dg-name { font-size: 15px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dg-artist { font-size: 12px; color: var(--ink3); }
+.dg-reason { margin-top: 4px; font-size: 12px; color: var(--ink2); }
+.dg-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.dg-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--ink3);
+  background: var(--bg1); border: 1px solid var(--line);
+  border-radius: 999px; padding: 3px 7px;
+}
+.cfb { height: 2px; background: var(--line); border-radius: 1px; margin-top: 4px; overflow: hidden; }
+.cff { height: 100%; background: var(--green); border-radius: 1px; }
+.dg-badge { margin-left: auto; flex-shrink: 0; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; text-transform: uppercase; letter-spacing: .5px; }
+.b-ex { background: var(--rbg); color: var(--red); }
+.b-sm { background: var(--abg); color: var(--amber); }
+.b-pr { background: var(--gbg); color: var(--green); }
+.b-rv { background: var(--abg); color: var(--amber); }
+.di { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.di:last-child { border-bottom: none; }
+.di.keep { border-left: 2px solid var(--green); }
+.di.rem { border-left: 2px solid var(--red); opacity: .5; }
+.di-pos { font-family: var(--fm); font-size: 10px; color: var(--ink3); min-width: 26px; }
+.di-info { flex: 1; min-width: 0; }
+.di-name { font-weight: 650; color: var(--ink); }
+.di-alb { font-size: 11px; color: var(--ink3); margin-top: 1px; }
+.di-detail { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+.di-tag { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: .4px; }
+.di-actions { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.mini-action {
+  background: var(--bg2); border: 1px solid var(--line);
+  color: var(--ink2); font-family: var(--f); font-size: 11px; font-weight: 700;
+  padding: 5px 8px; border-radius: 7px; cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.mini-action:hover { background: var(--rbg); border-color: color-mix(in srgb, var(--red) 32%, var(--line)); color: var(--red); transform: translateY(-1px); }
+.mini-action:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.t-k { background: var(--gbg); color: var(--green); }
+.t-r { background: var(--rbg); color: var(--red); }
+
+/* ── COMPARE ── */
+.cmp-wrap { max-width: 1400px; margin: 0 auto; padding: 24px; }
+.cmp-grid { display: grid; grid-template-columns: 1fr 60px 1fr; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.cmp-col { min-width: 0; background: var(--bg1); }
+.cmp-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: var(--bg2); border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+.cmp-vs { font-size: 9px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: .5px; }
+.cmp-n { font-size: 22px; font-weight: 700; color: var(--green); letter-spacing: 0; line-height: 1; }
+.cmp-l { font-size: 9px; color: var(--ink3); text-transform: uppercase; letter-spacing: .5px; }
+.cmp-head { padding: 11px 14px; border-bottom: 1px solid var(--line); background: var(--bg2); }
+.cmp-sel { width: 100%; background: var(--bg1); border: 1px solid var(--line2); color: var(--ink); font-family: var(--f); font-size: 12px; padding: 6px 9px; border-radius: var(--r); outline: none; cursor: pointer; }
+.cmp-sel option { background: var(--bg2); }
+.cmp-list { max-height: 360px; overflow-y: auto; }
+.ct { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--line); font-size: 12px; }
+.ct:last-child { border-bottom: none; }
+.ct.sh { background: var(--gbg); }
+.ct.sh .ct-n { color: var(--green); font-weight: 500; }
+.ct-i { font-family: var(--fm); font-size: 10px; color: var(--ink3); min-width: 22px; }
+.ct-n { flex: 1; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ct-a { font-size: 10px; color: var(--ink3); }
+.cmp-foot { padding: 9px 14px; background: var(--bg2); border-top: 1px solid var(--line); font-size: 11px; color: var(--ink3); display: flex; gap: 12px; }
+
+/* ── OVERLAP ── */
+.ov-wrap { max-width: 1400px; margin: 0 auto; padding: 24px; }
+.ov-ctrl { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.ov-ctrl label { font-size: 12px; color: var(--ink2); }
+.ov-ctrl input[type=range] { width: 100px; accent-color: var(--green); }
+.ov-n { font-size: 18px; font-weight: 700; color: var(--green); letter-spacing: 0; min-width: 24px; }
+.ov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.ov-card { background: var(--bg1); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; transition: border-color .15s; }
+.ov-card:hover { border-color: var(--line2); }
+.ov-cn { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ov-ca { font-size: 11px; color: var(--ink3); margin-bottom: 8px; }
+.ov-ct { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: var(--green); background: var(--gbg); padding: 2px 7px; border-radius: 10px; margin-bottom: 6px; }
+.ov-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+.ov-tag { font-size: 10px; color: var(--ink3); background: var(--bg2); border: 1px solid var(--line); padding: 2px 6px; border-radius: 4px; }
+
+/* ── GRAPH ── */
+.gph-wrap { max-width: 1400px; margin: 0 auto; padding: 24px; }
+.gph-box { border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--bg1); }
+.gph-bar { display: flex; align-items: center; gap: 8px; padding: 11px 14px; background: var(--bg2); border-bottom: 1px solid var(--line); }
+#graphCanvas { width: 100%; height: 440px; background: var(--bg1); }
+.gph-leg { display: flex; gap: 20px; padding: 9px 14px; background: var(--bg2); border-top: 1px solid var(--line); font-size: 11px; color: var(--ink3); }
+.gli { display: flex; align-items: center; gap: 6px; }
+.gld { width: 7px; height: 7px; border-radius: 50%; background: var(--green); opacity: .6; }
+.gll { width: 16px; height: 1.5px; background: var(--line2); }
+
+/* ── HISTORY ── */
+.hist-wrap { max-width: 1400px; margin: 0 auto; padding: 24px; }
+.hist-box { border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--bg1); }
+.hist-head { display: grid; grid-template-columns: 110px 1fr 80px 80px 70px; padding: 9px 16px; background: var(--bg2); border-bottom: 1px solid var(--line); font-size: 10px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: .7px; }
+.hr { display: grid; grid-template-columns: 110px 1fr 80px 80px 70px; padding: 11px 16px; border-bottom: 1px solid var(--line); font-size: 12px; align-items: center; }
+.hr:last-child { border-bottom: none; }
+.hr:hover { background: var(--bg2); }
+.hr-m { font-family: var(--fm); font-size: 11px; color: var(--ink3); }
+.hr-r { color: var(--red); font-weight: 600; }
+.hr-g { color: var(--green); font-weight: 600; }
+
+/* ── SETTINGS ── */
+.settings-wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
+.settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.settings-card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--r-lg); padding: 16px;
+}
+.settings-title { font-size: 13px; font-weight: 650; color: var(--ink); margin-bottom: 5px; }
+.settings-desc { font-size: 12px; line-height: 1.55; color: var(--ink3); margin-bottom: 12px; }
+.settings-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.setting-pill {
+  background: var(--bg1); border: 1px solid var(--line);
+  color: var(--ink3); border-radius: 999px; padding: 7px 11px;
+  font-family: var(--f); font-size: 12px; font-weight: 550;
+  cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.setting-pill.on { background: var(--gbg); border-color: var(--gbrd); color: var(--green); }
+
+/* ── UTILS ── */
+.loading { padding: 48px; text-align: center; font-size: 12px; color: var(--ink3); }
+.spin { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--line2); border-top-color: var(--green); border-radius: 50%; animation: spin .7s linear infinite; margin-right: 8px; vertical-align: middle; }
+@keyframes spin { to{transform:rotate(360deg);} }
+.empty { padding: 32px; text-align: center; font-size: 12px; color: var(--ink3); background: color-mix(in srgb, var(--bg2) 45%, transparent); border-radius: var(--r); }
+.hidden { display: none !important; }
+
+/* toasts */
+.toasts { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 6px; }
+.toast {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--panel); border: 1px solid var(--line2);
+  border-radius: var(--r-lg); padding: 10px 14px;
+  font-size: 12px; color: var(--ink); max-width: 280px;
+  box-shadow: var(--shadow);
+  animation: tIn .2s ease;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+.toast.ok { border-left: 2px solid var(--green); }
+.toast.err { border-left: 2px solid var(--red); }
+.toast.inf { border-left: 2px solid var(--amber); }
+@keyframes tIn { from{opacity:0;transform:translateX(8px);} to{opacity:1;} }
+
+footer {
+  width: min(100% - 64px, 1190px);
+  border-top: 1px solid var(--line); padding: 18px 0 26px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; color: var(--ink3); background: transparent;
+  margin: auto auto 0;
+}
+footer a { color: var(--ink3); text-decoration: none; transition: color .15s; }
+footer a:hover { color: var(--ink); }
+
+/* ══ ANIMATIONS ══ */
+
+/* Ripple */
+.btn, .ab, .fp, .mp, .mb-sb { position: relative; overflow: hidden; }
+.ripple {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  background: rgba(255,255,255,.15);
+  transform: scale(0); animation: ripple-anim .6s cubic-bezier(.4,0,.2,1);
+}
+@keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
+
+/* Word reveal */
+.word-reveal { display: inline-block; overflow: hidden; vertical-align: bottom; }
+.word-inner {
+  display: inline-block; transform: translateY(110%);
+  animation: wordUp .75s cubic-bezier(.16,1,.3,1) forwards;
+}
+@keyframes wordUp { to { transform: translateY(0); } }
+
+/* Eyebrow fade-in */
+.l-eyebrow { opacity: 0; animation: fadeUp .5s ease .1s forwards; }
+.l-rule { opacity: 0; animation: fadeIn .6s ease .5s forwards; }
+.l-bottom { opacity: 0; animation: fadeUp .5s ease .6s forwards; }
+.l-feats { opacity: 0; animation: fadeUp .5s ease .8s forwards; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:none;} }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+.plr {
+  transition: background var(--dur-fast) var(--ease);
+}
+
+/* Stat counter bounce */
+@keyframes statBounce { 0%{transform:translateY(6px) scale(.9);opacity:0;} 60%{transform:translateY(-2px) scale(1.04);} 100%{transform:none;opacity:1;} }
+.stat-pop { animation: statBounce .5s cubic-bezier(.34,1.56,.64,1) both; }
+
+/* Tab transition */
+.tb { opacity: 0; }
+.tb.on {
+  opacity: 1;
+  animation: tabIn var(--dur-base) var(--ease-out) both;
+}
+@keyframes tabIn {
+  from { opacity:0; transform:translateY(4px); }
+  to   { opacity:1; transform:none; }
+}
+
+/* Dupe panel — spring expand */
+.dp { transform-origin: top; animation: dpSpring var(--dur-slow) var(--ease-spring) both; }
+@keyframes dpSpring { from{opacity:0;transform:scaleY(.9) translateY(-8px);} to{opacity:1;transform:none;} }
+
+.metric-card, .pl-list, .settings-card, .cmp-grid, .ov-card, .gph-box, .hist-box {
+  animation: surfaceIn 260ms var(--ease-out) both;
+}
+@keyframes surfaceIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.dg {
+  animation: resultIn 300ms var(--ease-out) both;
+}
+@keyframes resultIn {
+  from { opacity: 0; transform: translateY(10px) scale(.995); }
+  to { opacity: 1; transform: none; }
+}
+.di {
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), opacity var(--dur-base) var(--ease);
+}
+.di:hover { background: color-mix(in srgb, var(--bg2) 56%, transparent); }
+.di.removing { opacity: .45; }
+
+/* Progress shimmer */
+.pgb { position: relative; overflow: hidden; border-radius: 2px; }
+.pgb::after {
+  content:''; position:absolute; inset:0; width:40%;
+  background: linear-gradient(90deg, transparent, rgba(29,185,84,.5), transparent);
+  animation: shimmer 1.4s ease-in-out infinite; transform: translateX(-100%);
+}
+@keyframes shimmer { to { transform: translateX(350%); } }
+
+/* Scan status — simple opacity pulse */
+.sp-scan { animation: pulse 1.2s ease-in-out infinite; }
+
+/* Smooth theme — handled per-element */
+
+/* Feature cards — magnetic handled by JS, CSS fallback */
+.l-feat { transition: transform var(--dur-base) var(--ease), color var(--dur-base) var(--ease); cursor: default; }
+.l-feat:hover { transform: translateY(-3px); }
+.l-feat:hover .l-feat-n { color: var(--green); }
+.l-feat-n { transition: color .2s; }
+
+/* Connect button glow */
+.btn-green {
+  transition: background var(--dur-fast) var(--ease), box-shadow var(--dur-base) var(--ease) !important;
+}
+.btn-green:hover { box-shadow: 0 0 20px rgba(29,185,84,.2); }
+.btn-green:active { opacity: .9; }
+
+/* Scan button */
+#scanAllBtn:not(:disabled):hover { box-shadow: 0 0 16px rgba(29,185,84,.25); }
+
+/* Waveform hover */
+.waveform { cursor: default; }
+.waveform:hover .wfb { animation-duration: .7s; opacity: .55; }
+
+/* Nav logo hover */
+.nav-logo-mark { transition: transform var(--dur-slow) var(--ease-spring2); }
+.nav-logo:hover .nav-logo-mark { transform: rotate(-8deg) scale(1.08); }
+
+/* Tab active indicator spring */
+.atab { transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease); }
+
+/* Toast spring */
+@keyframes tIn { from{opacity:0;transform:translateX(16px) scale(.95);} to{opacity:1;transform:none;} }
+
+/* Scan all button press */
+.btn:active { transform: scale(.98); }
+
+/* ab buttons spring */
+.ab, .fp, .mp, .mb-sb { transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-base) var(--ease-spring); }
+.ab:hover, .fp:hover, .mp:hover { transform: translateY(-1px); }
+.ab:active, .fp:active, .mp:active { transform: scale(.98) !important; }
+
+/* Dupe card hover */
+.dg { transition: border-color .15s, transform .2s cubic-bezier(.34,1.4,.64,1); }
+.dg:hover { border-color: var(--line2); }
+
+/* Interactive cursor */
+@media (hover:hover) and (pointer:fine) {
+  body.cursor-on, body.cursor-on * { cursor: none !important; }
+  .cursor-dot, .cursor-ring {
+    position: fixed; left: 0; top: 0; pointer-events: none; z-index: 9999;
+    opacity: 0; transform: translate3d(-50%,-50%,0);
+    transition: opacity 160ms var(--ease), width 160ms var(--ease), height 160ms var(--ease), background 160ms var(--ease), border-color 160ms var(--ease);
+    will-change: transform;
+  }
+  .cursor-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+  .cursor-ring {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--green) 58%, transparent);
+    background: var(--cursor);
+    backdrop-filter: blur(2px);
+  }
+  body.cursor-on .cursor-dot, body.cursor-on .cursor-ring { opacity: 1; }
+  body.cursor-press .cursor-ring { width: 18px; height: 18px; }
+  body.cursor-action .cursor-ring { width: 42px; height: 42px; background: color-mix(in srgb, var(--green) 18%, transparent); }
+  body.cursor-danger .cursor-ring { width: 44px; height: 44px; background: color-mix(in srgb, var(--red) 18%, transparent); border-color: color-mix(in srgb, var(--red) 54%, transparent); }
+}
+
+@media(max-width:768px) {
+  html, body { overflow-x: hidden; }
+  /* Touch targets */
+  .atab { padding: 14px 12px; min-height: 44px; }
+  .ab, .fp { min-height: 36px; padding: 8px 12px; }
+  .btn-lg { min-height: 48px; padding: 14px 20px; }
+  .pl-head,.plr { grid-template-columns: 1fr 70px 100px; }
+  .pl-head>*:nth-child(3),.plr>*:nth-child(3) { display: none; }
+  nav { padding: 0 16px; gap: 12px; }
+  .landing { padding: 60px 16px 60px; }
+  .l-headline { font-size: clamp(40px,12vw,68px); }
+  .l-bottom { flex-direction: column; gap: 28px; }
+  .l-actions { align-items: flex-start; }
+  .l-feats { grid-template-columns: 1fr; gap: 8px; }
+  .l-feat { min-height: auto; }
+  .scan-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .settings-grid { grid-template-columns: 1fr; }
+  .cmp-grid { grid-template-columns: 1fr; }
+  .cmp-mid { display: none; }
+  .ustrip-stats { display: none; }
+  .lang-dropdown { right: 0; }
+  .ctrl-row { align-items: stretch; }
+  .srch-wrap { max-width: none; flex-basis: 100%; }
+  .filter-pills { width: 100%; overflow-x: auto; padding-bottom: 2px; }
+  .pl-list { overflow-x: auto; }
+  .pl-head,.plr { min-width: 620px; }
+  .di { grid-template-columns: 36px minmax(0,1fr); }
+  .di-actions { grid-column: 2; justify-content: flex-start; }
+  footer { width: calc(100% - 32px); padding-bottom: 22px; }
+  .toasts { left: 16px; right: 16px; bottom: 16px; }
+  .toast { max-width: none; }
+}
+@media(min-width:769px) and (max-width:1100px) {
+  .l-feats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ── FOCUS STATES (accessibility) ── */
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+  border-radius: var(--r);
+}
+button:focus:not(:focus-visible) { outline: none; }
+
+/* Respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .wfb { animation: none !important; opacity: .3 !important; }
+}
+</style>
+</head>
+<body>
+<div class="toasts" id="toasts"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.208c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 11-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 01.207.856zm1.223-2.722a.78.78 0 01-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 01-.966-.519.781.781 0 01.519-.966c3.632-1.102 8.147-.568 11.228 1.322a.78.78 0 01.256 1.072zm.105-2.835C14.69 9.135 9.9 8.976 7.028 9.833a.937.937 0 11-.544-1.794c3.276-.994 8.724-.802 12.168 1.25a.937.937 0 01-.738 1.578z"/></svg>
+    </div>
+    <span class="nav-logo-text">WashList</span>
+  </a>
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme" data-i18n-title="navigation.themeToggle" data-i18n-aria="navigation.themeToggle">☀</button>
+  <div class="lang-wrap" id="langWrap"><button class="lang-trigger" id="langTrigger" onclick="toggleLangDropdown()" aria-haspopup="listbox" aria-expanded="false" aria-label="Language" data-i18n-aria="navigation.languageSwitcher.label"><span id="langCurrent">🇬🇧 EN</span><svg viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button><div class="lang-dropdown" id="langDropdown" role="listbox" aria-label="Select language" data-i18n-aria="navigation.languageSwitcher.select"></div></div>
+</nav>
+
+<!-- LANDING -->
+<div class="panel" id="landingPanel">
+  <div class="landing">
+    <div class="l-eyebrow">
+      <span class="l-eyebrow-dot"></span>
+      <span data-i18n="hero.kicker">Spotify library cleaner</span>
+    </div>
+    <h1 class="l-headline" data-i18n-html="hero.h1">Wash your<br>playlists <em>clean</em></h1>
+    <div class="l-rule"></div>
+    <div class="l-bottom">
+      <p class="l-desc" data-i18n="hero.sub">Remove duplicates, compare playlists and visualise how your library connects</p>
+      <div class="l-actions">
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-lg btn-green" onclick="startAuth()">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 01-.857.208c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 11-.277-1.215c3.809-.87 7.076-.496 9.712 1.115a.623.623 0 01.207.856zm1.223-2.722a.78.78 0 01-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 01-.966-.519.781.781 0 01.519-.966c3.632-1.102 8.147-.568 11.228 1.322a.78.78 0 01.256 1.072zm.105-2.835C14.69 9.135 9.9 8.976 7.028 9.833a.937.937 0 11-.544-1.794c3.276-.994 8.724-.802 12.168 1.25a.937.937 0 01-.738 1.578z"/></svg>
+            <span data-i18n="hero.connect">Connect Spotify</span>
+          </button>
+          <button class="btn btn-lg btn-outline" onclick="loadDemo()" data-i18n="hero.demo">Demo</button>
+        </div>
+        <div class="waveform" aria-hidden="true">
+          <div class="wfb" style="--h:35%;--i:0"></div><div class="wfb" style="--h:65%;--i:1"></div>
+          <div class="wfb" style="--h:45%;--i:2"></div><div class="wfb" style="--h:85%;--i:3"></div>
+          <div class="wfb" style="--h:55%;--i:4"></div><div class="wfb" style="--h:75%;--i:5"></div>
+          <div class="wfb" style="--h:40%;--i:6"></div><div class="wfb" style="--h:90%;--i:7"></div>
+          <div class="wfb" style="--h:50%;--i:8"></div><div class="wfb" style="--h:70%;--i:9"></div>
+          <div class="wfb" style="--h:38%;--i:10"></div><div class="wfb" style="--h:60%;--i:11"></div>
+          <div class="wfb" style="--h:80%;--i:12"></div><div class="wfb" style="--h:48%;--i:13"></div>
+        </div>
+      </div>
+    </div>
+    <div class="l-feats">
+      <div class="l-feat"><div class="l-feat-n" data-i18n="hf.1">Smart dedup</div><div class="l-feat-d" data-i18n="hf.1d">URI + fuzzy match. Handles remasters and live versions</div></div>
+      <div class="l-feat"><div class="l-feat-n" data-i18n="hf.2">Compare</div><div class="l-feat-d" data-i18n="hf.2d">See shared tracks between any two playlists</div></div>
+      <div class="l-feat"><div class="l-feat-n" data-i18n="hf.3">Overlap</div><div class="l-feat-d" data-i18n="hf.3d">Find tracks living in 3+ playlists at once</div></div>
+      <div class="l-feat"><div class="l-feat-n" data-i18n="hf.4">Graph</div><div class="l-feat-d" data-i18n="hf.4d">D3 force-graph of playlist connections</div></div>
+      <div class="l-feat"><div class="l-feat-n" data-i18n="hf.5">Export</div><div class="l-feat-d" data-i18n="hf.5d">CSV or JSON. History log stored locally</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="panel" id="appPanel">
+  <!-- user strip -->
+  <div class="ustrip">
+    <div class="ustrip-cell">
+      <div class="uav" id="uAv">?</div>
+      <div>
+        <div class="uname" id="uName">—</div>
+        <div class="uplan" id="uPlan"></div>
+      </div>
+    </div>
+    <div class="ustrip-stats">
+      <div class="ustat"><span class="ustat-v" id="sPl">—</span><span class="ustat-l" data-i18n="s.pl">Playlists</span></div>
+      <div class="ustat"><span class="ustat-v" id="sSc">—</span><span class="ustat-l" data-i18n="s.sc">Scanned</span></div>
+      <div class="ustat"><span class="ustat-v r" id="sDu">—</span><span class="ustat-l" data-i18n="s.du">Dupes</span></div>
+      <div class="ustat"><span class="ustat-v a" id="sAf">—</span><span class="ustat-l" data-i18n="s.af">Affected</span></div>
+    </div>
+    <div class="ustrip-cell">
+      <button class="btn btn-ghost btn-sm" onclick="logout()" data-i18n="app.logout">Log out</button>
+    </div>
+  </div>
+
+  <!-- tabs -->
+  <div class="atabs" role="tablist">
+    <button class="atab on" onclick="switchTab('tLib',this)" data-i18n="tab.lib" role="tab" aria-selected="true" aria-controls="tLib">Library</button>
+    <button class="atab" onclick="switchTab('tCmp',this)" data-i18n="tab.cmp" role="tab" aria-selected="false" aria-controls="tCmp">Compare</button>
+    <button class="atab" onclick="switchTab('tOv',this)" data-i18n="tab.ov" role="tab" aria-selected="false" aria-controls="tOv">Overlap</button>
+    <button class="atab" onclick="switchTab('tGph',this)" data-i18n="tab.gph" role="tab" aria-selected="false" aria-controls="tGph">Graph</button>
+    <button class="atab" onclick="switchTab('tHist',this)" data-i18n="tab.hist" role="tab" aria-selected="false" aria-controls="tHist">History</button>
+    <button class="atab" onclick="switchTab('tSettings',this)" data-i18n="tab.settings" role="tab" aria-selected="false" aria-controls="tSettings">Settings</button>
+  </div>
+
+  <!-- LIBRARY -->
+  <div class="tb on" id="tLib">
+    <div class="lib-wrap">
+      <div class="match-row">
+        <span class="match-lbl" data-i18n="mb.mode">Mode</span>
+        <div class="mode-pills">
+          <button class="mp on" onclick="setMode('balanced',this)" data-i18n="mb.bal">Balanced</button>
+          <button class="mp" onclick="setMode('strict',this)" data-i18n="mb.strict">Strict</button>
+          <button class="mp" onclick="setMode('fuzzy',this)" data-i18n="mb.fuzzy">Fuzzy</button>
+        </div>
+        <div class="match-div"></div>
+        <label class="match-ck"><input type="checkbox" id="optR" checked onchange="rrAll()"><span data-i18n="mb.rem">Remasters</span></label>
+        <label class="match-ck"><input type="checkbox" id="optL" onchange="rrAll()"><span data-i18n="mb.live">Live</span></label>
+        <div class="match-div"></div>
+        <label class="match-ck"><input type="checkbox" id="optDry" checked><span data-i18n="mb.dry">Dry-run</span></label>
+      </div>
+
+      <div class="scan-summary" id="scanSummary" aria-live="polite"></div>
+      <div class="result-note" data-i18n="scan.note">Matches are scored with track ID, ISRC, title, artists, album, duration and version tags. Artist-only matches are never treated as duplicates.</div>
+
+      <div class="ctrl-row">
+        <div class="srch-wrap">
+          <svg viewBox="0 0 16 16"><path d="M6.5 1a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM0 6.5a6.5 6.5 0 1111.596 4.02l3.442 3.442-.707.707-3.442-3.44A6.5 6.5 0 010 6.5z"/></svg>
+          <input type="text" id="srch" oninput="renderPl()">
+        </div>
+        <div class="filter-pills">
+          <button class="fp on" onclick="setSort('all',this)" data-i18n="sort.all">All</button>
+          <button class="fp" onclick="setSort('unique',this)" data-i18n="sort.unique">Unique</button>
+          <button class="fp" onclick="setSort('dupes',this)" data-i18n="sort.dupes">Duplicates</button>
+          <button class="fp" onclick="setSort('review',this)" data-i18n="sort.review">Review</button>
+          <button class="fp" onclick="setSort('artists',this)" data-i18n="sort.artists">Artists</button>
+          <button class="fp" onclick="setSort('albums',this)" data-i18n="sort.albums">Albums</button>
+          <button class="fp" onclick="setSort('errors',this)" data-i18n="sort.errors">Errors</button>
+        </div>
+        <div style="margin-left:auto;">
+          <button class="btn btn-green btn-sm" id="scanAllBtn" onclick="scanAll()">⚡ <span data-i18n="app.scanAll">Scan all</span></button>
+        </div>
+      </div>
+
+      <div id="plLoading" class="loading hidden" role="status" aria-live="polite"><span class="spin" aria-hidden="true"></span><span data-i18n="app.loading">Loading…</span></div>
+      <div class="pl-list" id="plWrap">
+        <div class="pl-head">
+          <div data-i18n="col.pl">Playlist</div>
+          <div style="text-align:center" data-i18n="col.tr">Tracks</div>
+          <div style="text-align:center" data-i18n="col.du">Dupes</div>
+          <div style="text-align:center" data-i18n="col.st">Status</div>
+          <div style="text-align:right" data-i18n="col.ac">Actions</div>
+        </div>
+        <div id="plList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPARE -->
+  <div class="tb" id="tCmp">
+    <div class="cmp-wrap">
+      <div class="cmp-grid">
+        <div class="cmp-col">
+          <div class="cmp-head"><select class="cmp-sel" id="cmpL" onchange="runCmp()"></select></div>
+          <div class="cmp-list" id="cmpLL"><div class="empty" data-i18n="cmp.pick">Select a playlist</div></div>
+          <div class="cmp-foot" id="cmpLF"></div>
+        </div>
+        <div class="cmp-mid">
+          <span class="cmp-vs" data-i18n="cmp.vs">VS</span>
+          <span class="cmp-n" id="cmpN">—</span>
+          <span class="cmp-l" data-i18n="cmp.shared">shared</span>
+        </div>
+        <div class="cmp-col">
+          <div class="cmp-head"><select class="cmp-sel" id="cmpR" onchange="runCmp()"></select></div>
+          <div class="cmp-list" id="cmpRL"><div class="empty" data-i18n="cmp.pick">Select a playlist</div></div>
+          <div class="cmp-foot" id="cmpRF"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERLAP -->
+  <div class="tb" id="tOv">
+    <div class="ov-wrap">
+      <div class="ov-ctrl">
+        <label data-i18n="ov.min">Min playlists</label>
+        <input type="range" min="2" max="8" value="3" id="ovMin" oninput="document.getElementById('ovN').textContent=this.value;renderOv()">
+        <span class="ov-n" id="ovN">3</span>
+      </div>
+      <div id="ovGrid" class="ov-grid"></div>
+    </div>
+  </div>
+
+  <!-- GRAPH -->
+  <div class="tb" id="tGph">
+    <div class="gph-wrap">
+      <div class="gph-box">
+        <div class="gph-bar">
+          <button class="btn btn-green btn-sm" onclick="buildGraph()" data-i18n="gph.build">Build graph</button>
+          <button class="btn btn-outline btn-sm" onclick="resetGraph()" data-i18n="gph.reset">Reset</button>
+          <span style="font-size:11px;color:var(--ink3);margin-left:4px;" id="gphSt"></span>
+        </div>
+        <svg id="graphCanvas"></svg>
+        <div class="gph-leg">
+          <span class="gli"><span class="gld"></span><span data-i18n="gph.ln">Playlist node (size = tracks)</span></span>
+          <span class="gli"><span class="gll"></span><span data-i18n="gph.le">Shared tracks (thickness = count)</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="tb" id="tHist">
+    <div class="hist-wrap">
+      <div style="display:flex;gap:6px;margin-bottom:14px;justify-content:flex-end;">
+        <button class="btn btn-outline btn-sm" onclick="expH('csv')" data-i18n="h.csv">Export CSV</button>
+        <button class="btn btn-outline btn-sm" onclick="expH('json')" data-i18n="h.json">Export JSON</button>
+        <button class="btn btn-outline btn-sm" style="color:var(--red);" onclick="clearH()" data-i18n="h.clear">Clear</button>
+      </div>
+      <div class="hist-box">
+        <div class="hist-head">
+          <div data-i18n="h.date">Date</div>
+          <div data-i18n="h.pl">Playlist</div>
+          <div data-i18n="h.rm">Removed</div>
+          <div data-i18n="h.kp">Kept</div>
+          <div data-i18n="h.md">Mode</div>
+        </div>
+        <div id="histRows"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="tb" id="tSettings">
+    <div class="settings-wrap">
+      <div class="settings-grid">
+        <div class="settings-card">
+          <div class="settings-title" data-i18n="settings.scan.title">Scan engine</div>
+          <div class="settings-desc" data-i18n="settings.scan.desc">Balanced is recommended. Strict only trusts exact identifiers. Flexible adds review candidates instead of deleting them automatically.</div>
+          <div class="settings-actions">
+            <button class="setting-pill" data-setting-mode="strict" onclick="setModeFromSettings('strict')" data-i18n="mb.strict">Strict</button>
+            <button class="setting-pill" data-setting-mode="balanced" onclick="setModeFromSettings('balanced')" data-i18n="mb.bal">Balanced</button>
+            <button class="setting-pill" data-setting-mode="fuzzy" onclick="setModeFromSettings('fuzzy')" data-i18n="mb.fuzzy">Fuzzy</button>
+          </div>
+        </div>
+        <div class="settings-card">
+          <div class="settings-title" data-i18n="settings.versions.title">Track versions</div>
+          <div class="settings-desc" data-i18n="settings.versions.desc">Remasters can be treated as the same recording. Live, acoustic, remix, sped up and slowed versions stay visible as related versions.</div>
+          <div class="settings-actions">
+            <button class="setting-pill" data-setting-option="optR" onclick="toggleOptionFromSettings('optR')" data-i18n="mb.rem">Remasters</button>
+            <button class="setting-pill" data-setting-option="optL" onclick="toggleOptionFromSettings('optL')" data-i18n="mb.live">Live</button>
+          </div>
+        </div>
+        <div class="settings-card">
+          <div class="settings-title" data-i18n="settings.safety.title">Safety</div>
+          <div class="settings-desc" data-i18n="settings.safety.desc">Dry-run keeps Spotify untouched and lets you inspect every match reason before removing anything.</div>
+          <div class="settings-actions">
+            <button class="setting-pill" data-setting-option="optDry" onclick="toggleOptionFromSettings('optDry')" data-i18n="mb.dry">Dry-run</button>
+          </div>
+        </div>
+        <div class="settings-card">
+          <div class="settings-title" data-i18n="settings.display.title">Display</div>
+          <div class="settings-desc" data-i18n="settings.display.desc">Results show confidence, source, album, duration and the reason why a track was grouped.</div>
+          <div class="settings-actions">
+            <button class="setting-pill on" disabled data-i18n="settings.display.reasons">Match reasons on</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>WashList</span>
+  <a href="https://github.com/StonerHand" target="_blank" rel="noreferrer">made by StonerHand ↗</a>
+</footer>
+
+<script>
+/* ══ I18N ══ */
+const FALLBACK_LANG='en';
+const L={
+  en:{f:'🇬🇧',n:'EN',native:'English',locale:'en-GB',
+    'navigation.themeToggle':'Toggle theme',
+    'navigation.languageSwitcher.label':'Language',
+    'navigation.languageSwitcher.select':'Select language',
+    'hero.kicker':'Spotify library cleaner',
+    'hero.h1':'Wash your<br>playlists <em>clean</em>',
+    'hero.sub':'Remove duplicates, compare playlists and visualise how your library connects',
+    'hero.connect':'Connect Spotify','hero.demo':'Demo',
+    'hf.1':'Smart dedup','hf.1d':'URI + fuzzy match. Handles remasters and live versions',
+    'hf.2':'Compare','hf.2d':'See shared tracks between any two playlists',
+    'hf.3':'Overlap','hf.3d':'Find tracks living in 3+ playlists at once',
+    'hf.4':'Graph','hf.4d':'D3 force-graph of playlist connections',
+    'hf.5':'Export','hf.5d':'CSV or JSON. History log stored locally',
+    's.pl':'Playlists','s.sc':'Scanned','s.du':'Dupes','s.af':'Affected',
+    'app.logout':'Log out','app.scanAll':'Scan all','app.loading':'Loading…',
+    'tab.lib':'Scan','tab.cmp':'Compare','tab.ov':'Overlap','tab.gph':'Graph','tab.hist':'History','tab.settings':'Settings',
+    'mb.mode':'Mode','mb.bal':'Balanced','mb.strict':'Strict','mb.fuzzy':'Fuzzy',
+    'mb.rem':'Remasters','mb.live':'Live','mb.dry':'Dry-run',
+    'scan.note':'Matches are scored with track ID, ISRC, title, artists, album, duration and version tags. Artist-only matches are never treated as duplicates.',
+    'sort.all':'All','sort.unique':'Unique','sort.dupes':'Duplicates','sort.review':'Review','sort.artists':'Artists','sort.albums':'Albums','sort.errors':'Errors','sort.dirty':'Dirty',
+    'stats.tracks':'Tracks','stats.unique':'Unique','stats.dupes':'Duplicates','stats.review':'Review','stats.artists':'Artists','stats.albums':'Albums',
+    'col.pl':'Playlist','col.tr':'Tracks','col.du':'Dupes','col.st':'Status','col.ac':'Actions',
+    'pl.scan':'Scan','pl.scanning':'Scanning','pl.rescan':'Rescan','pl.view':'View dupes','pl.tracks':'tracks',
+    'st.idle':'—','st.scan':'Scanning','st.clean':'Clean','st.review':'Review','st.dirty':(n)=>`${n} dupes`,
+    'dupe.exact':'Exact','dupe.sim':'Diff release','dupe.prob':'Probable','dupe.review':'Review','dupe.version':'Version',
+    'dupe.keep':'keep','dupe.rem':'remove',
+    'dupe.conf':(n)=>`${n}% confidence`,'dupe.source':(s)=>`Source: ${s}`,'dupe.duration':(d)=>`Duration: ${d}`,'dupe.album':(a)=>`Album: ${a}`,'dupe.isrc':(s)=>`ISRC: ${s}`,
+    'dupe.reason.uri':'Same Spotify ID or URL. Safe duplicate.',
+    'dupe.reason.isrc':'Same ISRC recording code. Safe duplicate.',
+    'dupe.reason.metadata':'Same title, artists and close duration. Likely duplicate.',
+    'dupe.reason.version':'Same song family, but different version. Review before action.',
+    'dupe.reason.weak':'Similar metadata but not enough proof. Manual review needed.',
+    'dupe.noAction':'No safe duplicates to remove',
+    'dupe.removeOne':'Remove',
+    'dupe.kF':'Keep first','dupe.kL':'Keep last',
+    'dupe.groups':(n)=>`${n} group${n!==1?'s':''} found`,
+    'dupe.total':(n)=>`${n} duplicate${n!==1?'s':''} total`,
+    'dupe.more':(n)=>`+${n} more`,
+    'dupe.col':'Collapse','dupe.rm':(n)=>`Remove ${n}`,'dupe.rming':'Removing…','dupe.added':'added',
+    'exp.csv':'CSV','exp.json':'JSON',
+    'cmp.vs':'VS','cmp.pick':'Select a playlist','cmp.shared':'shared',
+    'cmp.only':(n)=>`${n} unique`,'cmp.both':(n)=>`${n} shared`,
+    'ov.min':'Min playlists','ov.none':'No tracks — scan more playlists first',
+    'gph.build':'Build graph','gph.reset':'Reset',
+    'gph.ln':'Playlist node (size = tracks)','gph.le':'Shared tracks (thickness = count)',
+    'gph.nodata':'Scan at least 2 playlists first',
+    'h.date':'Date','h.pl':'Playlist','h.rm':'Removed','h.kp':'Kept','h.md':'Mode',
+    'h.csv':'Export CSV','h.json':'Export JSON','h.clear':'Clear','h.empty':'No cleanups yet',
+    't.done':'All playlists scanned',
+    't.removed':(n,p)=>`Removed ${n} dupe${n!==1?'s':''} from "${p}"`,
+    't.dry':'Dry-run — nothing deleted',
+    't.cancel':'Auth cancelled','t.miss':'Auth data missing',
+    't.pErr':(e)=>`Profile error: ${e}`,'t.sErr':(p)=>`Scan failed: ${p}`,
+    't.rErr':'Remove failed','t.out':'Logged out','t.demo':'Demo loaded',
+    't.authErr':'Could not connect to Spotify. Try again.',
+    't.loadErr':'Could not load playlists. Try again in a moment.',
+    'srch.ph':'Search playlists…',
+    'empty.search':'No playlists match your search',
+    'empty.dirty':'No playlists with duplicates — all clean',
+    'empty.loading':'Loading your playlists…',
+    'common.retry':'Try again',
+    'settings.scan.title':'Scan engine','settings.scan.desc':'Balanced is recommended. Strict only trusts exact identifiers. Flexible adds review candidates instead of deleting them automatically.',
+    'settings.versions.title':'Track versions','settings.versions.desc':'Remasters can be treated as the same recording. Live, acoustic, remix, sped up and slowed versions stay visible as related versions.',
+    'settings.safety.title':'Safety','settings.safety.desc':'Dry-run keeps Spotify untouched and lets you inspect every match reason before removing anything.',
+    'settings.display.title':'Display','settings.display.desc':'Results show confidence, source, album, duration and the reason why a track was grouped.','settings.display.reasons':'Match reasons on'},
+  ru:{f:'🇷🇺',n:'RU',native:'Русский',locale:'ru-RU',
+    'navigation.themeToggle':'Переключить тему',
+    'navigation.languageSwitcher.label':'Язык',
+    'navigation.languageSwitcher.select':'Выберите язык',
+    'hero.kicker':'Очиститель Spotify-библиотеки',
+    'hero.h1':'Чистые плейлисты —<br><em>без лишнего</em>',
+    'hero.sub':'Удаляйте дубли, сравнивайте плейлисты и смотрите как устроена ваша библиотека',
+    'hero.connect':'Войти через Spotify','hero.demo':'Демо',
+    'hf.1':'Умный поиск','hf.1d':'URI + размытое совпадение. Ремастеры и live-версии',
+    'hf.2':'Сравнение','hf.2d':'Общие треки между двумя плейлистами',
+    'hf.3':'Пересечения','hf.3d':'Треки сразу в 3+ плейлистах',
+    'hf.4':'Граф','hf.4d':'D3-граф связей между плейлистами',
+    'hf.5':'Экспорт','hf.5d':'CSV или JSON. История хранится локально',
+    's.pl':'Плейлисты','s.sc':'Проверено','s.du':'Дубли','s.af':'Затронуто',
+    'app.logout':'Выйти','app.scanAll':'Сканировать всё','app.loading':'Загружаем…',
+    'tab.lib':'Сканирование','tab.cmp':'Сравнение','tab.ov':'Пересечения','tab.gph':'Граф','tab.hist':'История','tab.settings':'Настройки',
+    'mb.mode':'Режим','mb.bal':'Сбалансировано','mb.strict':'Строго','mb.fuzzy':'Гибко',
+    'mb.rem':'Ремастеры','mb.live':'Live','mb.dry':'Dry-run',
+    'scan.note':'Совпадения считаются по ID трека, ISRC, названию, исполнителям, альбому, длительности и версии. Совпадение только по исполнителю никогда не считается дублем.',
+    'sort.all':'Все','sort.unique':'Уникальные','sort.dupes':'Дубли','sort.review':'Проверка','sort.artists':'Исполнители','sort.albums':'Альбомы','sort.errors':'Ошибки','sort.dirty':'Грязные',
+    'stats.tracks':'Треки','stats.unique':'Уникальные','stats.dupes':'Дубли','stats.review':'На проверку','stats.artists':'Исполнители','stats.albums':'Альбомы',
+    'col.pl':'Плейлист','col.tr':'Треки','col.du':'Дубли','col.st':'Статус','col.ac':'Действия',
+    'pl.scan':'Сканировать','pl.scanning':'Сканирую','pl.rescan':'Заново','pl.view':'Дубли','pl.tracks':'треков',
+    'st.idle':'—','st.scan':'Сканирую','st.clean':'Чисто','st.review':'Проверить','st.dirty':(n)=>`${n} дублей`,
+    'dupe.exact':'Точный','dupe.sim':'Другой релиз','dupe.prob':'Вероятный','dupe.review':'Проверка','dupe.version':'Версия',
+    'dupe.keep':'оставить','dupe.rem':'удалить',
+    'dupe.conf':(n)=>`${n}% уверенности`,'dupe.source':(s)=>`Источник: ${s}`,'dupe.duration':(d)=>`Длительность: ${d}`,'dupe.album':(a)=>`Альбом: ${a}`,'dupe.isrc':(s)=>`ISRC: ${s}`,
+    'dupe.reason.uri':'Совпадает Spotify ID или ссылка. Безопасный дубль.',
+    'dupe.reason.isrc':'Совпадает код записи ISRC. Безопасный дубль.',
+    'dupe.reason.metadata':'Совпадают название, исполнители и близкая длительность. Вероятный дубль.',
+    'dupe.reason.version':'Та же песенная семья, но другая версия. Нужна проверка.',
+    'dupe.reason.weak':'Метаданные похожи, но доказательств мало. Нужна ручная проверка.',
+    'dupe.noAction':'Нет безопасных дублей для удаления',
+    'dupe.removeOne':'Удалить',
+    'dupe.kF':'Оставить первый','dupe.kL':'Оставить последний',
+    'dupe.groups':(n)=>`${n} ${pru(n,'группа','группы','групп')} найдено`,
+    'dupe.total':(n)=>`${n} ${pru(n,'дубликат','дубликата','дубликатов')} всего`,
+    'dupe.more':(n)=>`+${n} ещё`,
+    'dupe.col':'Свернуть','dupe.rm':(n)=>`Удалить ${n}`,'dupe.rming':'Удаляю…','dupe.added':'добавлено',
+    'exp.csv':'CSV','exp.json':'JSON',
+    'cmp.vs':'VS','cmp.pick':'Выберите плейлист','cmp.shared':'общих',
+    'cmp.only':(n)=>`${n} уникальных`,'cmp.both':(n)=>`${n} общих`,
+    'ov.min':'Мин. плейлистов','ov.none':'Нет треков — отсканируйте больше плейлистов',
+    'gph.build':'Построить граф','gph.reset':'Сбросить',
+    'gph.ln':'Плейлист (размер = треки)','gph.le':'Связь (толщина = общие треки)',
+    'gph.nodata':'Сначала отсканируйте минимум 2 плейлиста',
+    'h.date':'Дата','h.pl':'Плейлист','h.rm':'Удалено','h.kp':'Оставлено','h.md':'Режим',
+    'h.csv':'CSV','h.json':'JSON','h.clear':'Очистить','h.empty':'Очисток ещё не было',
+    't.done':'Все плейлисты отсканированы',
+    't.removed':(n,p)=>`Удалено ${n} ${pru(n,'дубликат','дубликата','дубликатов')} из «${p}»`,
+    't.dry':'Dry-run — ничего не удалено',
+    't.cancel':'Авторизация отменена','t.miss':'Нет данных авторизации',
+    't.pErr':(e)=>`Ошибка профиля: ${e}`,'t.sErr':(p)=>`Ошибка сканирования: ${p}`,
+    't.rErr':'Ошибка удаления','t.out':'Отключено','t.demo':'Демо загружено',
+    't.authErr':'Не удалось подключить Spotify. Попробуйте снова.',
+    't.loadErr':'Не удалось загрузить плейлисты. Попробуйте через пару секунд.',
+    'srch.ph':'Поиск плейлистов…',
+    'empty.search':'Нет плейлистов по запросу',
+    'empty.dirty':'Дублей не найдено — всё чисто',
+    'empty.loading':'Загружаем ваши плейлисты…',
+    'common.retry':'Попробовать снова',
+    'settings.scan.title':'Алгоритм сканирования','settings.scan.desc':'Рекомендуем сбалансированный режим. Строгий доверяет только точным ID. Гибкий добавляет спорные совпадения в проверку, а не удаляет их автоматически.',
+    'settings.versions.title':'Версии треков','settings.versions.desc':'Ремастеры можно считать той же записью. Live, acoustic, remix, sped up и slowed остаются видимыми как связанные версии.',
+    'settings.safety.title':'Безопасность','settings.safety.desc':'Dry-run не меняет Spotify и позволяет проверить причину каждого совпадения до удаления.',
+    'settings.display.title':'Отображение','settings.display.desc':'Результаты показывают уверенность, источник, альбом, длительность и причину группировки.','settings.display.reasons':'Причины включены'},
+  de:{f:'🇩🇪',n:'DE',native:'Deutsch',locale:'de-DE',
+    'navigation.themeToggle':'Theme umschalten',
+    'navigation.languageSwitcher.label':'Sprache',
+    'navigation.languageSwitcher.select':'Sprache auswählen',
+    'hero.kicker':'Spotify Bibliothek Bereiniger',
+    'hero.h1':'Playlists <em>sauber</em><br>waschen',
+    'hero.sub':'Duplikate entfernen, Playlists vergleichen und Verbindungen visualisieren',
+    'hero.connect':'Spotify verbinden','hero.demo':'Demo',
+    'hf.1':'Erkennung','hf.1d':'URI + Fuzzy-Matching. Remasters und Live-Versionen',
+    'hf.2':'Vergleich','hf.2d':'Gemeinsame Tracks zweier Playlists',
+    'hf.3':'Überlappung','hf.3d':'Tracks in 3+ Playlists gleichzeitig',
+    'hf.4':'Graph','hf.4d':'D3-Kraft-Graph der Playlist-Verbindungen',
+    'hf.5':'Export','hf.5d':'CSV oder JSON. Verlauf lokal gespeichert',
+    's.pl':'Playlists','s.sc':'Gescannt','s.du':'Dupl.','s.af':'Betroffen',
+    'app.logout':'Abmelden','app.scanAll':'Alles scannen','app.loading':'Laden…',
+    'tab.lib':'Scan','tab.cmp':'Vergleich','tab.ov':'Überlappung','tab.gph':'Graph','tab.hist':'Verlauf','tab.settings':'Einstellungen',
+    'mb.mode':'Modus','mb.bal':'Ausgewogen','mb.strict':'Streng','mb.fuzzy':'Flexibel',
+    'mb.rem':'Remasters','mb.live':'Live','mb.dry':'Dry-run',
+    'scan.note':'Treffer werden mit Track-ID, ISRC, Titel, Künstlern, Album, Dauer und Versions-Tags bewertet. Künstler allein gelten nie als Duplikat.',
+    'sort.all':'Alle','sort.unique':'Einzigartig','sort.dupes':'Duplikate','sort.review':'Prüfen','sort.artists':'Künstler','sort.albums':'Alben','sort.errors':'Fehler','sort.dirty':'Schmutzig',
+    'stats.tracks':'Tracks','stats.unique':'Einzigartig','stats.dupes':'Duplikate','stats.review':'Prüfen','stats.artists':'Künstler','stats.albums':'Alben',
+    'col.pl':'Playlist','col.tr':'Tracks','col.du':'Dupl.','col.st':'Status','col.ac':'Aktionen',
+    'pl.scan':'Scannen','pl.scanning':'Scannt','pl.rescan':'Neu scannen','pl.view':'Dupl.','pl.tracks':'Tracks',
+    'st.idle':'—','st.scan':'Scannt','st.clean':'Sauber','st.review':'Prüfen','st.dirty':(n)=>`${n} Dupl.`,
+    'dupe.exact':'Exakt','dupe.sim':'And. Release','dupe.prob':'Wahrscheinlich','dupe.review':'Prüfen','dupe.version':'Version',
+    'dupe.keep':'behalten','dupe.rem':'löschen',
+    'dupe.conf':(n)=>`${n}% sicher`,'dupe.source':(s)=>`Quelle: ${s}`,'dupe.duration':(d)=>`Dauer: ${d}`,'dupe.album':(a)=>`Album: ${a}`,'dupe.isrc':(s)=>`ISRC: ${s}`,
+    'dupe.reason.uri':'Gleiche Spotify-ID oder URL. Sicheres Duplikat.',
+    'dupe.reason.isrc':'Gleicher ISRC-Aufnahmecode. Sicheres Duplikat.',
+    'dupe.reason.metadata':'Gleicher Titel, gleiche Künstler und ähnliche Dauer. Wahrscheinliches Duplikat.',
+    'dupe.reason.version':'Gleiche Song-Familie, aber andere Version. Bitte prüfen.',
+    'dupe.reason.weak':'Ähnliche Metadaten, aber zu wenig Belege. Manuelle Prüfung nötig.',
+    'dupe.noAction':'Keine sicheren Duplikate zum Entfernen',
+    'dupe.removeOne':'Entfernen',
+    'dupe.kF':'Erstes behalten','dupe.kL':'Letztes behalten',
+    'dupe.groups':(n)=>`${n} Gruppe${n!==1?'n':''} gefunden`,
+    'dupe.total':(n)=>`${n} Duplikat${n!==1?'e':''} gesamt`,
+    'dupe.more':(n)=>`+${n} mehr`,
+    'dupe.col':'Zuklappen','dupe.rm':(n)=>`${n} entfernen`,'dupe.rming':'Entfernt…','dupe.added':'hinzugefügt',
+    'exp.csv':'CSV','exp.json':'JSON',
+    'cmp.vs':'VS','cmp.pick':'Playlist wählen','cmp.shared':'gemeinsam',
+    'cmp.only':(n)=>`${n} einzigartig`,'cmp.both':(n)=>`${n} gemeinsam`,
+    'ov.min':'Min. Playlists','ov.none':'Keine Tracks — mehr Playlists zuerst scannen',
+    'gph.build':'Graph erstellen','gph.reset':'Zurücksetzen',
+    'gph.ln':'Playlist-Knoten','gph.le':'Verbindung (Dicke = gemeinsame Tracks)',
+    'gph.nodata':'Zuerst min. 2 Playlists scannen',
+    'h.date':'Datum','h.pl':'Playlist','h.rm':'Entfernt','h.kp':'Behalten','h.md':'Modus',
+    'h.csv':'CSV','h.json':'JSON','h.clear':'Löschen','h.empty':'Noch keine Bereinigungen',
+    't.done':'Alle Playlists gescannt',
+    't.removed':(n,p)=>`${n} Duplikat${n!==1?'e':''} aus "${p}" entfernt`,
+    't.dry':'Dry-Run — nichts gelöscht',
+    't.cancel':'Auth abgebrochen','t.miss':'Auth-Daten fehlen',
+    't.pErr':(e)=>`Profil-Fehler: ${e}`,'t.sErr':(p)=>`Scan-Fehler: ${p}`,
+    't.rErr':'Entfernen fehlgeschlagen','t.out':'Abgemeldet','t.demo':'Demo geladen',
+    't.authErr':'Spotify konnte nicht verbunden werden. Bitte erneut versuchen.',
+    't.loadErr':'Playlists konnten nicht geladen werden. Bitte gleich erneut versuchen.',
+    'srch.ph':'Playlists suchen…',
+    'empty.search':'Keine Playlists gefunden',
+    'empty.dirty':'Keine Duplikate — alles sauber',
+    'empty.loading':'Playlists werden geladen…',
+    'common.retry':'Erneut versuchen',
+    'settings.scan.title':'Scan-Engine','settings.scan.desc':'Ausgewogen wird empfohlen. Streng vertraut nur exakten Kennungen. Flexibel fügt Kandidaten zur Prüfung hinzu statt sie automatisch zu löschen.',
+    'settings.versions.title':'Track-Versionen','settings.versions.desc':'Remaster können als gleiche Aufnahme gelten. Live, Acoustic, Remix, Sped-up und Slowed bleiben als verwandte Versionen sichtbar.',
+    'settings.safety.title':'Sicherheit','settings.safety.desc':'Dry-run ändert Spotify nicht und lässt dich jeden Treffergrund vor dem Entfernen prüfen.',
+    'settings.display.title':'Anzeige','settings.display.desc':'Ergebnisse zeigen Sicherheit, Quelle, Album, Dauer und den Grund der Gruppierung.','settings.display.reasons':'Treffergründe an'},
+  es:{f:'🇪🇸',n:'ES',native:'Español',locale:'es-ES',
+    'navigation.themeToggle':'Cambiar tema',
+    'navigation.languageSwitcher.label':'Idioma',
+    'navigation.languageSwitcher.select':'Seleccionar idioma',
+    'hero.kicker':'Limpiador de biblioteca Spotify',
+    'hero.h1':'Lava tus playlists<br><em>de verdad</em>',
+    'hero.sub':'Elimina duplicados, compara listas y visualiza cómo se conecta tu biblioteca',
+    'hero.connect':'Conectar Spotify','hero.demo':'Demo',
+    'hf.1':'Búsqueda inteligente','hf.1d':'URI + coincidencia difusa. Remasters y versiones en vivo',
+    'hf.2':'Comparar','hf.2d':'Pistas compartidas entre dos listas',
+    'hf.3':'Solapamiento','hf.3d':'Pistas en 3+ listas a la vez',
+    'hf.4':'Grafo','hf.4d':'Grafo D3 de conexiones entre listas',
+    'hf.5':'Exportar','hf.5d':'CSV o JSON. Historial almacenado localmente',
+    's.pl':'Listas','s.sc':'Analizadas','s.du':'Dupl.','s.af':'Afectadas',
+    'app.logout':'Salir','app.scanAll':'Analizar todo','app.loading':'Cargando…',
+    'tab.lib':'Analizar','tab.cmp':'Comparar','tab.ov':'Solapamiento','tab.gph':'Grafo','tab.hist':'Historial','tab.settings':'Ajustes',
+    'mb.mode':'Modo','mb.bal':'Equilibrado','mb.strict':'Estricto','mb.fuzzy':'Flexible',
+    'mb.rem':'Remasters','mb.live':'Live','mb.dry':'Dry-run',
+    'scan.note':'Las coincidencias usan ID, ISRC, título, artistas, álbum, duración y etiquetas de versión. Coincidir solo por artista nunca cuenta como duplicado.',
+    'sort.all':'Todas','sort.unique':'Únicas','sort.dupes':'Duplicados','sort.review':'Revisar','sort.artists':'Artistas','sort.albums':'Álbumes','sort.errors':'Errores','sort.dirty':'Sucias',
+    'stats.tracks':'Pistas','stats.unique':'Únicas','stats.dupes':'Duplicados','stats.review':'Revisar','stats.artists':'Artistas','stats.albums':'Álbumes',
+    'col.pl':'Lista','col.tr':'Pistas','col.du':'Dupl.','col.st':'Estado','col.ac':'Acciones',
+    'pl.scan':'Analizar','pl.scanning':'Analizando','pl.rescan':'Re-analizar','pl.view':'Dupl.','pl.tracks':'pistas',
+    'st.idle':'—','st.scan':'Analizando','st.clean':'Limpia','st.review':'Revisar','st.dirty':(n)=>`${n} dupl.`,
+    'dupe.exact':'Exacto','dupe.sim':'Otro lanzamiento','dupe.prob':'Probable','dupe.review':'Revisar','dupe.version':'Versión',
+    'dupe.keep':'conservar','dupe.rem':'eliminar',
+    'dupe.conf':(n)=>`${n}% de confianza`,'dupe.source':(s)=>`Fuente: ${s}`,'dupe.duration':(d)=>`Duración: ${d}`,'dupe.album':(a)=>`Álbum: ${a}`,'dupe.isrc':(s)=>`ISRC: ${s}`,
+    'dupe.reason.uri':'Mismo ID o URL de Spotify. Duplicado seguro.',
+    'dupe.reason.isrc':'Mismo código ISRC de grabación. Duplicado seguro.',
+    'dupe.reason.metadata':'Mismo título, artistas y duración cercana. Duplicado probable.',
+    'dupe.reason.version':'Misma familia de canción, pero versión distinta. Revisar antes.',
+    'dupe.reason.weak':'Metadatos parecidos, pero sin prueba suficiente. Revisión manual.',
+    'dupe.noAction':'No hay duplicados seguros para eliminar',
+    'dupe.removeOne':'Eliminar',
+    'dupe.kF':'Conservar primero','dupe.kL':'Conservar último',
+    'dupe.groups':(n)=>`${n} grupo${n!==1?'s':''} encontrado${n!==1?'s':''}`,
+    'dupe.total':(n)=>`${n} duplicado${n!==1?'s':''} en total`,
+    'dupe.more':(n)=>`+${n} más`,
+    'dupe.col':'Cerrar','dupe.rm':(n)=>`Eliminar ${n}`,'dupe.rming':'Eliminando…','dupe.added':'añadido',
+    'exp.csv':'CSV','exp.json':'JSON',
+    'cmp.vs':'VS','cmp.pick':'Elige una lista','cmp.shared':'compartidas',
+    'cmp.only':(n)=>`${n} únicas`,'cmp.both':(n)=>`${n} compartidas`,
+    'ov.min':'Mín. listas','ov.none':'No hay pistas — escanea más listas primero',
+    'gph.build':'Construir grafo','gph.reset':'Reiniciar',
+    'gph.ln':'Nodo de lista (tamaño = pistas)','gph.le':'Conexión (grosor = pistas compartidas)',
+    'gph.nodata':'Escanea al menos 2 listas primero',
+    'h.date':'Fecha','h.pl':'Lista','h.rm':'Eliminadas','h.kp':'Conservadas','h.md':'Modo',
+    'h.csv':'CSV','h.json':'JSON','h.clear':'Limpiar','h.empty':'Aún no hay limpiezas',
+    't.done':'¡Todas las listas analizadas',
+    't.removed':(n,p)=>`${n} duplicado${n!==1?'s':''} eliminado${n!==1?'s':''} de "${p}"`,
+    't.dry':'Dry-run — nada eliminado',
+    't.cancel':'Auth cancelada','t.miss':'Faltan datos de auth',
+    't.pErr':(e)=>`Error de perfil: ${e}`,'t.sErr':(p)=>`Error al analizar: ${p}`,
+    't.rErr':'Error al eliminar','t.out':'Sesión cerrada','t.demo':'Demo cargada',
+    't.authErr':'No se pudo conectar Spotify. Inténtalo de nuevo.',
+    't.loadErr':'No se pudieron cargar las listas. Inténtalo en unos segundos.',
+    'srch.ph':'Buscar listas…',
+    'empty.search':'No hay listas que coincidan',
+    'empty.dirty':'Sin duplicados — todo limpio',
+    'empty.loading':'Cargando tus listas…',
+    'common.retry':'Reintentar',
+    'settings.scan.title':'Motor de análisis','settings.scan.desc':'Se recomienda Equilibrado. Estricto solo confía en identificadores exactos. Flexible añade candidatos para revisar en vez de borrarlos automáticamente.',
+    'settings.versions.title':'Versiones de pista','settings.versions.desc':'Los remasters pueden tratarse como la misma grabación. Live, acoustic, remix, sped up y slowed quedan visibles como versiones relacionadas.',
+    'settings.safety.title':'Seguridad','settings.safety.desc':'Dry-run no modifica Spotify y permite revisar cada motivo antes de eliminar.',
+    'settings.display.title':'Visualización','settings.display.desc':'Los resultados muestran confianza, fuente, álbum, duración y motivo de agrupación.','settings.display.reasons':'Motivos activados'},
+  fr:{f:'🇫🇷',n:'FR',native:'Français',locale:'fr-FR',
+    'navigation.themeToggle':'Changer le thème',
+    'navigation.languageSwitcher.label':'Langue',
+    'navigation.languageSwitcher.select':'Choisir la langue',
+    'hero.kicker':'Nettoyeur de bibliothèque Spotify',
+    'hero.h1':'Lavez vos playlists<br><em>proprement</em>',
+    'hero.sub':'Supprimez les doublons, comparez les playlists et visualisez les connexions de votre bibliothèque',
+    'hero.connect':'Connecter Spotify','hero.demo':'Démo',
+    'hf.1':'Dédup intelligent','hf.1d':'URI + correspondance floue. Remasters et versions live',
+    'hf.2':'Comparer','hf.2d':'Titres communs entre deux playlists',
+    'hf.3':'Chevauchements','hf.3d':'Titres présents dans 3+ playlists',
+    'hf.4':'Graphe','hf.4d':'Graphe D3 des connexions entre playlists',
+    'hf.5':'Exporter','hf.5d':'CSV ou JSON. Historique stocké localement',
+    's.pl':'Playlists','s.sc':'Analysées','s.du':'Doublons','s.af':'Affectées',
+    'app.logout':'Déconnexion','app.scanAll':'Tout analyser','app.loading':'Chargement…',
+    'tab.lib':'Analyse','tab.cmp':'Comparer','tab.ov':'Chevauchements','tab.gph':'Graphe','tab.hist':'Historique','tab.settings':'Réglages',
+    'mb.mode':'Mode','mb.bal':'Équilibré','mb.strict':'Strict','mb.fuzzy':'Flexible',
+    'mb.rem':'Remasters','mb.live':'Live','mb.dry':'Simulation',
+    'scan.note':'Les correspondances utilisent ID, ISRC, titre, artistes, album, durée et tags de version. Un artiste identique seul ne compte jamais comme doublon.',
+    'sort.all':'Toutes','sort.unique':'Uniques','sort.dupes':'Doublons','sort.review':'À vérifier','sort.artists':'Artistes','sort.albums':'Albums','sort.errors':'Erreurs','sort.dirty':'Avec doublons',
+    'stats.tracks':'Titres','stats.unique':'Uniques','stats.dupes':'Doublons','stats.review':'À vérifier','stats.artists':'Artistes','stats.albums':'Albums',
+    'col.pl':'Playlist','col.tr':'Titres','col.du':'Doublons','col.st':'Statut','col.ac':'Actions',
+    'pl.scan':'Analyser','pl.scanning':'Analyse…','pl.rescan':'Réanalyser','pl.view':'Voir','pl.tracks':'titres',
+    'st.idle':'—','st.scan':'Analyse…','st.clean':'Propre','st.review':'À vérifier','st.dirty':(n)=>`${n} doublons`,
+    'dupe.exact':'Exact','dupe.sim':'Autre édition','dupe.prob':'Probable','dupe.review':'À vérifier','dupe.version':'Version',
+    'dupe.keep':'garder','dupe.rem':'supprimer',
+    'dupe.conf':(n)=>`${n}% de confiance`,'dupe.source':(s)=>`Source : ${s}`,'dupe.duration':(d)=>`Durée : ${d}`,'dupe.album':(a)=>`Album : ${a}`,'dupe.isrc':(s)=>`ISRC : ${s}`,
+    'dupe.reason.uri':'Même ID ou URL Spotify. Doublon sûr.',
+    'dupe.reason.isrc':'Même code ISRC. Doublon sûr.',
+    'dupe.reason.metadata':'Même titre, mêmes artistes et durée proche. Doublon probable.',
+    'dupe.reason.version':'Même famille de titre, mais version différente. À vérifier.',
+    'dupe.reason.weak':'Métadonnées similaires, mais preuves insuffisantes. Vérification manuelle.',
+    'dupe.noAction':'Aucun doublon sûr à supprimer',
+    'dupe.removeOne':'Supprimer',
+    'dupe.kF':'Garder le premier','dupe.kL':'Garder le dernier',
+    'dupe.groups':(n)=>`${n} groupe${n!==1?'s':''} trouvé${n!==1?'s':''}`,
+    'dupe.total':(n)=>`${n} doublon${n!==1?'s':''} au total`,
+    'dupe.more':(n)=>`+${n} autres`,
+    'dupe.col':'Réduire','dupe.rm':(n)=>`Supprimer ${n}`,'dupe.rming':'Suppression…','dupe.added':'ajouté le',
+    'exp.csv':'CSV','exp.json':'JSON',
+    'cmp.vs':'VS','cmp.pick':'Choisir une playlist','cmp.shared':'communs',
+    'cmp.only':(n)=>`${n} unique${n!==1?'s':''}`,'cmp.both':(n)=>`${n} commun${n!==1?'s':''}`,
+    'ov.min':'Min. playlists','ov.none':'Aucun titre — analysez d\'abord plus de playlists',
+    'gph.build':'Construire le graphe','gph.reset':'Réinitialiser',
+    'gph.ln':'Nœud playlist (taille = titres)','gph.le':'Connexion (épaisseur = titres communs)',
+    'gph.nodata':'Analysez au moins 2 playlists d\'abord',
+    'h.date':'Date','h.pl':'Playlist','h.rm':'Supprimés','h.kp':'Conservés','h.md':'Mode',
+    'h.csv':'Export CSV','h.json':'Export JSON','h.clear':'Effacer','h.empty':'Aucun nettoyage pour l\'instant',
+    't.done':'Toutes les playlists analysées',
+    't.removed':(n,p)=>`${n} doublon${n!==1?'s':''} supprimé${n!==1?'s':''} de "${p}"`,
+    't.dry':'Simulation — rien n\'a été supprimé',
+    't.cancel':'Auth annulée','t.miss':'Données d\'auth manquantes',
+    't.pErr':(e)=>`Erreur profil : ${e}`,'t.sErr':(p)=>`Échec analyse : ${p}`,
+    't.rErr':'Échec suppression','t.out':'Déconnecté','t.demo':'Démo chargée',
+    't.authErr':'Impossible de connecter Spotify. Réessayez.',
+    't.loadErr':'Impossible de charger les playlists. Réessayez dans un instant.',
+    'srch.ph':'Rechercher des playlists…',
+    'empty.search':'Aucune playlist trouvée',
+    'empty.dirty':'Aucun doublon — tout est propre',
+    'empty.loading':'Chargement de vos playlists…',
+    'common.retry':'Réessayer',
+    'settings.scan.title':'Moteur d’analyse','settings.scan.desc':'Le mode équilibré est recommandé. Strict se limite aux identifiants exacts. Flexible ajoute les candidats à vérifier sans suppression automatique.',
+    'settings.versions.title':'Versions de titre','settings.versions.desc':'Les remasters peuvent être traités comme le même enregistrement. Live, acoustic, remix, sped up et slowed restent visibles comme versions liées.',
+    'settings.safety.title':'Sécurité','settings.safety.desc':'La simulation ne modifie pas Spotify et permet de vérifier chaque raison avant suppression.',
+    'settings.display.title':'Affichage','settings.display.desc':'Les résultats affichent confiance, source, album, durée et raison du regroupement.','settings.display.reasons':'Raisons activées'}
+};
+function pru(n,a,b,c){const m=n%10,h=n%100;if(m===1&&h!==11)return a;if(m>=2&&m<=4&&(h<10||h>=20))return b;return c;}
+const LSL='wl_l';let lang=L[localStorage.getItem(LSL)]?localStorage.getItem(LSL):FALLBACK_LANG;
+function t(k,...a){const v=L[lang]?.[k]??L[FALLBACK_LANG]?.[k];return typeof v==='function'?v(...a):v??k;}
+function i18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>el.innerHTML=t(el.dataset.i18nHtml));
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>el.setAttribute('aria-label',t(el.dataset.i18nAria)));
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>el.setAttribute('title',t(el.dataset.i18nTitle)));
+  const si=document.getElementById('srch');if(si)si.placeholder=t('srch.ph');
+  document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('on',b.dataset.lang===lang));
+  document.documentElement.lang=lang;
+}
+function setLang(l){
+  if(!L[l]) l=FALLBACK_LANG;
+  if(l===lang) return;
+  lang=l;localStorage.setItem(LSL,l);
+  document.documentElement.lang=l;
+  i18n();renderPl();renderH();
+  buildLangDropdown();
+}
+function auditI18n(){
+  const base=Object.keys(L[FALLBACK_LANG]).filter(k=>!['f','n','native','locale'].includes(k));
+  Object.keys(L).forEach(code=>{
+    const missing=base.filter(k=>!(k in L[code]));
+    if(missing.length) console.warn(`Missing i18n keys for ${code}:`, missing);
+  });
+}
+function buildLangDropdown(){
+  const dd = document.getElementById('langDropdown');
+  if (!dd) return;
+  const entries = Object.entries(L);
+  dd.innerHTML = entries.map(([c,d],i) =>
+    `<div class="lang-opt${c===lang?' on':''}" role="option" aria-selected="${c===lang}"
+      data-lang="${c}" tabindex="-1"
+      onclick="setLang('${c}');toggleLangDropdown(false)">
+      <span class="lang-opt-flag" aria-hidden="true">${d.f}</span>
+      <span class="lang-opt-native">${d.native||d.n}</span>
+      <span class="lang-opt-code">${d.n}</span>
+      <span class="lang-opt-check" aria-hidden="true">✓</span>
+    </div>`
+  ).join('');
+  const cur = document.getElementById('langCurrent');
+  if (cur) cur.textContent = L[lang].f + ' ' + (L[lang].native||L[lang].n);
+}
+function buildSw(){ buildLangDropdown(); }
+
+let langOpen = false;
+function toggleLangDropdown(force) {
+  const wrap = document.getElementById('langWrap');
+  const trigger = document.getElementById('langTrigger');
+  langOpen = force !== undefined ? force : !langOpen;
+  wrap.classList.toggle('open', langOpen);
+  if (trigger) trigger.setAttribute('aria-expanded', langOpen);
+  if (langOpen) {
+    // Focus first/active option after open
+    setTimeout(() => {
+      const active = wrap.querySelector('.lang-opt.on') || wrap.querySelector('.lang-opt');
+      if (active) active.focus();
+    }, 50);
+  }
+}
+// Keyboard: Escape closes, arrows navigate
+document.addEventListener('keydown', e => {
+  if (!langOpen) return;
+  const opts = [...document.querySelectorAll('.lang-opt')];
+  const focused = document.activeElement;
+  const idx = opts.indexOf(focused);
+  if (e.key === 'Escape') { toggleLangDropdown(false); document.getElementById('langTrigger')?.focus(); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); opts[Math.min(idx+1, opts.length-1)]?.focus(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); opts[Math.max(idx-1, 0)]?.focus(); }
+  else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); focused?.click(); }
+});
+// Close on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('#langWrap') && langOpen) toggleLangDropdown(false);
+});
+
+/* ══ THEME ══ */
+const LST='wl_theme';
+function initTheme(){
+  const saved=localStorage.getItem(LST)||'light';
+  document.documentElement.setAttribute('data-theme',saved);
+  document.getElementById('themeBtn').textContent=saved==='dark'?'☀':'☾';
+}
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme')||'dark';
+  const next=cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem(LST,next);
+  document.getElementById('themeBtn').textContent=next==='dark'?'☀':'☾';
+}
+
+/* ══ AUTH ══ */
+const SCOPES='playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private user-library-read user-library-modify user-read-private user-read-email';
+const RU=location.href.split('?')[0].split('#')[0];
+const CID='5ce8326e147f46b3b11ebc24ac37bf7c';
+const LT='wl_t',LE='wl_e',LV='wl_v';
+let pls=[],pd={},srt='all',acc=null,mm='balanced';
+
+function b64u(a){return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
+async function gv(){const a=new Uint8Array(32);crypto.getRandomValues(a);return b64u(a);}
+async function gc(v){return b64u(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v))));}
+
+async function startAuth(){
+  const v=await gv(),ch=await gc(v);
+  localStorage.setItem(LV,v);
+  location.href=`https://accounts.spotify.com/authorize?${new URLSearchParams({response_type:'code',client_id:CID,scope:SCOPES,redirect_uri:RU,code_challenge_method:'S256',code_challenge:ch,state:crypto.randomUUID()})}`;
+}
+async function handleCb(){
+  const p=new URLSearchParams(location.search);
+  const code=p.get('code'),err=p.get('error');
+  if(err){toast(t('t.cancel'),'inf');history.replaceState({},'',RU);return;}
+  if(!code)return;
+  const v=localStorage.getItem(LV);
+  if(!v){toast(t('t.miss'),'err');history.replaceState({},'',RU);return;}
+  history.replaceState({},'',RU);
+  try{
+    const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:RU,client_id:CID,code_verifier:v})});
+    if(!r.ok)throw new Error(await r.text());
+    const d=await r.json();
+    acc=d.access_token;
+    localStorage.setItem(LT,d.access_token);localStorage.setItem(LE,Date.now()+d.expires_in*1000);
+    localStorage.removeItem(LV);initApp();
+  }catch(e){console.warn('Spotify auth failed', e);toast(t('t.authErr'),'err');}
+}
+function chkTk(){const tk=localStorage.getItem(LT),ex=parseInt(localStorage.getItem(LE)||'0');if(tk&&ex>Date.now()+6e4){acc=tk;return true;}return false;}
+function logout(){localStorage.removeItem(LT);localStorage.removeItem(LE);acc=null;pls=[];pd={};show('landingPanel');hide('appPanel');
+  setTimeout(()=>{revealHeadline();initMagnetic();initMagneticBtns();initParallax();initWaveInteract();},80);
+  toast(t('t.out'),'inf');}
+
+/* ══ API ══ */
+async function sp(url,opts={},rt=3){
+  for(let i=0;i<rt;i++){
+    const ctrl=new AbortController();
+    const timeout=setTimeout(()=>ctrl.abort(),12000);
+    let r;
+    try{
+      r=await fetch(url,{...opts,signal:ctrl.signal,headers:{'Authorization':`Bearer ${acc}`,'Content-Type':'application/json',...(opts.headers||{})}});
+    }catch(e){
+      clearTimeout(timeout);
+      if(i===rt-1)throw e;
+      await sl(400*(i+1));
+      continue;
+    }
+    clearTimeout(timeout);
+    if(r.status===429){await sl((parseInt(r.headers.get('Retry-After'))||1<<i)*1000);continue;}
+    if(!r.ok)throw new Error(r.status);
+    if(r.status===204)return null;
+    return r.json();
+  }
+  throw new Error('Retries exceeded');
+}
+async function pages(url){let res=[],nx=url;while(nx){const d=await sp(nx);res=res.concat(d.items||[]);nx=d.next;await sl(80);}return res;}
+async function sl(ms){return new Promise(r=>setTimeout(r,ms));}
+
+/* ══ INIT ══ */
+async function initApp(){
+  show('appPanel');hide('landingPanel');show('plLoading');
+  try{
+    const me=await sp('https://api.spotify.com/v1/me');
+    const av=document.getElementById('uAv');
+    if(me.images?.[0]?.url){const img=document.createElement('img');img.src=me.images[0].url;av.innerHTML='';av.appendChild(img);}
+    else av.textContent=(me.display_name||'?')[0].toUpperCase();
+    document.getElementById('uName').textContent=me.display_name||'User';
+    document.getElementById('uPlan').textContent=me.product||'';
+    await loadPls();
+  }catch(e){toast(t('t.pErr',e.message),'err');}
+}
+async function loadPls(){
+  try{
+    const items=await pages('https://api.spotify.com/v1/me/playlists?limit=50');
+    pls=[{id:'liked',name:'Liked Songs',images:[],tracks:{total:0},isLiked:true},...items.filter(p=>p&&p.id).map(p=>({...p,tracks:p.tracks||{total:0}}))];
+    try{const lk=await sp('https://api.spotify.com/v1/me/tracks?limit=1');pls[0].tracks={total:lk.total};}catch(e){}
+    document.getElementById('sPl').textContent=pls.length;
+    hide('plLoading');renderPl();popCmp();
+  }catch(e){console.warn('Playlist load failed', e);toast(t('t.loadErr'),'err');}
+}
+
+/* ══ TABS ══ */
+function switchTab(id,btn){
+  document.querySelectorAll('.tb').forEach(p=>p.classList.remove('on'));
+  document.getElementById(id)?.classList.add('on');
+  document.querySelectorAll('.atab').forEach(b=>{
+    b.classList.remove('on');
+    b.setAttribute('aria-selected','false');
+  });
+  if(btn){ btn.classList.add('on'); btn.setAttribute('aria-selected','true'); }
+  if(id==='tHist')renderH();
+  if(id==='tCmp')popCmp();
+  if(id==='tOv')renderOv();
+  if(id==='tSettings')renderSettings();
+}
+
+/* ══ MODE ══ */
+function setMode(m,btn){mm=m;document.querySelectorAll('.mp').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rrAll();}
+function rrAll(){Object.keys(pd).forEach(id=>{if(pd[id]?.tracks?.length){Object.assign(pd[id],findDupes(pd[id].tracks));}});renderPl();updSt();renderSettings();}
+
+/* ══ RENDER ══ */
+function renderPl(){
+  const srch=(document.getElementById('srch')?.value||'').toLowerCase();
+  let list=pls.filter(p=>!srch||p.name.toLowerCase().includes(srch));
+  if(srt==='unique')list=list.filter(p=>pd[p.id]?.status==='done'&&(pd[p.id]?.dc||0)===0&&(pd[p.id]?.rc||0)===0);
+  if(srt==='dupes')list=[...list].filter(p=>(pd[p.id]?.dc||0)>0).sort((a,b)=>(pd[b.id]?.dc||0)-(pd[a.id]?.dc||0));
+  if(srt==='review')list=list.filter(p=>(pd[p.id]?.rc||0)>0);
+  if(srt==='artists')list=[...list].sort((a,b)=>(pd[b.id]?.ac||0)-(pd[a.id]?.ac||0));
+  if(srt==='albums')list=[...list].sort((a,b)=>(pd[b.id]?.alc||0)-(pd[a.id]?.alc||0));
+  if(srt==='errors')list=list.filter(p=>pd[p.id]?.status==='error');
+  if(srt==='dirty')list=list.filter(p=>pd[p.id]?.dc>0);
+  const el=document.getElementById('plList');if(!el)return;
+  el.innerHTML='';
+  if(!list.length){
+    const msg = srt==='dirty' ? t('empty.dirty') : t('empty.search');
+    el.innerHTML=`<div class="empty" role="status">${msg}</div>`;
+    return;
+  }
+  list.forEach(pl=>{
+    const d=pd[pl.id]||{};
+    const cov=pl.images?.[0]?.url;
+    const covEl=cov?`<div class="pl-thumb"><img src="${cov}" alt=""></div>`:`<div class="pl-thumb">${pl.isLiked?'♥':'♪'}</div>`;
+    const dc=d.dc||0;
+    let sc='sp-idle',st=t('st.idle');
+    if(d.status==='scanning'){sc='sp-scan';st=t('st.scan');}
+    else if(d.status==='done'){sc=dc>0?'sp-dirty':'sp-clean';st=dc>0?(typeof t('st.dirty')==='function'?t('st.dirty',dc):dc+' dupes'):t('st.clean');}
+    if(d.status==='done'&&dc===0&&(d.rc||0)>0){sc='sp-review';st=t('st.review');}
+    if(d.status==='error'){sc='sp-dirty';st=t('sort.errors');}
+    let rc='plr';
+    if(d.status==='scanning')rc+=' scanning';
+    else if(d.status==='done'&&dc>0)rc+=' dirty';
+    else if(d.status==='done'&&dc===0&&(d.rc||0)>0)rc+=' review';
+    else if(d.status==='done'&&dc===0)rc+=' clean';
+    let acts='';
+    if(!d.status||d.status==='idle')acts=`<button class="ab" onclick="scanPl('${pl.id}')">${t('pl.scan')}</button>`;
+    else if(d.status==='scanning')acts=`<button class="ab" disabled>${t('pl.scanning')}</button>`;
+    else if(d.status==='done'){
+      if(dc>0||(d.rc||0)>0)acts=`<button class="ab g" onclick="toggleDp('${pl.id}')">${t('pl.view')}</button>`;
+      acts+=`<button class="ab" onclick="scanPl('${pl.id}')">${t('pl.rescan')}</button>`;
+    }
+    const prog=d.status==='scanning'?`<div class="pgb"><div class="pgf" id="pg-${pl.id}" style="width:${d.prog||0}%"></div></div>`:'';
+    const row=document.createElement('div');
+    row.className=rc;row.id=`row-${pl.id}`;
+    row.innerHTML=`
+      <div class="pl-info">${covEl}<div><div class="pl-name">${esc(pl.name)}</div><div class="pl-meta">${fmtNum(pl.tracks?.total ?? 0)} ${t('pl.tracks')} · ${fmtNum(d.ac||0)} ${t('stats.artists')}${prog}</div></div></div>
+      <div class="pl-num">${pl.tracks?.total ?? 0}</div>
+      <div class="pl-num${dc>0?' pos':''}">${d.dc!==undefined?d.dc:'—'}</div>
+      <div class="pl-st"><span class="stpill ${sc}">${st}</span></div>
+      <div class="pl-acts">${acts}</div>`;
+    const wrap=document.createElement('div');wrap.appendChild(row);
+    if(d.status==='done'&&(dc>0||(d.rc||0)>0)&&d.open)wrap.appendChild(buildDp(pl));
+    el.appendChild(wrap);
+  });
+  updSt();
+  renderScanSummary();
+  staggerRows();
+  setTimeout(initRowPhysics, 200);
+}
+
+function renderScanSummary(){
+  const el=document.getElementById('scanSummary');if(!el)return;
+  const done=Object.values(pd).filter(d=>d.status==='done');
+  const totals=done.reduce((a,d)=>{
+    a.tracks+=d.tc||0;a.unique+=d.uc||0;a.dupes+=d.dc||0;a.review+=d.rc||0;
+    (d.artists||[]).forEach(x=>a.artists.add(x));(d.albums||[]).forEach(x=>a.albums.add(x));
+    return a;
+  },{tracks:0,unique:0,dupes:0,review:0,artists:new Set(),albums:new Set()});
+  const cards=[
+    ['tracks',totals.tracks,''],
+    ['unique',totals.unique,'good'],
+    ['dupes',totals.dupes,'bad'],
+    ['review',totals.review,'warn'],
+    ['artists',totals.artists.size,'']
+  ];
+  el.innerHTML=cards.map(([k,v,c])=>`<div class="metric-card"><div class="metric-v ${c}">${fmtNum(v)}</div><div class="metric-l">${t('stats.'+k)}</div></div>`).join('');
+}
+
+function buildDp(pl){
+  const d=pd[pl.id];
+  const panel=document.createElement('div');panel.className='dp';panel.id=`dp-${pl.id}`;
+  const dry=document.getElementById('optDry')?.checked;
+  let html=`<div class="dp-head">
+    <span class="dp-title">${t('dupe.groups',d.dg.length)}</span>
+    <span class="dp-meta">${t('dupe.total',d.dc)} · ${fmtNum(d.rc||0)} ${t('stats.review')}</span>
+    <div class="dp-acts">
+      <button class="ab" style="font-size:10px" onclick="expDu('${pl.id}','csv')">${t('exp.csv')}</button>
+      <button class="ab" style="font-size:10px" onclick="expDu('${pl.id}','json')">${t('exp.json')}</button>
+      <select class="sm-sel" id="md-${pl.id}"><option value="first">${t('dupe.kF')}</option><option value="last">${t('dupe.kL')}</option></select>
+      <button class="btn btn-danger" style="font-size:11px;padding:5px 11px;" id="rmbtn-${pl.id}" onclick="remDu('${pl.id}')" ${d.dc? '' : 'disabled'}>${d.dc?t('dupe.rm',d.dc):t('dupe.noAction')}${dry&&d.dc?' (dry)':''}</button>
+      <button class="ab" style="font-size:10px" onclick="toggleDp('${pl.id}')">${t('dupe.col')}</button>
+    </div>
+  </div><div class="dp-body">`;
+  d.dg.slice(0,25).forEach(g=>{
+    const art=g.art?`<div class="dg-art"><img src="${g.art}" alt=""></div>`:`<div class="dg-art">♪</div>`;
+    const bt=g.type==='exact'?'b-ex':g.type==='probable'?'b-pr':g.type==='version'?'b-rv':'b-sm';
+    const lk=g.type==='exact'?'dupe.exact':g.type==='probable'?'dupe.prob':g.type==='version'?'dupe.version':'dupe.review';
+    const badge=`<span class="dg-badge ${bt}">${t(lk)}</span>`;
+    const reason=t(g.reasonKey||'dupe.reason.weak');
+    html+=`<div class="dg"><div class="dg-head">${art}<div style="flex:1;min-width:0"><div class="dg-name">${esc(g.name)}</div><div class="dg-artist">${esc(g.artist)}</div><div class="dg-reason">${esc(reason)} · ${t('dupe.conf',g.conf)}</div><div class="dg-meta"><span class="dg-chip">${t('dupe.source',g.source||'Spotify')}</span><span class="dg-chip">${t('dupe.duration',fmtMs(g.duration))}</span></div><div class="cfb"><div class="cff" style="width:${g.conf}%"></div></div></div>${badge}</div><div>`;
+    g.insts.forEach((inst,i)=>{
+      const cls=i===0?'keep':'rem';
+      const tag=i===0?`<span class="di-tag t-k">${t('dupe.keep')}</span>`:`<span class="di-tag ${g.actionable===false?'t-k':'t-r'}">${g.actionable===false?t('dupe.review'):t('dupe.rem')}</span>`;
+      const dt=fmtDate(inst.at);
+      const oneBtn=i===0?'':`<button class="mini-action" onclick="remOne('${pl.id}',${inst.pos},this)">${t('dupe.removeOne')}</button>`;
+      html+=`<div class="di ${cls}"><span class="di-pos">#${inst.pos+1}</span><div class="di-info"><div class="di-name">${esc(inst.name||g.name)}</div><div class="di-alb">${esc(inst.artist||g.artist)} · ${esc(inst.alb||'')}</div><div class="di-detail">${fmtMs(inst.duration)} · ${inst.isrc?esc(t('dupe.isrc',inst.isrc))+' · ':''}${t('dupe.added')} ${dt}</div></div><div class="di-actions">${tag}${oneBtn}</div></div>`;
+    });
+    html+=`</div></div>`;
+  });
+  if(d.dg.length>25)html+=`<div class="empty">${t('dupe.more',d.dg.length-25)}</div>`;
+  html+=`</div>`;panel.innerHTML=html;return panel;
+}
+
+function toggleDp(id){if(!pd[id])return;pd[id].open=!pd[id].open;renderPl();if(pd[id].open)setTimeout(()=>document.getElementById(`dp-${id}`)?.scrollIntoView({behavior:'smooth',block:'nearest'}),80);}
+/* updSt replaced by animated version below */
+function setSort(s,btn){srt=s;document.querySelectorAll('.fp').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderPl();}
+function setModeFromSettings(m){setMode(m,document.querySelector(`.mp[onclick*="${m}"]`)||document.querySelector('.mp'));renderSettings();}
+function toggleOptionFromSettings(id){const el=document.getElementById(id);if(!el)return;el.checked=!el.checked;if(id!=='optDry')rrAll();renderSettings();}
+function renderSettings(){
+  document.querySelectorAll('[data-setting-mode]').forEach(b=>b.classList.toggle('on',b.dataset.settingMode===mm));
+  document.querySelectorAll('[data-setting-option]').forEach(b=>{const el=document.getElementById(b.dataset.settingOption);b.classList.toggle('on',!!el?.checked);});
+}
+
+/* ══ SCAN ══ */
+async function scanAll(){
+  const btn=document.getElementById('scanAllBtn');btn.disabled=true;
+  const queue=pls.filter(p=>pd[p.id]?.status!=='done');
+  let i=0;
+  const workers=Array.from({length:Math.min(2,queue.length)},async()=>{
+    while(i<queue.length){
+      const pl=queue[i++];
+      await scanPl(pl.id);
+    }
+  });
+  await Promise.all(workers);
+  btn.disabled=false;toast(t('t.done'),'ok');
+}
+async function scanPl(id){
+  const pl=pls.find(p=>p.id===id);if(!pl)return;
+  pd[id]={status:'scanning',prog:0,dc:0};renderPl();
+  try{
+    const url=pl.isLiked?'https://api.spotify.com/v1/me/tracks?limit=50':`https://api.spotify.com/v1/playlists/${id}/tracks?limit=100`;
+    const tracks=await pagesP(url,id,pl.tracks?.total??0);
+    const res=findDupes(tracks);
+    pd[id]={status:'done',tracks,tc:tracks.length,open:res.dc>0||res.rc>0,...res};renderPl();
+  }catch(e){pd[id]={status:'error',err:e.message};toast(t('t.sErr',pl.name),'err');renderPl();}
+}
+async function pagesP(url,id,total){
+  const first=await sp(url);
+  const firstItems=(first.items||[]).filter(i=>i&&i.track&&i.track.id);
+  const limit=first.limit||parseInt(new URL(url).searchParams.get('limit')||'50',10);
+  const apiTotal=first.total||total||firstItems.length;
+  const chunks=[{offset:first.offset||0,items:firstItems}];
+  let fetched=firstItems.length;
+  setScanProgress(id,apiTotal?Math.min(98,Math.round(fetched/apiTotal*100)):50);
+  const offsets=[];
+  for(let off=limit;off<apiTotal;off+=limit)offsets.push(off);
+  const makeUrl=(off)=>{const u=new URL(url);u.searchParams.set('offset',off);u.searchParams.set('limit',limit);return u.toString();};
+  let cursor=0;
+  const workers=Array.from({length:Math.min(4,offsets.length)},async()=>{
+    while(cursor<offsets.length){
+      const off=offsets[cursor++];
+      const d=await sp(makeUrl(off));
+      const items=(d.items||[]).filter(i=>i&&i.track&&i.track.id);
+      chunks.push({offset:off,items});
+      fetched+=items.length;
+      setScanProgress(id,apiTotal?Math.min(99,Math.round(fetched/apiTotal*100)):90);
+    }
+  });
+  await Promise.all(workers);
+  setScanProgress(id,100);
+  return chunks.sort((a,b)=>a.offset-b.offset).flatMap(c=>c.items);
+}
+function setScanProgress(id,p){
+  if(pd[id])pd[id].prog=p;
+  const b=document.getElementById(`pg-${id}`);
+  if(b)b.style.width=p+'%';
+}
+
+/* ══ DUPE DETECTION ══ */
+function norm(s){return String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,' and ').replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim();}
+function versionTags(s){
+  const x=String(s||'').toLowerCase();
+  const tags=[];
+  if(/remaster|remastered|\d{4}\s*remaster/.test(x))tags.push('remaster');
+  if(/\blive\b|live at|live from|session/.test(x))tags.push('live');
+  if(/acoustic|unplugged/.test(x))tags.push('acoustic');
+  if(/remix|mix\b|club edit/.test(x))tags.push('remix');
+  if(/sped\s*up|speed\s*up|nightcore/.test(x))tags.push('sped');
+  if(/slowed|reverb|slowed\s*\+\s*reverb/.test(x))tags.push('slowed');
+  if(/instrumental|karaoke/.test(x))tags.push('instrumental');
+  return [...new Set(tags)];
+}
+function stripVersionTitle(s){
+  return norm(String(s||'')
+    .replace(/\s*[\(\[](remaster(ed)?|remastered \d{4}|\d{4} remaster|live[^\)\]]*|acoustic|unplugged|remix|mix|sped\s*up|slowed|reverb|instrumental|radio edit|single version|album version|explicit|clean|edit)[^\)\]]*[\)\]]/gi,'')
+    .replace(/\s*-\s*(remaster(ed)?(\s+\d{4})?|live.*|acoustic|unplugged|remix|mix|sped\s*up|slowed|reverb|instrumental|radio edit|single version|album version|explicit|clean|edit)$/gi,''));
+}
+function sameSet(a,b){return a.length===b.length&&a.every(x=>b.includes(x));}
+function overlapScore(a,b){const A=new Set(a),B=new Set(b);if(!A.size||!B.size)return 0;let hit=0;A.forEach(x=>{if(B.has(x))hit++;});return hit/Math.max(A.size,B.size);}
+function similarity(a,b){
+  const wa=norm(a).split(' ').filter(w=>w.length>1),wb=norm(b).split(' ').filter(w=>w.length>1);
+  if(!wa.length||!wb.length)return 0;
+  const A=new Set(wa),B=new Set(wb);let hit=0;A.forEach(w=>{if(B.has(w))hit++;});
+  return hit/new Set([...A,...B]).size;
+}
+function trackEntity(item,idx){
+  const tr=item.track||{};
+  const artists=(tr.artists||[]).map(a=>({id:a.id||'',name:a.name||'',key:norm(a.name||a.id)})).filter(a=>a.key);
+  const album=tr.album||{};
+  const tags=versionTags(`${tr.name||''} ${album.name||''}`);
+  return {
+    pos:idx, item, tr, id:tr.id||'', uri:tr.uri||'', url:tr.external_urls?.spotify||'',
+    isrc:(tr.external_ids?.isrc||'').toUpperCase(), name:tr.name||'', baseName:stripVersionTitle(tr.name||''),
+    nameKey:norm(tr.name||''), artists, artistKey:artists.map(a=>a.key).sort().join('|'),
+    album:album.name||'', albumKey:norm(album.name||''), albumId:album.id||'',
+    duration:tr.duration_ms||0, added:item.added_at, source:'Spotify',
+    tags, art:album.images?.[1]?.url||album.images?.[0]?.url||''
+  };
+}
+function fmtInst(e){return {pos:e.pos,at:e.added,alb:e.album,name:e.name,artist:e.artists.map(a=>a.name).join(', '),uri:e.uri,tid:e.id,duration:e.duration,isrc:e.isrc};}
+function makeGroup(type, reasonKey, entries, conf, actionable=true){
+  const e=entries[0];
+  return {id:`${type}-${e.pos}-${entries.length}`,type,reasonKey,conf,actionable,name:e.name,artist:e.artists.map(a=>a.name).join(', '),art:e.art,duration:e.duration,source:e.source,insts:entries.map(fmtInst)};
+}
+function versionCompatible(entries){
+  const optR=document.getElementById('optR')?.checked;
+  const hard=['live','acoustic','remix','sped','slowed','instrumental'];
+  const tagSets=entries.map(e=>e.tags.filter(t=>t!=='remaster').sort());
+  if(tagSets.some(s=>s.some(t=>hard.includes(t))))return false;
+  if(!optR&&entries.some(e=>e.tags.includes('remaster')))return false;
+  return tagSets.every(s=>sameSet(s,tagSets[0]));
+}
+function closeDuration(entries,tol=3500){const ds=entries.map(e=>e.duration).filter(Boolean);if(ds.length<entries.length)return false;return Math.max(...ds)-Math.min(...ds)<=tol;}
+function countArtists(entries){const s=new Set();entries.forEach(e=>e.artists.forEach(a=>s.add(a.name||a.key)));return [...s];}
+function findDupes(items){
+  const entries=items.map(trackEntity).filter(e=>e.id||e.uri);
+  const dg=[],used=new Set();
+  let dc=0,rc=0;
+  const addExact=(keyFn,reasonKey)=>{
+    const map=new Map();
+    entries.forEach(e=>{const k=keyFn(e);if(!k)return;if(!map.has(k))map.set(k,[]);map.get(k).push(e);});
+    map.forEach(group=>{
+      const fresh=group.filter(e=>!used.has(e.pos));
+      if(fresh.length<2)return;
+      fresh.forEach(e=>used.add(e.pos));dc+=fresh.length-1;
+      dg.push(makeGroup('exact',reasonKey,fresh,100,true));
+    });
+  };
+  addExact(e=>e.uri||e.url,'dupe.reason.uri');
+  addExact(e=>e.isrc,'dupe.reason.isrc');
+  if(mm!=='strict'){
+    const bySong=new Map();
+    entries.filter(e=>!used.has(e.pos)).forEach(e=>{
+      if(!e.baseName||!e.artistKey)return;
+      const k=`${e.baseName}||${e.artistKey}`;
+      if(!bySong.has(k))bySong.set(k,[]);bySong.get(k).push(e);
+    });
+    bySong.forEach(group=>{
+      if(group.length<2)return;
+      let distinct=[...new Map(group.map(e=>[e.uri||e.id,e])).values()];
+      if(!document.getElementById('optL')?.checked)distinct=distinct.filter(e=>!e.tags.some(t=>t==='live'||t==='acoustic'));
+      if(distinct.length<2)return;
+      const exactTitle=distinct.every(e=>e.baseName===distinct[0].baseName);
+      const sameArtists=distinct.every(e=>overlapScore(e.artists.map(a=>a.key),distinct[0].artists.map(a=>a.key))>=.9);
+      const similarNames=distinct.every(e=>similarity(e.baseName,distinct[0].baseName)>=(mm==='fuzzy'?.72:.88));
+      if(!sameArtists||!exactTitle||!similarNames)return;
+      const compatible=versionCompatible(distinct);
+      if(compatible&&closeDuration(distinct,mm==='fuzzy'?6000:3500)){
+        rc+=distinct.length;distinct.forEach(e=>used.add(e.pos));
+        dg.push(makeGroup('probable','dupe.reason.metadata',distinct,mm==='fuzzy'?82:88,false));
+      }else{
+        rc+=distinct.length;distinct.forEach(e=>used.add(e.pos));
+        dg.push(makeGroup(compatible?'review':'version',compatible?'dupe.reason.weak':'dupe.reason.version',distinct,compatible?68:74,false));
+      }
+    });
+    if(mm==='fuzzy'){
+      const rem=entries.filter(e=>!used.has(e.pos));
+      for(let i=0;i<rem.length;i++){
+        if(used.has(rem[i].pos))continue;
+        const group=[rem[i]];
+        for(let j=i+1;j<rem.length;j++){
+          if(used.has(rem[j].pos))continue;
+          const sameArtist=overlapScore(rem[i].artists.map(a=>a.key),rem[j].artists.map(a=>a.key))>=.9;
+          const titleClose=similarity(rem[i].baseName,rem[j].baseName)>=.82;
+          if(sameArtist&&titleClose&&closeDuration([rem[i],rem[j]],6000))group.push(rem[j]);
+        }
+        if(group.length>1){
+          group.forEach(e=>used.add(e.pos));rc+=group.length;
+          dg.push(makeGroup('review','dupe.reason.weak',group,64,false));
+        }
+      }
+    }
+  }
+  const allArtists=countArtists(entries);
+  const albums=[...new Set(entries.map(e=>e.album).filter(Boolean))];
+  const groupedPositions=new Set(dg.flatMap(g=>g.insts.map(i=>i.pos)));
+  const uc=entries.filter(e=>!groupedPositions.has(e.pos)).length+dg.length;
+  dg.sort((a,b)=>(b.actionable?1:0)-(a.actionable?1:0)||b.conf-a.conf||b.insts.length-a.insts.length);
+  return{dg,dc,rc,uc,ac:allArtists.length,alc:albums.length,artists:allArtists,albums};
+}
+
+/* ══ REMOVE ══ */
+async function remDu(id){
+  const pl=pls.find(p=>p.id===id),d=pd[id];if(!pl||!d)return;
+  const dry=document.getElementById('optDry')?.checked;
+  const mode=document.getElementById(`md-${id}`)?.value||'first';
+  const btn=document.getElementById(`rmbtn-${id}`);
+  if(btn){btn.disabled=true;btn.textContent=t('dupe.rming');}
+  try{
+    const toRm=[];
+    d.dg.filter(g=>g.actionable!==false).forEach(g=>{const inst=[...g.insts].sort((a,b)=>a.pos-b.pos);const keep=mode==='first'?inst[0]:inst[inst.length-1];inst.forEach(i=>{if(i!==keep)toRm.push(i);});});
+    if(!toRm.length){toast(t('dupe.noAction'),'inf');if(btn){btn.disabled=false;btn.textContent=t('dupe.noAction');}return;}
+    if(dry){toast(t('t.dry'),'inf');if(btn){btn.disabled=false;btn.textContent=t('dupe.rm',d.dc)+(dry?' (dry)':'');}return;}
+    if(pl.isLiked){const ids=toRm.map(x=>x.tid).filter(Boolean);for(let i=0;i<ids.length;i+=50){await sp('https://api.spotify.com/v1/me/tracks',{method:'DELETE',body:JSON.stringify({ids:ids.slice(i,i+50)})});await sl(200);}
+    }else{const snap=await sp(`https://api.spotify.com/v1/playlists/${id}`);const tracks=toRm.map(x=>({uri:x.uri}));for(let i=0;i<tracks.length;i+=100){await sp(`https://api.spotify.com/v1/playlists/${id}/tracks`,{method:'DELETE',body:JSON.stringify({tracks:tracks.slice(i,i+100),snapshot_id:snap.snapshot_id})});await sl(200);}}
+    addH({date:new Date().toISOString(),playlist:pl.name,removed:toRm.length,kept:d.tc-toRm.length,mode});
+    toast(t('t.removed',toRm.length,pl.name),'ok');await scanPl(id);
+  }catch(e){toast(t('t.rErr'),'err');if(btn){btn.disabled=false;btn.textContent=t('dupe.rm',d.dc);}}
+}
+
+async function remOne(id,pos,btn){
+  const pl=pls.find(p=>p.id===id),d=pd[id];if(!pl||!d?.tracks)return;
+  const item=d.tracks[pos],tr=item?.track;if(!tr)return;
+  const dry=document.getElementById('optDry')?.checked;
+  const row=btn?.closest('.di');
+  if(btn){btn.disabled=true;btn.textContent=t('dupe.rming');}
+  row?.classList.add('removing');
+  try{
+    if(dry){toast(t('t.dry'),'inf');if(btn){btn.disabled=false;btn.textContent=t('dupe.removeOne');}row?.classList.remove('removing');return;}
+    if(pl.isLiked){
+      await sp('https://api.spotify.com/v1/me/tracks',{method:'DELETE',body:JSON.stringify({ids:[tr.id].filter(Boolean)})});
+    }else{
+      const snap=await sp(`https://api.spotify.com/v1/playlists/${id}`);
+      await sp(`https://api.spotify.com/v1/playlists/${id}/tracks`,{method:'DELETE',body:JSON.stringify({tracks:[{uri:tr.uri}],snapshot_id:snap.snapshot_id})});
+    }
+    toast(t('t.removed',1,pl.name),'ok');await scanPl(id);
+  }catch(e){
+    toast(t('t.rErr'),'err');
+    if(btn){btn.disabled=false;btn.textContent=t('dupe.removeOne');}
+    row?.classList.remove('removing');
+  }
+}
+
+/* ══ EXPORT ══ */
+function expDu(id,fmt){
+  const pl=pls.find(p=>p.id===id),d=pd[id];if(!pl||!d)return;
+  const data=d.dg.flatMap(g=>g.insts.map((inst,i)=>({playlist:pl.name,track:inst.name||g.name,artist:inst.artist||g.artist,type:g.type,confidence:g.conf,reason:t(g.reasonKey||'dupe.reason.weak'),position:inst.pos+1,album:inst.alb||'',duration_ms:inst.duration||'',isrc:inst.isrc||'',added:inst.at||'',action:g.actionable===false?'review':(i===0?'keep':'remove')})));
+  if(fmt==='json')dl(JSON.stringify(data,null,2),`washlist-${pl.name}.json`,'application/json');
+  else{const rows=[Object.keys(data[0]).join(','),...data.map(r=>Object.values(r).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))];dl(rows.join('\n'),`washlist-${pl.name}.csv`,'text/csv');}
+}
+function dl(c,f,ty){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:ty}));a.download=f;a.click();URL.revokeObjectURL(a.href);}
+
+/* ══ HISTORY ══ */
+const LH='wl_h';
+function getH(){try{return JSON.parse(localStorage.getItem(LH)||'[]');}catch(e){return[];}}
+function addH(e){const h=getH();h.unshift(e);localStorage.setItem(LH,JSON.stringify(h.slice(0,200)));}
+function clearH(){localStorage.removeItem(LH);renderH();}
+function renderH(){
+  const el=document.getElementById('histRows');if(!el)return;
+  const h=getH();
+  if(!h.length){el.innerHTML=`<div class="empty">${t('h.empty')}</div>`;return;}
+  el.innerHTML=h.map(e=>`<div class="hr"><div class="hr-m">${fmtDate(e.date)}</div><div style="color:var(--ink);font-weight:500">${esc(e.playlist)}</div><div class="hr-r">−${fmtNum(e.removed)}</div><div class="hr-g">${fmtNum(e.kept)}</div><div class="hr-m">${esc(e.mode)}</div></div>`).join('');
+}
+function expH(fmt){
+  const h=getH();if(!h.length)return;
+  if(fmt==='json')dl(JSON.stringify(h,null,2),'washlist-history.json','application/json');
+  else{const rows=[['date','playlist','removed','kept','mode'].join(','),...h.map(e=>[e.date,`"${e.playlist}"`,e.removed,e.kept,e.mode].join(','))];dl(rows.join('\n'),'washlist-history.csv','text/csv');}
+}
+
+/* ══ COMPARE ══ */
+function popCmp(){
+  ['cmpL','cmpR'].forEach(sid=>{
+    const sel=document.getElementById(sid);if(!sel)return;
+    const prev=sel.value;
+    sel.innerHTML=pls.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    if(prev&&pls.find(p=>p.id===prev))sel.value=prev;
+  });
+}
+function runCmp(){
+  const lid=document.getElementById('cmpL')?.value,rid=document.getElementById('cmpR')?.value;
+  if(!lid||!rid||lid===rid)return;
+  const ld=pd[lid],rd=pd[rid];
+  if(!ld?.tracks||!rd?.tracks)return;
+  const lm=new Map(),rm=new Map();
+  ld.tracks.forEach(item=>{if(item.track)lm.set(item.track.uri,item.track);});
+  rd.tracks.forEach(item=>{if(item.track)rm.set(item.track.uri,item.track);});
+  const sh=[...lm.keys()].filter(u=>rm.has(u));
+  document.getElementById('cmpN').textContent=sh.length;
+  const ss=new Set(sh);
+  const rl=(map,el)=>{el.innerHTML=[...map.entries()].map(([u,tr],i)=>`<div class="ct${ss.has(u)?' sh':''}"><span class="ct-i">${String(i+1).padStart(2,'0')}</span><div style="flex:1;min-width:0"><div class="ct-n">${esc(tr.name)}</div><div class="ct-a">${esc(tr.artists?.[0]?.name||'')}</div></div>${ss.has(u)?'<span style="color:var(--green)">⇄</span>':''}</div>`).join('');};
+  rl(lm,document.getElementById('cmpLL'));rl(rm,document.getElementById('cmpRL'));
+  const ol=lm.size-sh.length,or=rm.size-sh.length;
+  document.getElementById('cmpLF').innerHTML=`<span>${t('cmp.only',ol)}</span><span style="margin-left:auto">${t('cmp.both',sh.length)}</span>`;
+  document.getElementById('cmpRF').innerHTML=`<span>${t('cmp.both',sh.length)}</span><span style="margin-left:auto">${t('cmp.only',or)}</span>`;
+}
+
+/* ══ OVERLAP ══ */
+function renderOv(){
+  const min=parseInt(document.getElementById('ovMin')?.value||3);
+  const grid=document.getElementById('ovGrid');if(!grid)return;
+  const sc=pls.filter(p=>pd[p.id]?.tracks?.length>0);
+  if(!sc.length){grid.innerHTML=`<div class="empty">${t('ov.none')}</div>`;return;}
+  const tm=new Map();
+  sc.forEach(pl=>{(pd[pl.id].tracks||[]).forEach(item=>{if(!item.track)return;const k=item.track.uri;if(!tm.has(k))tm.set(k,{track:item.track,playlists:[]});tm.get(k).playlists.push(pl.name);});});
+  const res=[...tm.values()].filter(v=>v.playlists.length>=min).sort((a,b)=>b.playlists.length-a.playlists.length);
+  if(!res.length){grid.innerHTML=`<div class="empty">${t('ov.none')}</div>`;return;}
+  grid.innerHTML=res.slice(0,60).map(r=>`<div class="ov-card"><div class="ov-cn">${esc(r.track.name)}</div><div class="ov-ca">${esc(r.track.artists?.[0]?.name||'')}</div><div class="ov-ct">♪ ${r.playlists.length}</div><div class="ov-tags">${r.playlists.map(p=>`<span class="ov-tag">${esc(p)}</span>`).join('')}</div></div>`).join('');
+}
+
+/* ══ GRAPH ══ */
+let sim=null;
+function buildGraph(){
+  const sc=pls.filter(p=>pd[p.id]?.tracks?.length>0);
+  const st=document.getElementById('gphSt');
+  if(sc.length<2){st.textContent=t('gph.nodata');return;}st.textContent='';
+  const svg=d3.select('#graphCanvas');svg.selectAll('*').remove();
+  const W=svg.node().clientWidth||900,H=440;svg.attr('viewBox',`0 0 ${W} ${H}`);
+  const edges=[];
+  for(let i=0;i<sc.length;i++)for(let j=i+1;j<sc.length;j++){
+    const aU=new Set((pd[sc[i].id].tracks||[]).map(x=>x.track?.uri).filter(Boolean));
+    const sh=(pd[sc[j].id].tracks||[]).filter(x=>x.track&&aU.has(x.track.uri)).length;
+    if(sh>0)edges.push({source:sc[i].id,target:sc[j].id,weight:sh});
+  }
+  const nodes=sc.map(pl=>({id:pl.id,name:pl.name,size:pl.tracks?.total||50}));
+  const maxW=Math.max(...edges.map(e=>e.weight),1);
+  const ss=d3.scaleSqrt().domain([0,Math.max(...nodes.map(n=>n.size))]).range([8,28]);
+  const g=svg.append('g');
+  svg.call(d3.zoom().scaleExtent([.3,3]).on('zoom',e=>g.attr('transform',e.transform)));
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  const linkColor=isDark?'#2C2A26':'#D8D4CC';
+  const textColor=isDark?'#8C8880':'#6B6860';
+  const link=g.append('g').selectAll('line').data(edges).join('line').attr('stroke',linkColor).attr('stroke-width',e=>Math.max(1,Math.round(e.weight/maxW*5)));
+  const node=g.append('g').selectAll('g').data(nodes).join('g').call(
+    d3.drag().on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;})
+      .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;})
+      .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;})
+  );
+  node.append('circle').attr('r',d=>ss(d.size)).attr('fill','rgba(29,185,84,.1)').attr('stroke','#1DB954').attr('stroke-width',1.5);
+  node.append('text').attr('text-anchor','middle').attr('dy','.35em').attr('font-family','Geist,sans-serif').attr('font-size','10px').attr('fill',textColor).attr('pointer-events','none').text(d=>d.name.length>12?d.name.slice(0,11)+'…':d.name);
+  sim=d3.forceSimulation(nodes).force('link',d3.forceLink(edges).id(d=>d.id).distance(120)).force('charge',d3.forceManyBody().strength(-180)).force('center',d3.forceCenter(W/2,H/2)).on('tick',()=>{link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);node.attr('transform',d=>`translate(${d.x},${d.y})`);});
+  st.textContent=`${nodes.length} nodes · ${edges.length} edges`;
+}
+function resetGraph(){if(sim)sim.stop();d3.select('#graphCanvas').selectAll('*').remove();document.getElementById('gphSt').textContent='';}
+
+/* ══ DEMO ══ */
+function loadDemo(){
+  acc=null;show('appPanel');hide('landingPanel');
+  document.getElementById('uAv').textContent='🎧';
+  document.getElementById('uName').textContent='Demo';
+  document.getElementById('uPlan').textContent='premium';
+  document.getElementById('sPl').textContent=5;
+  pls=[{id:'d1',name:'Chill Vibes',tracks:{total:142},images:[]},{id:'d2',name:'2024 Hits',tracks:{total:87},images:[]},{id:'d3',name:'Late Night',tracks:{total:203},images:[]},{id:'d4',name:'Workout',tracks:{total:55},images:[]},{id:'liked',name:'Liked Songs',tracks:{total:1204},images:[],isLiked:true}];
+  const mk=(id,name,artist,album,dur=242000,isrc='')=>({track:{id,uri:`s:t:${id}`,name,duration_ms:dur,external_ids:isrc?{isrc}:{},external_urls:{spotify:`https://open.spotify.com/track/${id}`},artists:[{id:'ar-'+norm(artist),name:artist}],album:{id:'al-'+norm(album),name:album,images:[]}},added_at:'2023-01-01T00:00:00Z'});
+  const base=[
+    mk('a1','Midnight City','M83','Hurry Up',244000,'USSUB1100020'),
+    mk('a1','Midnight City','M83','Hurry Up',244000,'USSUB1100020'),
+    mk('b1','Blinding Lights','The Weeknd','After Hours',200040,'USUG11904206'),
+    mk('b2','Blinding Lights','The Weeknd','After Hours Deluxe',201000,''),
+    mk('c1','Blinding Lights - Live','The Weeknd','Live at SoFi',233000,''),
+    ...Array(137).fill(null).map((_,i)=>mk(`x${i}`,'Track '+i,'Artist','Album',180000+i*1000))
+  ];
+  const d1=findDupes(base);pd['d1']={status:'done',tc:base.length,tracks:base,open:true,...d1};
+  const d2Tracks=[mk('b1','Blinding Lights','The Weeknd','After Hours'),...Array(86).fill(null).map((_,i)=>mk(`y${i}`,'Track '+i,'A','B'))];
+  const d2=findDupes(d2Tracks);pd['d2']={status:'done',tc:d2Tracks.length,tracks:d2Tracks,open:false,...d2};
+  const d3Tracks=[mk('a1','Midnight City','M83','Hurry Up'),...Array(202).fill(null).map((_,i)=>mk(`z${i}`,'Track '+i,'A','B'))];
+  const d3=findDupes(d3Tracks);pd['d3']={status:'done',tc:d3Tracks.length,tracks:d3Tracks,open:false,...d3};
+  hide('plLoading');renderPl();
+  updSt();renderScanSummary();
+  popCmp();toast(t('t.demo'),'inf');
+  setTimeout(initWaveInteract, 100);
+}
+
+
+// ── INTL FORMATTERS ──
+function fmtNum(n, decimals=0) {
+  const locale = L[lang]?.locale || 'en-GB';
+  return new Intl.NumberFormat(locale, {maximumFractionDigits:decimals}).format(n);
+}
+function fmtDate(dateStr) {
+  if (!dateStr) return '—';
+  const locale = L[lang]?.locale || 'en-GB';
+  return new Intl.DateTimeFormat(locale, {day:'numeric',month:'short',year:'numeric'}).format(new Date(dateStr));
+}
+function fmtMs(ms) {
+  if (!ms) return '—';
+  const total = Math.round(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = String(total % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+function fmtRelDate(dateStr) {
+  if (!dateStr) return '—';
+  const locale = L[lang]?.locale || 'en-GB';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return locale.startsWith('ru') ? 'сегодня' : locale.startsWith('de') ? 'heute' : locale.startsWith('fr') ? "aujourd'hui" : locale.startsWith('es') ? 'hoy' : 'today';
+  if (days === 1) return locale.startsWith('ru') ? 'вчера' : locale.startsWith('de') ? 'gestern' : locale.startsWith('fr') ? 'hier' : locale.startsWith('es') ? 'ayer' : 'yesterday';
+  return new Intl.DateTimeFormat(locale, {day:'numeric',month:'short',year:'numeric'}).format(new Date(dateStr));
+}
+/* ══ UTILS ══ */
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function show(id){document.getElementById(id)?.classList.add('on');}
+function hide(id){document.getElementById(id)?.classList.remove('on');}
+function toast(msg,type='inf'){
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');el.className=`toast ${type}`;el.textContent=msg;c.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);},4000);
+}
+
+/* ══ ANIMATIONS ══ */
+
+// ── INTERACTIVE CURSOR ──
+function initCursor(){
+  if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const dot=document.createElement('div'),ring=document.createElement('div');
+  dot.className='cursor-dot';ring.className='cursor-ring';
+  document.body.append(dot,ring);
+  let x=innerWidth/2,y=innerHeight/2,rx=x,ry=y,active=false;
+  const draw=()=>{
+    if(active){
+      rx+=(x-rx)*0.18;ry+=(y-ry)*0.18;
+      dot.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%)`;
+      ring.style.transform=`translate3d(${rx}px,${ry}px,0) translate(-50%,-50%)`;
+    }
+    requestAnimationFrame(draw);
+  };
+  draw();
+  document.addEventListener('mousemove',e=>{
+    x=e.clientX;y=e.clientY;active=true;document.body.classList.add('cursor-on');
+    const action=e.target.closest('button,a,input,select,.lang-opt,.dg,.di,.plr');
+    const danger=e.target.closest('.btn-danger,.mini-action');
+    document.body.classList.toggle('cursor-action',!!action);
+    document.body.classList.toggle('cursor-danger',!!danger);
+  });
+  document.addEventListener('mouseleave',()=>{active=false;document.body.classList.remove('cursor-on','cursor-action','cursor-danger');});
+  document.addEventListener('mousedown',()=>document.body.classList.add('cursor-press'));
+  document.addEventListener('mouseup',()=>document.body.classList.remove('cursor-press'));
+}
+
+// ── RIPPLE ──
+function addRipple(e) {
+  const btn = e.currentTarget;
+  const r = document.createElement('span');
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 2.5;
+  r.className = 'ripple';
+  r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  btn.appendChild(r);
+  r.addEventListener('animationend', () => r.remove());
+}
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.btn, .ab, .fp, .mp, .mb-sb, .atab, .lb');
+  if (btn) addRipple({currentTarget: btn, clientX: e.clientX, clientY: e.clientY});
+});
+
+// ── FEATURE CARDS (subtle lift only) ──
+function initMagnetic() {
+  // Handled via CSS :hover — no JS needed
+}
+
+// ── MAGNETIC BUTTONS (subtle only on logo) ──
+function initMagneticBtns() {
+  document.querySelectorAll('.nav-logo').forEach(btn => {
+    btn.addEventListener('mousemove', e => {
+      const r = btn.getBoundingClientRect();
+      const cx = r.left + r.width/2, cy = r.top + r.height/2;
+      const dx = (e.clientX - cx) / r.width  * 4;
+      const dy = (e.clientY - cy) / r.height * 3;
+      btn.style.transform = `translate(${dx}px, ${dy}px)`;
+    });
+    btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+  });
+}
+
+// ── PARALLAX LANDING ──
+function initParallax() {
+  // Reserved hook. Pointer-follow parallax was removed to reduce motion and CPU work.
+}
+
+// ── ANIMATED COUNTER ──
+function animCount(el, target, duration=500) {
+  if (!el) return;
+  const locale = L[lang]?.locale || 'en-GB';
+  const start = performance.now();
+  const from = parseFloat(el.textContent.replace(/[^0-9.]/g,'')) || 0;
+  if (from === target) return; // no-op if same value
+  el.classList.add('stat-pop');
+  function step(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const ease = p < 1 ? 1 - Math.pow(1 - p, 3) : 1;
+    el.textContent = new Intl.NumberFormat(locale).format(Math.round(from + (target - from) * ease));
+    if (p < 1) requestAnimationFrame(step);
+    else { el.textContent = new Intl.NumberFormat(locale).format(target); el.classList.remove('stat-pop'); }
+  }
+  requestAnimationFrame(step);
+}
+
+// ── WORD REVEAL ──
+function revealHeadline() {
+  const h1 = document.querySelector('.l-headline');
+  if (!h1 || h1.dataset.revealed) return;
+  h1.dataset.revealed = '1';
+  const raw = h1.innerHTML;
+  const parts = raw.split(/(<em>[\s\S]*?<\/em>|<br>)/);
+  let delay = 80;
+  h1.innerHTML = parts.map(part => {
+    if (part === '<br>') return '<br>';
+    if (part.startsWith('<em>')) {
+      const inner = part.replace(/<\/?em>/g,'');
+      return '<em>' + inner.split(' ').filter(Boolean).map(w => {
+        const d = delay; delay += 65;
+        return `<span class="word-reveal"><span class="word-inner" style="animation-delay:${d}ms">${w}</span></span>`;
+      }).join(' ') + '</em>';
+    }
+    return part.split(' ').filter(Boolean).map(w => {
+      const d = delay; delay += 55;
+      return `<span class="word-reveal"><span class="word-inner" style="animation-delay:${d}ms">${w}</span></span>`;
+    }).join(' ');
+  }).join(' ');
+  // Re-init magnetic after DOM change
+  setTimeout(() => { initMagnetic(); initMagneticBtns(); initParallax(); }, 100);
+}
+
+// ── STAGGER ROWS ──
+function staggerRows() {
+  const rows = document.querySelectorAll('.plr');
+  // Cap stagger at 12 rows max to avoid long delays
+  rows.forEach((row, i) => {
+    row.style.animationDelay = `${Math.min(i, 12) * 28}ms`;
+  });
+}
+
+// ── SPRING HOVER ON ROWS ──
+function initRowPhysics() {
+  // CSS handles row hover now; no per-row listeners needed.
+}
+
+// ── STATS UPDATE WITH ANIMATION ──
+function updSt() {
+  const sc = Object.values(pd).filter(d => d.status === 'done');
+  if (!sc.length) return;
+  animCount(document.getElementById('sSc'), sc.reduce((s,d)=>s+(d.tc||0),0));
+  animCount(document.getElementById('sDu'), sc.reduce((s,d)=>s+(d.dc||0),0));
+  animCount(document.getElementById('sAf'), sc.filter(d=>d.dc>0).length);
+}
+
+// ── WAVEFORM ──
+function initWaveInteract() {
+  // CSS-only hover effect, no JS needed
+}
+
+/* ══ BOOT ══ */
+document.addEventListener('DOMContentLoaded',()=>{
+  auditI18n(); initTheme(); buildSw(); i18n(); initCursor();
+  const p = new URLSearchParams(location.search);
+  if (p.has('code')||p.has('error')) handleCb();
+  else if (chkTk()) initApp();
+  else {
+    show('landingPanel');
+    setTimeout(() => {
+      revealHeadline();
+      initMagnetic();
+      initMagneticBtns();
+      initParallax();
+      initWaveInteract();
+    }, 80);
+  }
+});
+</script>
+</body>
+</html>
