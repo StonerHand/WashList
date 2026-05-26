@@ -20,14 +20,14 @@
   const LANGS = [
     { code: 'en', flag: '🇬🇧', name: 'English', short: 'EN', locale: 'en-GB' },
     { code: 'ru', flag: '🇷🇺', name: 'Русский', short: 'RU', locale: 'ru-RU' },
-    { code: 'de', flag: '🇩🇪', name: 'Deutsch', short: 'DE', locale: 'de-DE' },
-    { code: 'es', flag: '🇪🇸', name: 'Español', short: 'ES', locale: 'es-ES' },
-    { code: 'fr', flag: '🇫🇷', name: 'Français', short: 'FR', locale: 'fr-FR' },
   ];
 
   const I18N = {
     en: {
       'tag.intelligence': 'music intelligence',
+      'a11y.language': 'Language',
+      'a11y.search': 'Focus playlist search',
+      'a11y.library': 'Open library',
       'nav.workspace': 'Workspace',
       'nav.system': 'System',
       'nav.library': 'Library',
@@ -184,6 +184,9 @@
     },
     ru: {
       'tag.intelligence': 'музыкальный интеллект',
+      'a11y.language': 'Язык',
+      'a11y.search': 'Перейти к поиску плейлистов',
+      'a11y.library': 'Открыть библиотеку',
       'nav.workspace': 'Рабочая область',
       'nav.system': 'Система',
       'nav.library': 'Библиотека',
@@ -474,6 +477,9 @@
     updateCrumb();
     renderAll();
     updateAuthButton();
+    document.querySelector('.side-logo')?.setAttribute('aria-label', t('a11y.library'));
+    document.getElementById('focusSearch')?.setAttribute('aria-label', t('a11y.search'));
+    document.getElementById('srch')?.setAttribute('aria-label', t('lib.search'));
   }
 
   function initTheme() {
@@ -492,6 +498,7 @@
     if (!trigger) return;
     trigger.querySelector('.flag').textContent = lang.flag;
     trigger.querySelector('.code').textContent = lang.short;
+    trigger.setAttribute('aria-label', t('a11y.language'));
   }
 
   function initLangDropdown() {
@@ -671,7 +678,7 @@
     const avatar = document.getElementById('uAv');
     if (avatar) {
       if (me.images?.[0]?.url) {
-        avatar.innerHTML = `<img src="${attr(me.images[0].url)}" alt="">`;
+        avatar.innerHTML = `<img src="${attr(me.images[0].url)}" alt="${attr(me.display_name || 'Spotify user')}">`;
       } else {
         avatar.textContent = (me.display_name || 'S')[0].toUpperCase();
       }
@@ -981,7 +988,7 @@
     root.innerHTML = list.map((playlist, index) => {
       const d = data[playlist.id] || {};
       const cover = playlist.images?.[0]?.url;
-      const art = cover ? `<div class="playlist-art"><img src="${attr(cover)}" alt=""></div>` : `<div class="playlist-art">${playlist.isLiked ? '♥' : '♪'}</div>`;
+      const art = cover ? `<div class="playlist-art"><img src="${attr(cover)}" alt="${attr(playlist.name)}"></div>` : `<div class="playlist-art">${playlist.isLiked ? '♥' : '♪'}</div>`;
       const status = playlistStatus(d);
       const progress = d.status === 'scanning' ? `<div class="progress-line"><span id="pg-${attr(playlist.id)}" style="width:${d.prog || 0}%"></span></div>` : '';
       const action = d.status === 'scanning'
@@ -1428,7 +1435,7 @@
 
   function renderInstance(playlist, group, inst, index) {
     const keep = index === 0;
-    const cover = inst.art ? `<div class="cluster-cover"><img src="${attr(inst.art)}" alt=""></div>` : '<div class="cluster-cover">♪</div>';
+    const cover = inst.art ? `<div class="cluster-cover"><img src="${attr(inst.art)}" alt="${attr(inst.album || inst.name || group.name)}"></div>` : '<div class="cluster-cover">♪</div>';
     const removeButton = !keep && group.actionable
       ? `<button class="btn-app danger" type="button" data-remove-one="${attr(playlist.id)}" data-pos="${inst.pos}">${t('dup.removeOne')}</button>`
       : `<span class="keep-badge">${keep ? t('dup.keep') : t('filter.review')}</span>`;
@@ -1646,7 +1653,7 @@
     root.innerHTML = [...map.entries()].slice(0, 120).map(([uri, track], index) => {
       const art = albumArt(track);
       const cover = art
-        ? `<span class="track-art"><img src="${attr(art)}" alt=""></span>`
+        ? `<span class="track-art"><img src="${attr(art)}" alt="${attr(track.album?.name || track.name)}"></span>`
         : '<span class="track-art fallback">♪</span>';
       return `
       <div class="track-row ${sharedSet.has(uri) ? 'match' : ''}">

@@ -14,6 +14,8 @@ const files = {
 const all = Object.values(files).join('\n');
 const runtimeAll = [files.index, files.app, files.landingAuth, files.appJs, files.appCss, files.liveCss].join('\n');
 const failures = [];
+const appLangs = [...files.appJs.matchAll(/\{\s*code:\s*'([a-z]{2})'/g)].map((match) => match[1]);
+const appDicts = [...files.appJs.matchAll(/\n\s{4}([a-z]{2}):\s*\{/g)].map((match) => match[1]);
 
 function check(name, condition) {
   if (!condition) failures.push(name);
@@ -25,8 +27,11 @@ check('Spotify email scope is not requested', !/user-read-email/.test(files.land
 check('OAuth token uses session-scoped storage', /sessionStorage\.setItem\(key,\s*value\)/.test(files.landingAuth) && /sessionStorage\.getItem\(key\)/.test(files.appJs));
 check('landing has CSP metadata', /Content-Security-Policy/.test(files.index));
 check('app has noindex and CSP metadata', /noindex,nofollow/.test(files.app) && /Content-Security-Policy/.test(files.app));
+check('pages declare color scheme', /name="color-scheme"/.test(files.index) && /name="color-scheme"/.test(files.app));
 check('external blank links are noopener noreferrer', !/target="_blank"(?![^>]*rel="noopener noreferrer")/.test(files.index));
+check('landing has no placeholder hash links', !/href="#"/.test(files.index));
 check('landing HTML translations are sanitized', /function safeI18nHtml/.test(files.index));
+check('app language choices match dictionaries', appLangs.every((code) => appDicts.includes(code)));
 check('app supports hash deep links', /TAB_HASHES/.test(files.appJs) && /popstate/.test(files.appJs));
 check('app starts Spotify OAuth directly', /function startSpotifyAuth/.test(files.appJs) && /data-connect-spotify/.test(files.appJs) && /goToConnect\(\);/.test(files.appJs));
 check('top auth button switches between connect and logout', /data-auth-action="connect"/.test(files.app) && /dataset\.authAction/.test(files.appJs));
@@ -40,6 +45,7 @@ check('Spotify empty success responses are accepted', /response\.text\(\)/.test(
 check('duplicate removal avoids pre-delete playlist fetch', !/spotify\(`https:\/\/api\.spotify\.com\/v1\/playlists\/\$\{playlist\.id\}`\)/.test(files.appJs));
 check('duplicate removal errors are localized', /function removalErrorMessage/.test(files.appJs) && /toast\.removeScopeErr/.test(files.appJs));
 check('compare rows render album artwork', /function albumArt/.test(files.appJs) && /track-art/.test(files.appJs) && /track-art/.test(files.appCss + files.liveCss));
+check('dynamic artwork images receive alt text', /playlist\.name/.test(files.appJs) && /track\.album\?\.name/.test(files.appJs) && /me\.display_name/.test(files.appJs));
 check('metadata duplicate guard requires duration or version evidence', /hasVersionSignal/.test(files.appJs) && /!durationClose && !hasVersionSignal/.test(files.appJs));
 check('static assets are cache busted', /washlist-app\.js\?v=/.test(files.app) && /landing-auth\.js\?v=/.test(files.index));
 check('runtime app avoids console logging', !/console\.(log|warn|error|debug)/.test(files.appJs + files.landingAuth));

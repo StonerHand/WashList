@@ -12,7 +12,7 @@
   <a href="https://stonerhand.github.io/WashList/"><img alt="Live" src="https://img.shields.io/badge/live-GitHub%20Pages-B89CFF?style=for-the-badge&labelColor=0A0C10"></a>
   <img alt="Stack" src="https://img.shields.io/badge/stack-Vanilla%20JS-6FE8FF?style=for-the-badge&labelColor=0A0C10">
   <img alt="Auth" src="https://img.shields.io/badge/auth-Spotify%20PKCE-B89CFF?style=for-the-badge&labelColor=0A0C10">
-  <img alt="Languages" src="https://img.shields.io/badge/i18n-EN%20RU%20DE%20ES%20FR-FFC369?style=for-the-badge&labelColor=0A0C10">
+  <img alt="Languages" src="https://img.shields.io/badge/app%20i18n-EN%20RU-FFC369?style=for-the-badge&labelColor=0A0C10">
 </p>
 
 <p align="center">
@@ -57,6 +57,7 @@ It scans playlists, builds normalized track fingerprints, explains why items are
 - Logout clears token, verifier, OAuth state, playlist cache, load errors, and flips the top action back to **Connect Spotify**.
 - Spotify DELETE edge cases are handled: empty success bodies are valid, stale permissions get a clear reconnect message, and non-editable playlists explain the limitation.
 - The signed-out connect gate was restyled to feel like the product surface, not an error box.
+- App language choices now match complete app dictionaries, while the landing keeps broader marketing-localized copy.
 - QA now guards auth route behavior, top-button state, empty DELETE responses, duplicate removal safety, cache busting, and stale transition code.
 
 ## Screens
@@ -234,9 +235,9 @@ WashList currently ships:
 | --- | --- |
 | English | Source / fallback |
 | Russian | Product UI copy |
-| German | Product UI copy |
-| Spanish | Product UI copy |
-| French | Product UI copy |
+| German | Landing copy |
+| Spanish | Landing copy |
+| French | Landing copy |
 
 The localization workflow, glossary, QA checklist, and recommended Crowdin/Lokalise/Phrase process live in [docs/i18n.md](./docs/i18n.md).
 
