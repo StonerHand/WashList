@@ -6,13 +6,17 @@ WashList is a static frontend app that talks directly to Spotify. This keeps the
 
 - PKCE OAuth is used for Spotify authorization.
 - Spotify email scope is not requested.
+- The Spotify client id is public PKCE configuration. No Spotify client secret is stored in the frontend.
 - Spotify access token is session-scoped instead of long-lived local storage.
 - Logout clears token data from both session and legacy local storage.
+- Direct app entry without auth renders a connect gate instead of private data or broken controls.
 - User/API data is escaped before HTML rendering.
 - Landing HTML translations are sanitized to a small allowlist.
 - Duplicate removal is guarded against repeated clicks.
 - Basic CSP and referrer meta tags are present in static HTML.
 - App page is marked `noindex,nofollow`.
+- Runtime app scripts avoid console logging of API failures or private data.
+- Static CSS/JS references are cache-busted so GitHub Pages deploys do not leave users on stale auth logic.
 
 ## Remaining Frontend Risks
 
@@ -58,4 +62,5 @@ If inline scripts remain, use CSP nonces or hashes rather than broad `unsafe-inl
 - Logout removes token state.
 - External links use `rel="noopener noreferrer"`.
 - Direct `app.html` without auth shows connect state, not private data.
+- `app.html?connect=1` preserves OAuth intent and redirects to the landing PKCE flow.
 - Fast repeated clicks do not repeat destructive UI actions.

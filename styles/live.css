@@ -297,6 +297,20 @@ body.signed-out #logoutBtn {
   letter-spacing: .04em;
 }
 
+.compare-col .auth-gate {
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.compare-col .auth-gate .btn-app {
+  width: 100%;
+  justify-content: center;
+}
+
+.compare-col .auth-gate-copy p {
+  max-width: none;
+}
+
 .playlist-row {
   display: grid;
   grid-template-columns: minmax(280px, 1fr) 110px 110px 150px auto;
@@ -846,10 +860,18 @@ body.app-entering .view {
 
   .filter-bar {
     align-items: stretch;
+    overflow: hidden;
   }
 
   .search-input {
     min-width: 100%;
+  }
+
+  .filter-bar .select,
+  .filter-bar .btn-app {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
   }
 
   .btn-app,

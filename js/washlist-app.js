@@ -1,5 +1,4 @@
 (() => {
-  const CLIENT_ID = '5ce8326e147f46b3b11ebc24ac37bf7c';
   const TOKEN_KEY = 'wl_t';
   const EXPIRES_KEY = 'wl_e';
   const HISTORY_KEY = 'wl_h';
@@ -594,8 +593,7 @@
       document.getElementById('uName').textContent = me.display_name || 'Spotify user';
       document.getElementById('uPlan').textContent = me.product || 'spotify';
       await loadPlaylists();
-    } catch (error) {
-      console.warn('init failed', error?.message || error);
+    } catch {
       toast(t('toast.loadErr'), 'err');
       showSignedOut();
     } finally {
@@ -897,7 +895,6 @@
       state.playlistData[id] = { status: 'done', tracks, tc: tracks.length, ...result };
       setScanHeader(t('scan.done'), 100);
     } catch (error) {
-      console.warn('scan failed', error?.message || error);
       state.playlistData[id] = { status: 'error', err: error.message };
       if (!options.quiet) toast(t('toast.scanErr', { playlist: playlist.name }), 'err');
     }
@@ -1367,8 +1364,7 @@
           if (state.accessToken) scanPlaylist(playlist.id, { quiet: true });
         }, 1800);
       }
-    } catch (error) {
-      console.warn('remove failed', error?.message || error);
+    } catch {
       toast(t('toast.apiErr'), 'err');
     } finally {
       state.pendingRemovals.delete(removalKey);

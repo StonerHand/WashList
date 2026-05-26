@@ -43,16 +43,29 @@ It scans playlists, builds normalized track fingerprints, explains why items are
 
 ## Screens
 
-| Landing | App shell | Mobile |
+| Landing | App auth + compare | Mobile compare |
 | --- | --- | --- |
-| <img src="./docs/assets/washlist-landing.jpg" alt="WashList landing page screenshot" width="100%"> | <img src="./docs/assets/washlist-app.jpg" alt="WashList app shell screenshot" width="100%"> | <img src="./docs/assets/washlist-mobile.jpg" alt="WashList mobile duplicate review screenshot" width="100%"> |
+| <img src="./docs/assets/washlist-landing.jpg" alt="WashList landing page screenshot" width="100%"> | <img src="./docs/assets/washlist-app.jpg" alt="WashList signed-out compare screenshot" width="100%"> | <img src="./docs/assets/washlist-mobile.jpg" alt="WashList mobile compare connect screenshot" width="100%"> |
+
+Screens intentionally include the signed-out app state: users should always see a useful Spotify connection path instead of an empty or broken workspace.
+
+## Current Status
+
+| Area | Status |
+| --- | --- |
+| Spotify auth | `index.html?connect=1` starts PKCE immediately. `app.html?connect=1` preserves that intent and redirects to the landing auth flow. |
+| Signed-out UX | Internal app routes show a clear Spotify connect gate instead of looking broken or empty. |
+| Compare view | Playlist comparison renders album artwork, track title, artist, duration, and shared-match state. |
+| Duplicate safety | Metadata groups require close duration or explicit version evidence. Artist-only matches are never duplicates. |
+| Static deployment | CSS/JS references include cache-busting query strings so GitHub Pages serves the current app after deploy. |
+| Regression checks | `tools/qa-check.mjs` covers auth route intent, auth-gate UI, compare artwork, cache busting, token storage, and duplicate guards. |
 
 ## Product Tour
 
 <details open>
 <summary><b>1. Connect</b> · Spotify PKCE without a backend</summary>
 
-The landing page keeps the product promise focused: connect Spotify, scan playlists, review duplicates. Demo mode was removed so the primary path stays honest and production-shaped.
+The landing page keeps the product promise focused: connect Spotify, scan playlists, review duplicates. Direct app entry shows a connect gate, and `?connect=1` starts the Spotify flow instead of dropping users into an empty workspace.
 </details>
 
 <details open>
@@ -121,7 +134,7 @@ This prevents the classic false positive: different songs by the same artist bei
 | Smart matching | Groups exact duplicates, probable duplicates, related versions, and review items separately. |
 | Safe cleanup | Supports dry-run, per-track removal, group removal, and local cleanup history. |
 | Explainability | Every duplicate group shows the reason and confidence. |
-| Comparison | Compares two playlists and highlights shared tracks. |
+| Comparison | Compares two playlists with album artwork and highlights shared tracks. |
 | Overlap map | Finds tracks living in several playlists at once. |
 | Graph view | Visualizes playlist relationships. |
 | Localization | English, Russian, German, Spanish, French with fallback behavior. |
@@ -223,8 +236,11 @@ Open:
 
 1. Create an app in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
 2. Add redirect URI: `https://stonerhand.github.io/WashList/`.
-3. Keep the public client id in [js/landing-auth.js](./js/landing-auth.js).
-4. Open the site and click **Connect Spotify**.
+3. For local OAuth testing, also add `http://127.0.0.1:4173/index.html`.
+4. Keep the public client id in [js/landing-auth.js](./js/landing-auth.js).
+5. Open the site and click **Connect Spotify**.
+
+The Spotify client id is public by design for PKCE. Do not add a Spotify client secret to this static frontend.
 
 ## Quality Gates
 
@@ -242,9 +258,12 @@ Manual smoke checklist:
 
 - Landing opens without console errors.
 - Language switcher updates the product preview and marquee.
-- App without auth shows a connect state, not demo data.
+- App without auth shows a localized Spotify connect gate, not demo data.
+- `app.html?connect=1` redirects to `index.html?connect=1` and starts the PKCE flow.
 - `#library`, `#duplicates`, `#compare`, `#overlap`, `#graph`, `#history`, `#settings` deep links select the right section.
+- Compare rows show album artwork and do not collapse to text-only lists.
 - Search is debounced and does not visibly lag.
+- Metadata-only duplicate groups require close duration or explicit version evidence.
 - Duplicate removal disables repeat clicks and removes confirmed tracks from local results.
 - Logout clears session-scoped Spotify credentials.
 - Mobile viewport has no horizontal overflow.

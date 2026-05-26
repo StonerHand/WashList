@@ -29,10 +29,13 @@ check('landing HTML translations are sanitized', /function safeI18nHtml/.test(fi
 check('app supports hash deep links', /TAB_HASHES/.test(files.appJs) && /popstate/.test(files.appJs));
 check('app connect route preserves OAuth intent', /index\.html\?connect=1/.test(files.appJs) && /params\.get\('connect'\) === '1'/.test(files.landingAuth));
 check('signed-out app shows Spotify auth gate', /function authRequiredMarkup/.test(files.appJs) && /auth-gate/.test(files.liveCss));
+check('auth gate strings are localized', /'auth\.title'/.test(files.appJs) && /'auth\.sub'/.test(files.appJs) && /'auth\.secure'/.test(files.appJs));
 check('search input is debounced', /debounce\(renderPlaylists,\s*120\)/.test(files.appJs));
 check('duplicate removals are idempotency guarded', /pendingRemovals/.test(files.appJs));
 check('compare rows render album artwork', /function albumArt/.test(files.appJs) && /track-art/.test(files.appJs) && /track-art/.test(files.appCss + files.liveCss));
 check('metadata duplicate guard requires duration or version evidence', /hasVersionSignal/.test(files.appJs) && /!durationClose && !hasVersionSignal/.test(files.appJs));
+check('static assets are cache busted', /washlist-app\.js\?v=/.test(files.app) && /landing-auth\.js\?v=/.test(files.index));
+check('runtime app avoids console logging', !/console\.(log|warn|error|debug)/.test(files.appJs + files.landingAuth));
 
 if (failures.length) {
   console.error('QA check failed:');
