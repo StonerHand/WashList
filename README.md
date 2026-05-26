@@ -1,48 +1,94 @@
 # WashList
 
-Clean your Spotify library — properly.
+Spotify library intelligence for finding real duplicates without hiding valid versions.
 
----
+[Live site](https://stonerhand.github.io/WashList/)
 
-## What it does
+## Product
 
-Finds and removes duplicate tracks across all your playlists. Detects exact copies and the same song from different releases. Built for Spotify power users.
+WashList scans Spotify playlists, normalizes track metadata, groups exact duplicates, and keeps remixes, live versions, acoustic versions, remasters, sped-up/slowed variants, and weak matches visible for review.
 
----
+The product rule is intentionally conservative:
+
+- Same Spotify URI, URL, or ISRC: exact duplicate.
+- Same title, same artist set, close duration: probable duplicate, review first.
+- Same artist only: never a duplicate.
+- Similar title only: review, never auto-remove.
+- Different versions: related items, visible by default.
 
 ## Features
 
-| | |
-|---|---|
-| **Smart dedup** | URI match + fuzzy name/artist. Handles remasters, live versions |
-| **Dry-run mode** | Preview everything before any changes are made |
-| **Compare** | See shared tracks between any two playlists |
-| **Overlap** | Find tracks living in 3+ playlists simultaneously |
-| **Graph** | Interactive D3 force-graph of playlist connections |
-| **Export** | CSV or JSON per playlist. Full history stored locally |
-| **5 languages** | EN · RU · DE · ES · FR |
-| **Dark / Light** | Both themes, fully consistent |
+| Area | Details |
+| --- | --- |
+| Deduplication | Multi-factor match scoring with exact, probable, version, and review groups. |
+| Safe cleanup | Dry-run mode, per-track removal, group removal, and local history. |
+| Scanning | Parallel playlist/page loading with Spotify rate-limit backoff and progress UI. |
+| Analysis | Playlist comparison, overlap map, graph view, exportable duplicate/history data. |
+| UX | Dark/light themes, responsive app shell, keyboard-friendly language switcher. |
+| Localization | EN, RU, DE, ES, FR with fallback language and locale-aware dates/numbers. |
+| Privacy | No backend, no analytics, no tracking. Spotify access token is session-scoped. |
 
----
+## Architecture
 
-## Live
+```text
+index.html                  Landing page, localized marketing/product preview
+app.html                    Authenticated app shell
+js/landing-auth.js          Spotify PKCE OAuth callback and auth handoff
+js/washlist-app.js          App state, Spotify API, scanning, dedup, rendering
+js/waveform-bg.js           Canvas waveform background
+styles/tokens.css           Shared design tokens and themes
+styles/app.css              App layout/components
+styles/live.css             Data-connected app states and responsive rules
+styles/landing-transition.css
+```
 
-**[stonerhand.github.io/WashList](https://stonerhand.github.io/WashList)**
+The app is intentionally static and backend-free. Sensitive enforcement, long-lived token storage, and security headers should be handled by an edge/backend deployment if WashList grows beyond GitHub Pages.
 
----
+## Spotify Setup
 
-## Setup
+1. Create an app in the Spotify Developer Dashboard.
+2. Add redirect URI: `https://stonerhand.github.io/WashList/`.
+3. Keep the public client id in `js/landing-auth.js`.
+4. Use the app through **Connect Spotify**.
 
-1. Go to [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) — create an app
-2. Set Redirect URI: `https://stonerhand.github.io/WashList/`
-3. Hit **Connect Spotify** — no Client ID needed
+Current scopes are minimized to playlist/library read-write and private profile product information. Email is not requested.
 
----
+## Local Development
 
-## Tech
+```bash
+python3 -m http.server 4173
+```
 
-Single `index.html` · Vanilla JS · D3.js · Spotify Web API · PKCE OAuth · No backend · No tracking
+Open:
 
----
+- `http://127.0.0.1:4173/index.html`
+- `http://127.0.0.1:4173/app.html`
 
-made by [StonerHand](https://github.com/StonerHand)
+## Static QA
+
+```bash
+node tools/qa-check.mjs
+node --check js/landing-auth.js
+node --check js/washlist-app.js
+```
+
+## QA Checklist
+
+- Landing opens in light/dark theme without console errors.
+- Language switcher updates landing preview, marquee, and app UI.
+- App without auth shows a connect state, not demo data.
+- `#library`, `#duplicates`, `#compare`, `#overlap`, `#graph`, `#history`, and `#settings` deep links select the correct app section.
+- Search is debounced and does not cause visible lag.
+- Duplicate removal disables repeated clicks and removes the track from local results after Spotify confirms.
+- Logout clears session-scoped Spotify credentials and returns to the connect state.
+
+See [docs/i18n.md](docs/i18n.md) and [docs/security.md](docs/security.md) for localization and hardening notes.
+
+## Limitations
+
+- GitHub Pages cannot set full HTTP security headers. Use Cloudflare Pages, Netlify, Vercel, or a backend edge layer for production-grade headers.
+- A pure frontend Spotify app cannot use HttpOnly cookies for the access token. For enterprise production, move OAuth/token exchange to a backend.
+
+## Author
+
+Made by [StonerHand](https://github.com/StonerHand).

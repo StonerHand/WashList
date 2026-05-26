@@ -8,7 +8,6 @@
     'user-library-read',
     'user-library-modify',
     'user-read-private',
-    'user-read-email',
   ].join(' ');
   const TOKEN_KEY = 'wl_t';
   const EXPIRES_KEY = 'wl_e';
@@ -65,6 +64,28 @@
     } catch {}
   }
 
+  function readAuthItem(key) {
+    try {
+      return sessionStorage.getItem(key) || localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+
+  function writeAuthItem(key, value) {
+    try {
+      sessionStorage.setItem(key, value);
+      localStorage.removeItem(key);
+    } catch {
+      try { localStorage.setItem(key, value); } catch {}
+    }
+  }
+
+  function removeAuthItem(key) {
+    try { sessionStorage.removeItem(key); } catch {}
+    try { localStorage.removeItem(key); } catch {}
+  }
+
   function goToApp(url = 'app.html') {
     ensureTransitionLayer();
     rememberTransition();
@@ -114,8 +135,8 @@
     const verifier = await makeVerifier();
     const challenge = await makeChallenge(verifier);
     const state = crypto.randomUUID();
-    localStorage.setItem(VERIFIER_KEY, verifier);
-    localStorage.setItem(STATE_KEY, state);
+    writeAuthItem(VERIFIER_KEY, verifier);
+    writeAuthItem(STATE_KEY, state);
 
     const params = new URLSearchParams({
       response_type: 'code',
@@ -139,18 +160,22 @@
 
     if (error) {
       history.replaceState({}, '', REDIRECT_URI);
+      removeAuthItem(VERIFIER_KEY);
+      removeAuthItem(STATE_KEY);
       status('Spotify connection was cancelled.', 'warn');
       return;
     }
 
-    const expectedState = localStorage.getItem(STATE_KEY);
-    if (expectedState && params.get('state') !== expectedState) {
+    const expectedState = readAuthItem(STATE_KEY);
+    if (!expectedState || params.get('state') !== expectedState) {
       history.replaceState({}, '', REDIRECT_URI);
+      removeAuthItem(VERIFIER_KEY);
+      removeAuthItem(STATE_KEY);
       status('Spotify returned an invalid state. Try connecting again.', 'error');
       return;
     }
 
-    const verifier = localStorage.getItem(VERIFIER_KEY);
+    const verifier = readAuthItem(VERIFIER_KEY);
     if (!verifier) {
       history.replaceState({}, '', REDIRECT_URI);
       status('Auth session expired. Try connecting again.', 'error');
@@ -173,14 +198,14 @@
       });
       if (!response.ok) throw new Error(await response.text());
       const data = await response.json();
-      localStorage.setItem(TOKEN_KEY, data.access_token);
-      localStorage.setItem(EXPIRES_KEY, String(Date.now() + data.expires_in * 1000));
-      localStorage.removeItem(VERIFIER_KEY);
-      localStorage.removeItem(STATE_KEY);
+      writeAuthItem(TOKEN_KEY, data.access_token);
+      writeAuthItem(EXPIRES_KEY, String(Date.now() + data.expires_in * 1000));
+      removeAuthItem(VERIFIER_KEY);
+      removeAuthItem(STATE_KEY);
       rememberTransition();
       location.replace('app.html');
     } catch (error) {
-      console.warn('Spotify auth failed', error);
+      console.warn('Spotify auth failed', error?.message || error);
       history.replaceState({}, '', REDIRECT_URI);
       status('Could not connect Spotify. Please try again.', 'error');
     }

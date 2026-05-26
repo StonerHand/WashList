@@ -320,7 +320,19 @@
     scanMode: 'balanced',
     scanning: false,
     currentTab: 'tLib',
+    pendingRemovals: new Set(),
   };
+
+  const TAB_HASHES = {
+    tLib: 'library',
+    tDup: 'duplicates',
+    tCmp: 'compare',
+    tOv: 'overlap',
+    tGph: 'graph',
+    tHist: 'history',
+    tSettings: 'settings',
+  };
+  const HASH_TABS = Object.fromEntries(Object.entries(TAB_HASHES).map(([id, hash]) => [hash, id]));
 
   function t(key, vars = {}) {
     const dict = I18N[state.lang] || I18N.en;
@@ -372,6 +384,32 @@
     } catch {
       return fallback;
     }
+  }
+
+  function readAuthItem(key) {
+    return safeStorage(() => sessionStorage.getItem(key) || localStorage.getItem(key));
+  }
+
+  function writeAuthItem(key, value) {
+    try {
+      sessionStorage.setItem(key, value);
+      localStorage.removeItem(key);
+    } catch {
+      try { localStorage.setItem(key, value); } catch {}
+    }
+  }
+
+  function removeAuthItem(key) {
+    safeStorage(() => sessionStorage.removeItem(key));
+    safeStorage(() => localStorage.removeItem(key));
+  }
+
+  function debounce(fn, delay = 140) {
+    let timer = 0;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = window.setTimeout(() => fn(...args), delay);
+    };
   }
 
   function applyI18n() {
@@ -471,12 +509,16 @@
   }
 
   function chkToken() {
-    const token = localStorage.getItem(TOKEN_KEY);
-    const expires = parseInt(localStorage.getItem(EXPIRES_KEY) || '0', 10);
+    const token = readAuthItem(TOKEN_KEY);
+    const expires = parseInt(readAuthItem(EXPIRES_KEY) || '0', 10);
     if (token && expires > Date.now() + 60000) {
       state.accessToken = token;
+      writeAuthItem(TOKEN_KEY, token);
+      writeAuthItem(EXPIRES_KEY, String(expires));
       return true;
     }
+    removeAuthItem(TOKEN_KEY);
+    removeAuthItem(EXPIRES_KEY);
     return false;
   }
 
@@ -501,8 +543,9 @@
           continue;
         }
         if (response.status === 401) {
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(EXPIRES_KEY);
+          removeAuthItem(TOKEN_KEY);
+          removeAuthItem(EXPIRES_KEY);
+          state.accessToken = null;
           throw new Error('401');
         }
         if (!response.ok) throw new Error(String(response.status));
@@ -544,7 +587,7 @@
       document.getElementById('uPlan').textContent = me.product || 'spotify';
       await loadPlaylists();
     } catch (error) {
-      console.warn('init failed', error);
+      console.warn('init failed', error?.message || error);
       toast(t('toast.loadErr'), 'err');
       showSignedOut();
     } finally {
@@ -596,14 +639,30 @@
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  function switchTab(id) {
+  function tabFromHash() {
+    const hash = location.hash.replace(/^#/, '');
+    return HASH_TABS[hash] || 'tLib';
+  }
+
+  function syncTabHash(id, replace = false) {
+    const hash = TAB_HASHES[id] || TAB_HASHES.tLib;
+    const next = `${location.pathname}${location.search}#${hash}`;
+    if (location.hash === `#${hash}`) return;
+    if (replace) history.replaceState({ tab: id }, '', next);
+    else history.pushState({ tab: id }, '', next);
+  }
+
+  function switchTab(id, options = {}) {
+    if (!TAB_HASHES[id]) id = 'tLib';
     state.currentTab = id;
     document.querySelectorAll('.tb').forEach((panel) => panel.classList.toggle('on', panel.id === id));
     document.querySelectorAll('.atab').forEach((button) => {
       const active = button.dataset.tabTarget === id;
       button.classList.toggle('active', active);
       button.setAttribute('aria-selected', String(active));
+      button.setAttribute('aria-current', active ? 'page' : 'false');
     });
+    if (options.updateHash !== false) syncTabHash(id, !!options.replaceHash);
     updateCrumb();
     if (id === 'tDup') renderAllDuplicates();
     if (id === 'tHist') renderHistory();
@@ -788,6 +847,11 @@
   async function scanPlaylist(id, options = {}) {
     const playlist = state.playlists.find((item) => item.id === id);
     if (!playlist) return;
+    if (state.playlistData[id]?.status === 'scanning') return;
+    if (!state.accessToken) {
+      toast(t('auth.required'), 'inf');
+      return;
+    }
     state.playlistData[id] = { status: 'scanning', prog: 0, dc: 0, rc: 0 };
     renderPlaylists();
     setScanHeader(`${t('scan.live')}: ${playlist.name}`, 2);
@@ -800,7 +864,7 @@
       state.playlistData[id] = { status: 'done', tracks, tc: tracks.length, ...result };
       setScanHeader(t('scan.done'), 100);
     } catch (error) {
-      console.warn('scan failed', error);
+      console.warn('scan failed', error?.message || error);
       state.playlistData[id] = { status: 'error', err: error.message };
       if (!options.quiet) toast(t('toast.scanErr', { playlist: playlist.name }), 'err');
     }
@@ -1220,6 +1284,10 @@
       toast(t('dup.dry'), 'inf');
       return;
     }
+    const removalKey = `${playlist.id}:${instances.map((inst) => Number(inst.pos)).filter(Number.isFinite).sort((a, b) => a - b).join(',')}`;
+    if (state.pendingRemovals.has(removalKey)) return;
+    state.pendingRemovals.add(removalKey);
+    let removed = false;
     try {
       if (!state.accessToken) {
         toast(t('auth.required'), 'inf');
@@ -1246,6 +1314,7 @@
         }
       }
       applyLocalRemoval(playlist.id, instances);
+      removed = true;
       addHistory({ date: new Date().toISOString(), playlist: playlist.name, removed: instances.length, kept: state.playlistData[playlist.id]?.tc || 0, mode: state.scanMode });
       if (!options.quiet) toast(t('toast.removed', { count: instances.length, playlist: playlist.name }), 'ok');
       if (!options.quiet) {
@@ -1254,8 +1323,11 @@
         }, 1800);
       }
     } catch (error) {
-      console.warn('remove failed', error);
+      console.warn('remove failed', error?.message || error);
       toast(t('toast.apiErr'), 'err');
+    } finally {
+      state.pendingRemovals.delete(removalKey);
+      if (!removed) renderAll();
     }
   }
 
@@ -1527,6 +1599,7 @@
     document.querySelectorAll('[data-tab-target]').forEach((button) => {
       button.addEventListener('click', () => switchTab(button.dataset.tabTarget));
     });
+    window.addEventListener('popstate', () => switchTab(tabFromHash(), { updateHash: false }));
     document.getElementById('scanAllBtn')?.addEventListener('click', scanAll);
     document.getElementById('reloadBtn')?.addEventListener('click', () => state.accessToken ? loadPlaylists().catch(() => toast(t('toast.loadErr'), 'err')) : showSignedOut());
     document.getElementById('runCmpBtn')?.addEventListener('click', runCompare);
@@ -1540,13 +1613,13 @@
       renderHistory();
     });
     document.getElementById('logoutBtn')?.addEventListener('click', () => {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(EXPIRES_KEY);
+      removeAuthItem(TOKEN_KEY);
+      removeAuthItem(EXPIRES_KEY);
       state.accessToken = null;
       showSignedOut();
       toast(t('toast.out'), 'inf');
     });
-    document.getElementById('srch')?.addEventListener('input', renderPlaylists);
+    document.getElementById('srch')?.addEventListener('input', debounce(renderPlaylists, 120));
     document.getElementById('focusSearch')?.addEventListener('click', () => {
       switchTab('tLib');
       document.getElementById('srch')?.focus();
@@ -1664,6 +1737,7 @@
     initScanWave();
     bootBackground();
     playWorkspaceEntry();
+    switchTab(tabFromHash(), { updateHash: false });
 
     const params = new URLSearchParams(location.search);
     if (params.get('connect') === '1') {

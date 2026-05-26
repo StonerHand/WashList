@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>WashList — Wash your playlists clean.</title>
 <meta name="description" content="Music intelligence for Spotify. Find duplicates, surface lost versions, keep your library honest">
+<meta name="robots" content="index,follow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; connect-src 'self' https://accounts.spotify.com https://api.spotify.com; img-src 'self' https: data:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline'; upgrade-insecure-requests">
+<link rel="canonical" href="https://stonerhand.github.io/WashList/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="WashList — Spotify library cleaner">
+<meta property="og:description" content="Find real Spotify duplicates, keep versions visible, and remove exact copies safely.">
+<meta property="og:url" content="https://stonerhand.github.io/WashList/">
+<meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -811,7 +820,7 @@
 <footer class="foot">
   <div>© 2026 WashList — <span data-i18n="footer.tag">music intelligence</span></div>
   <div class="links">
-    <a href="https://github.com/StonerHand" target="_blank" rel="noopener" class="made-by">
+    <a href="https://github.com/StonerHand" target="_blank" rel="noopener noreferrer" class="made-by">
       <span data-i18n="footer.madeby">Made by</span>
       <b>StonerHand</b>
       <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 11l6-6M6 5h5v5"/></svg>
@@ -972,6 +981,38 @@
     { code: 'fr', flag: '🇫🇷', name: 'Français', short: 'FR' },
   ];
 
+  const HTML_I18N_TAGS = new Set(['B', 'EM', 'BR', 'SPAN']);
+  const HTML_I18N_CLASSES = new Set(['thin', 'accent']);
+
+  function safeI18nHtml(value) {
+    const template = document.createElement('template');
+    template.innerHTML = String(value ?? '');
+    template.content.querySelectorAll('*').forEach((node) => {
+      if (!HTML_I18N_TAGS.has(node.tagName)) {
+        node.replaceWith(document.createTextNode(node.textContent || ''));
+        return;
+      }
+      [...node.attributes].forEach((attr) => {
+        if (attr.name !== 'class') node.removeAttribute(attr.name);
+      });
+      if (node.hasAttribute('class')) {
+        const safeClasses = node.className.split(/\s+/).filter((name) => HTML_I18N_CLASSES.has(name));
+        if (safeClasses.length) node.className = safeClasses.join(' ');
+        else node.removeAttribute('class');
+      }
+    });
+    return template.innerHTML;
+  }
+
+  function escHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function applyLang(lang) {
     const dict = I18N[lang] || I18N.en;
     document.documentElement.lang = lang;
@@ -981,7 +1022,7 @@
     });
     document.querySelectorAll('[data-i18n-html]').forEach(el => {
       const k = el.getAttribute('data-i18n-html');
-      if (dict[k] != null) el.innerHTML = dict[k];
+      if (dict[k] != null) el.innerHTML = safeI18nHtml(dict[k]);
     });
     // Update trigger
     const cur = LANGS.find(l => l.code === lang) || LANGS[0];
@@ -1128,7 +1169,10 @@
     const mq = document.getElementById('marquee');
     if (!mq) return;
     const words = Array.isArray(dict['marquee.words']) ? dict['marquee.words'] : I18N.en['marquee.words'];
-    const html = words.map((w,i) => `<span class="marquee-item">${i%3===0?`<em>${w}</em>`:w}<span class="dot"></span></span>`).join('');
+    const html = words.map((w,i) => {
+      const word = escHtml(w);
+      return `<span class="marquee-item">${i%3===0?`<em>${word}</em>`:word}<span class="dot"></span></span>`;
+    }).join('');
     mq.innerHTML = html + html;
   }
   renderMarquee();

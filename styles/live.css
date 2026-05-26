@@ -87,6 +87,26 @@ button {
   box-shadow: 0 12px 28px -12px rgba(var(--accent-rgb), .66);
 }
 
+.btn-app:disabled,
+.chip:disabled,
+.toggle:disabled {
+  opacity: .56;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn-app:disabled:hover,
+.chip:disabled:hover {
+  background: var(--bg-2);
+  border-color: var(--line-2);
+}
+
+.btn-app.primary:disabled:hover {
+  background: var(--mint);
+  border-color: var(--mint);
+}
+
 .scan-bigboard {
   background:
     linear-gradient(180deg, rgba(var(--accent-rgb), .055), transparent),
@@ -715,6 +735,10 @@ body.app-entering .view {
   .counter-row {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .hist-row.live {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 700px) {
@@ -728,6 +752,12 @@ body.app-entering .view {
   .topbar-actions {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .topbar-cmd {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
   }
 
   .view {
@@ -763,5 +793,50 @@ body.app-entering .view {
 
   .search-input {
     min-width: 100%;
+  }
+
+  .btn-app,
+  .chip,
+  .select,
+  .input {
+    min-height: 42px;
+  }
+
+  .cluster-track.live {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .cluster-track .track-actions {
+    width: 100%;
+    justify-content: flex-start;
+    padding-left: 62px;
+  }
+
+  .cluster-actions {
+    align-items: stretch;
+  }
+
+  .cluster-actions .btn-app {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 460px) {
+  .side {
+    padding: 14px 10px;
+  }
+
+  .side-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar-actions .btn-app {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .cluster-track .track-actions {
+    padding-left: 0;
   }
 }
