@@ -10,6 +10,8 @@ WashList is a static frontend app that talks directly to Spotify. This keeps the
 - Spotify access token is session-scoped instead of long-lived local storage.
 - Logout clears token data from both session and legacy local storage.
 - Direct app entry without auth renders a connect gate instead of private data or broken controls.
+- OAuth uses a canonical directory redirect URI (`/WashList/`) to avoid `/index.html` mismatches in Spotify configuration.
+- If profile auth succeeds but playlist loading fails, the UI keeps the session visible and offers retry/sign-out instead of starting a second OAuth attempt.
 - User/API data is escaped before HTML rendering.
 - Landing HTML translations are sanitized to a small allowlist.
 - Duplicate removal is guarded against repeated clicks.
@@ -63,4 +65,5 @@ If inline scripts remain, use CSP nonces or hashes rather than broad `unsafe-inl
 - External links use `rel="noopener noreferrer"`.
 - Direct `app.html` without auth shows connect state, not private data.
 - `app.html?connect=1` preserves OAuth intent and redirects to the landing PKCE flow.
+- Spotify authorize requests use the same redirect URI configured in the Spotify dashboard.
 - Fast repeated clicks do not repeat destructive UI actions.

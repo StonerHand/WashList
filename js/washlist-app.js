@@ -4,7 +4,6 @@
   const HISTORY_KEY = 'wl_h';
   const LANG_KEY = 'washlist:lang';
   const THEME_KEY = 'washlist:theme';
-  const TRANSITION_KEY = 'washlist:app-transition';
 
   const LANGS = [
     { code: 'en', flag: '🇬🇧', name: 'English', short: 'EN', locale: 'en-GB' },
@@ -157,6 +156,9 @@
       'auth.sub': 'Connect your Spotify account to load playlists, album covers, comparison data and cleanup actions.',
       'auth.secure': 'Uses Spotify PKCE. The access token stays in this browser session.',
       'auth.connect': 'Connect Spotify',
+      'data.loadFailedTitle': 'Spotify is connected',
+      'data.loadFailedSub': 'Your profile is loaded, but playlists did not load. Retry the request or sign out and reconnect if Spotify keeps rejecting it.',
+      'data.retry': 'Retry loading',
       'toast.done': 'Scanning complete.',
       'toast.removed': 'Removed {count} from {playlist}.',
       'toast.loadErr': 'Could not load playlists. Try again.',
@@ -306,6 +308,9 @@
       'auth.sub': 'Подключи Spotify, чтобы загрузить плейлисты, обложки альбомов, сравнение и действия с дублями.',
       'auth.secure': 'Используем Spotify PKCE. Токен доступа хранится только в этой сессии браузера.',
       'auth.connect': 'Подключить Spotify',
+      'data.loadFailedTitle': 'Spotify подключен',
+      'data.loadFailedSub': 'Профиль загрузился, но плейлисты не пришли. Повтори загрузку или выйди и подключись заново, если Spotify снова отклонит запрос.',
+      'data.retry': 'Повторить загрузку',
       'toast.done': 'Сканирование завершено.',
       'toast.removed': 'Удалено {count} из {playlist}.',
       'toast.loadErr': 'Не удалось загрузить плейлисты. Попробуй еще раз.',
@@ -326,6 +331,7 @@
     scanning: false,
     currentTab: 'tLib',
     pendingRemovals: new Set(),
+    loadError: false,
   };
 
   const TAB_HASHES = {
@@ -580,29 +586,53 @@
 
   async function initApp() {
     showSignedIn();
-    document.getElementById('authMode').textContent = 'live';
     setLoading(true);
     try {
       const me = await spotify('https://api.spotify.com/v1/me');
-      const avatar = document.getElementById('uAv');
-      if (me.images?.[0]?.url) {
-        avatar.innerHTML = `<img src="${attr(me.images[0].url)}" alt="">`;
-      } else {
-        avatar.textContent = (me.display_name || 'W')[0].toUpperCase();
-      }
-      document.getElementById('uName').textContent = me.display_name || 'Spotify user';
-      document.getElementById('uPlan').textContent = me.product || 'spotify';
+      renderProfile(me);
+    } catch {
+      toast(t('toast.apiErr'), 'err');
+      showSignedOut();
+      setLoading(false);
+      return;
+    }
+
+    try {
       await loadPlaylists();
     } catch {
+      if (!state.accessToken) {
+        showSignedOut();
+        toast(t('toast.apiErr'), 'err');
+        return;
+      }
+      state.loadError = true;
+      state.playlists = [];
+      state.playlistData = {};
+      renderAll();
+      populateCompare();
       toast(t('toast.loadErr'), 'err');
-      showSignedOut();
     } finally {
       setLoading(false);
     }
   }
 
+  function renderProfile(me) {
+    const avatar = document.getElementById('uAv');
+    if (avatar) {
+      if (me.images?.[0]?.url) {
+        avatar.innerHTML = `<img src="${attr(me.images[0].url)}" alt="">`;
+      } else {
+        avatar.textContent = (me.display_name || 'S')[0].toUpperCase();
+      }
+    }
+    setText('uName', me.display_name || 'Spotify user');
+    setText('uPlan', me.product || 'spotify');
+    showSignedIn();
+  }
+
   async function loadPlaylists() {
     setLoading(true);
+    state.loadError = false;
     const items = await pages('https://api.spotify.com/v1/me/playlists?limit=50');
     state.playlists = [
       { id: 'liked', name: 'Liked Songs', images: [], tracks: { total: 0 }, isLiked: true },
@@ -626,6 +656,7 @@
     state.accessToken = null;
     state.playlists = [];
     state.playlistData = {};
+    state.loadError = false;
     document.body.classList.add('signed-out');
     setText('authMode', 'offline');
     setText('uAv', 'W');
@@ -637,8 +668,17 @@
     renderAll();
   }
 
+  function signOut() {
+    removeAuthItem(TOKEN_KEY);
+    removeAuthItem(EXPIRES_KEY);
+    state.accessToken = null;
+    showSignedOut();
+    toast(t('toast.out'), 'inf');
+  }
+
   function showSignedIn() {
     document.body.classList.remove('signed-out');
+    setText('authMode', 'live');
     updateAuthButton();
   }
 
@@ -648,6 +688,24 @@
 
   function goToConnect() {
     location.href = 'index.html?connect=1';
+  }
+
+  async function retryLoadPlaylists() {
+    if (!state.accessToken) {
+      showSignedOut();
+      return;
+    }
+    try {
+      await loadPlaylists();
+      toast(t('toast.done'), 'ok');
+    } catch {
+      state.loadError = true;
+      renderAll();
+      populateCompare();
+      toast(t('toast.loadErr'), 'err');
+    } finally {
+      setLoading(false);
+    }
   }
 
   function authRequiredMarkup() {
@@ -660,6 +718,23 @@
           <small>${t('auth.secure')}</small>
         </div>
         <a class="btn-app primary" href="index.html?connect=1">${t('auth.connect')}</a>
+      </div>
+    `;
+  }
+
+  function loadErrorMarkup() {
+    return `
+      <div class="auth-gate data-gate">
+        <div class="auth-gate-mark" aria-hidden="true">!</div>
+        <div class="auth-gate-copy">
+          <h3>${t('data.loadFailedTitle')}</h3>
+          <p>${t('data.loadFailedSub')}</p>
+          <small>${t('auth.secure')}</small>
+        </div>
+        <div class="auth-gate-actions">
+          <button class="btn-app primary" type="button" data-retry-load>${t('data.retry')}</button>
+          <button class="btn-app ghost" type="button" data-sign-out>${t('top.logout')}</button>
+        </div>
       </div>
     `;
   }
@@ -699,6 +774,7 @@
     });
     if (options.updateHash !== false) syncTabHash(id, !!options.replaceHash);
     updateCrumb();
+    if (options.preserveScroll !== true) window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     if (id === 'tDup') renderAllDuplicates();
     if (id === 'tHist') renderHistory();
     if (id === 'tOv') renderOverlap();
@@ -790,6 +866,10 @@
       root.innerHTML = `
         ${authRequiredMarkup()}
       `;
+      return;
+    }
+    if (state.accessToken && state.loadError && !state.playlists.length) {
+      root.innerHTML = loadErrorMarkup();
       return;
     }
     const search = (document.getElementById('srch')?.value || '').toLowerCase();
@@ -1212,6 +1292,10 @@
       root.innerHTML = authRequiredMarkup();
       return;
     }
+    if (state.accessToken && state.loadError && !state.playlists.length) {
+      root.innerHTML = loadErrorMarkup();
+      return;
+    }
     const groups = collectDuplicateGroups().filter((entry) => state.dupFilter === 'all' || entry.group.type === state.dupFilter);
     if (!groups.length) {
       root.innerHTML = `<div class="empty"><h3>${t('state.empty')}</h3><p>${t('dup.sub')}</p></div>`;
@@ -1392,16 +1476,22 @@
       select.disabled = !state.playlists.length;
       select.innerHTML = state.playlists.length
         ? state.playlists.map((playlist) => `<option value="${attr(playlist.id)}">${esc(playlist.name)}</option>`).join('')
-        : `<option value="">${esc(t('auth.required'))}</option>`;
+        : `<option value="">${esc(t(state.accessToken ? 'data.loadFailedTitle' : 'auth.required'))}</option>`;
       if (previous && state.playlists.some((playlist) => playlist.id === previous)) select.value = previous;
     });
     if (!state.accessToken && !state.playlists.length) renderCompareGate();
+    if (state.accessToken && state.loadError && !state.playlists.length) renderCompareGate();
   }
 
   function runCompare() {
     if (!state.accessToken) {
       renderCompareGate();
       toast(t('auth.required'), 'inf');
+      return;
+    }
+    if (state.loadError && !state.playlists.length) {
+      renderCompareGate();
+      toast(t('toast.loadErr'), 'err');
       return;
     }
     const leftId = document.getElementById('cmpL')?.value;
@@ -1430,11 +1520,11 @@
     setText('cmpN', '0');
     setText('cmpLF', 'A');
     setText('cmpRF', 'B');
-    const markup = authRequiredMarkup();
+    const markup = state.accessToken ? loadErrorMarkup() : authRequiredMarkup();
     const left = document.getElementById('cmpLL');
     const right = document.getElementById('cmpRL');
     if (left) left.innerHTML = markup;
-    if (right) right.innerHTML = `<div class="empty"><h3>${t('state.empty')}</h3><p>${t('auth.required')}</p></div>`;
+    if (right) right.innerHTML = `<div class="empty"><h3>${t('state.empty')}</h3><p>${t(state.accessToken ? 'data.loadFailedSub' : 'auth.required')}</p></div>`;
   }
 
   function renderTrackRows(map, sharedSet, root) {
@@ -1460,6 +1550,10 @@
     if (!root) return;
     if (!state.accessToken && !state.playlists.length) {
       root.innerHTML = authRequiredMarkup();
+      return;
+    }
+    if (state.accessToken && state.loadError && !state.playlists.length) {
+      root.innerHTML = loadErrorMarkup();
       return;
     }
     const min = parseInt(document.getElementById('ovMin')?.value || '3', 10);
@@ -1497,6 +1591,10 @@
     svg.innerHTML = '';
     if (!state.accessToken && !state.playlists.length) {
       if (status) status.textContent = t('auth.required');
+      return;
+    }
+    if (state.accessToken && state.loadError && !state.playlists.length) {
+      if (status) status.textContent = t('data.loadFailedSub');
       return;
     }
     const scanned = state.playlists.filter((playlist) => state.playlistData[playlist.id]?.tracks?.length);
@@ -1556,6 +1654,10 @@
     if (!root) return;
     if (!state.accessToken && !state.playlists.length) {
       root.innerHTML = authRequiredMarkup();
+      return;
+    }
+    if (state.accessToken && state.loadError && !state.playlists.length) {
+      root.innerHTML = loadErrorMarkup();
       return;
     }
     const history = getHistory();
@@ -1681,7 +1783,7 @@
     });
     window.addEventListener('popstate', () => switchTab(tabFromHash(), { updateHash: false }));
     document.getElementById('scanAllBtn')?.addEventListener('click', scanAll);
-    document.getElementById('reloadBtn')?.addEventListener('click', () => state.accessToken ? loadPlaylists().catch(() => toast(t('toast.loadErr'), 'err')) : showSignedOut());
+    document.getElementById('reloadBtn')?.addEventListener('click', () => state.accessToken ? retryLoadPlaylists() : showSignedOut());
     document.getElementById('runCmpBtn')?.addEventListener('click', runCompare);
     document.getElementById('runOvBtn')?.addEventListener('click', renderOverlap);
     document.getElementById('buildGraphBtn')?.addEventListener('click', renderGraph);
@@ -1697,11 +1799,7 @@
         goToConnect();
         return;
       }
-      removeAuthItem(TOKEN_KEY);
-      removeAuthItem(EXPIRES_KEY);
-      state.accessToken = null;
-      showSignedOut();
-      toast(t('toast.out'), 'inf');
+      signOut();
     });
     document.getElementById('srch')?.addEventListener('input', debounce(renderPlaylists, 120));
     document.getElementById('focusSearch')?.addEventListener('click', () => {
@@ -1745,6 +1843,8 @@
       const openDupes = event.target.closest('[data-open-dupes]');
       const removeGroup = event.target.closest('[data-remove-cluster]');
       const removeOneButton = event.target.closest('[data-remove-one]');
+      const retryLoad = event.target.closest('[data-retry-load]');
+      const signOutButton = event.target.closest('[data-sign-out]');
       if (scan) scanPlaylist(scan.dataset.scan);
       if (openDupes) {
         state.dupFilter = 'all';
@@ -1753,6 +1853,8 @@
       }
       if (removeGroup) removeCluster(removeGroup.dataset.removeCluster, removeGroup.dataset.group);
       if (removeOneButton) removeOne(removeOneButton.dataset.removeOne, Number(removeOneButton.dataset.pos));
+      if (retryLoad) retryLoadPlaylists();
+      if (signOutButton) signOut();
     });
   }
 
@@ -1785,42 +1887,14 @@
     }
   }
 
-  function playWorkspaceEntry() {
-    let shouldPlay = false;
-    try {
-      shouldPlay = sessionStorage.getItem(TRANSITION_KEY) === '1';
-      sessionStorage.removeItem(TRANSITION_KEY);
-    } catch {}
-    if (!shouldPlay) return;
-
-    const layer = document.createElement('div');
-    layer.className = 'workspace-transition';
-    layer.setAttribute('aria-hidden', 'true');
-    layer.innerHTML = `
-      <div class="workspace-transition-card">
-        <span class="workspace-transition-mark">•</span>
-        <span class="workspace-transition-copy">
-          <b>WashList</b>
-          <span>workspace ready</span>
-        </span>
-      </div>
-    `;
-    document.body.appendChild(layer);
-    document.body.classList.add('app-entering');
-    setTimeout(() => {
-      document.body.classList.remove('app-entering');
-      layer.remove();
-    }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 80 : 900);
-  }
-
   document.addEventListener('DOMContentLoaded', () => {
+    try { history.scrollRestoration = 'manual'; } catch {}
     initTheme();
     initLangDropdown();
     applyI18n();
     bindEvents();
     initScanWave();
     bootBackground();
-    playWorkspaceEntry();
     switchTab(tabFromHash(), { updateHash: false });
 
     const params = new URLSearchParams(location.search);

@@ -297,6 +297,14 @@ body.signed-out #logoutBtn {
   letter-spacing: .04em;
 }
 
+.auth-gate-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .compare-col .auth-gate {
   grid-template-columns: 1fr;
   align-items: start;
@@ -305,6 +313,11 @@ body.signed-out #logoutBtn {
 .compare-col .auth-gate .btn-app {
   width: 100%;
   justify-content: center;
+}
+
+.compare-col .auth-gate-actions {
+  width: 100%;
+  justify-content: stretch;
 }
 
 .compare-col .auth-gate-copy p {
@@ -652,111 +665,6 @@ body.signed-out #logoutBtn {
   background: var(--mint);
 }
 
-.workspace-transition {
-  position: fixed;
-  inset: 0;
-  z-index: 480;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-  opacity: 0;
-  background:
-    radial-gradient(circle at 50% 48%, rgba(var(--accent-rgb), .24), transparent 34%),
-    rgba(10, 12, 16, .74);
-  backdrop-filter: blur(18px);
-}
-
-.workspace-transition-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  border: 1px solid var(--mint-brd);
-  border-radius: 16px;
-  background: rgba(20, 24, 31, .78);
-  color: var(--ink);
-  box-shadow: var(--mint-glow), var(--shadow-3);
-}
-
-.workspace-transition-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  display: grid;
-  place-items: center;
-  color: var(--accent-ink);
-  background: linear-gradient(135deg, var(--mint), var(--mint-2));
-  box-shadow: 0 0 34px rgba(var(--accent-rgb), .44);
-}
-
-.workspace-transition-copy {
-  display: grid;
-  gap: 2px;
-}
-
-.workspace-transition-copy b {
-  font-size: 14px;
-}
-
-.workspace-transition-copy span {
-  font-family: var(--f-mono);
-  font-size: 10px;
-  color: var(--ink-3);
-  letter-spacing: .10em;
-  text-transform: uppercase;
-}
-
-body.app-entering {
-  overflow: hidden;
-}
-
-body.app-entering .workspace-transition {
-  animation: workspaceOverlay 760ms var(--ease-out) forwards;
-}
-
-body.app-entering .workspace-transition-card {
-  animation: workspaceCard 680ms var(--ease-out) forwards;
-}
-
-body.app-entering .side {
-  animation: sideIn 720ms var(--ease-out) 120ms both;
-}
-
-body.app-entering .topbar {
-  animation: topbarIn 620ms var(--ease-out) 180ms both;
-}
-
-body.app-entering .view {
-  animation: workspaceIn 760ms var(--ease-out) 220ms both;
-}
-
-@keyframes workspaceOverlay {
-  0% { opacity: 1; }
-  58% { opacity: .86; }
-  100% { opacity: 0; visibility: hidden; }
-}
-
-@keyframes workspaceCard {
-  0% { opacity: 1; transform: scale(.98) translateY(10px); filter: blur(4px); }
-  46% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
-  100% { opacity: 0; transform: scale(1.03) translateY(-10px); filter: blur(8px); }
-}
-
-@keyframes workspaceIn {
-  from { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(10px); }
-  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-}
-
-@keyframes sideIn {
-  from { opacity: 0; transform: translateX(-18px); filter: blur(10px); }
-  to { opacity: 1; transform: translateX(0); filter: blur(0); }
-}
-
-@keyframes topbarIn {
-  from { opacity: 0; transform: translateY(-12px); filter: blur(8px); }
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
-}
-
 @keyframes rowIn {
   from {
     opacity: 0;
@@ -893,6 +801,14 @@ body.app-entering .view {
 
   .auth-gate .btn-app {
     justify-content: center;
+  }
+
+  .auth-gate-actions {
+    justify-content: stretch;
+  }
+
+  .auth-gate-actions .btn-app {
+    flex: 1 1 100%;
   }
 
   .cluster-track .track-actions {

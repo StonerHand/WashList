@@ -13,8 +13,7 @@
   const EXPIRES_KEY = 'wl_e';
   const VERIFIER_KEY = 'wl_v';
   const STATE_KEY = 'wl_state';
-  const TRANSITION_KEY = 'washlist:app-transition';
-  const REDIRECT_URI = location.href.split('?')[0].split('#')[0];
+  const REDIRECT_URI = canonicalRedirectUri();
 
   const style = document.createElement('style');
   style.textContent = `
@@ -39,29 +38,11 @@
   `;
   document.head.appendChild(style);
 
-  function ensureTransitionLayer() {
-    let layer = document.querySelector('.route-transition');
-    if (layer) return layer;
-    layer = document.createElement('div');
-    layer.className = 'route-transition';
-    layer.setAttribute('aria-hidden', 'true');
-    layer.innerHTML = `
-      <div class="route-transition-card">
-        <span class="route-transition-mark">•</span>
-        <span class="route-transition-copy">
-          <b>WashList</b>
-          <span>opening workspace</span>
-        </span>
-      </div>
-    `;
-    document.body.appendChild(layer);
-    return layer;
-  }
-
-  function rememberTransition() {
-    try {
-      sessionStorage.setItem(TRANSITION_KEY, '1');
-    } catch {}
+  function canonicalRedirectUri() {
+    const path = location.pathname.endsWith('/')
+      ? location.pathname
+      : location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
+    return `${location.origin}${path || '/'}`;
   }
 
   function readAuthItem(key) {
@@ -87,17 +68,10 @@
   }
 
   function goToApp(url = 'app.html') {
-    ensureTransitionLayer();
-    rememberTransition();
-    document.body.classList.add('is-entering-app');
-    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 30 : 420;
-    setTimeout(() => {
-      location.href = url;
-    }, delay);
+    location.href = url;
   }
 
   function resetTransitionState(clearStatus = false) {
-    document.body.classList.remove('is-entering-app');
     if (clearStatus) document.querySelectorAll('.auth-status').forEach((el) => el.remove());
   }
 
@@ -132,6 +106,13 @@
   }
 
   async function startAuth() {
+    const existingToken = readAuthItem(TOKEN_KEY);
+    const expires = parseInt(readAuthItem(EXPIRES_KEY) || '0', 10);
+    if (existingToken && expires > Date.now() + 60000) {
+      goToApp('app.html');
+      return;
+    }
+
     const verifier = await makeVerifier();
     const challenge = await makeChallenge(verifier);
     const state = crypto.randomUUID();
@@ -202,7 +183,6 @@
       writeAuthItem(EXPIRES_KEY, String(Date.now() + data.expires_in * 1000));
       removeAuthItem(VERIFIER_KEY);
       removeAuthItem(STATE_KEY);
-      rememberTransition();
       location.replace('app.html');
     } catch {
       history.replaceState({}, '', REDIRECT_URI);
@@ -212,7 +192,6 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    ensureTransitionLayer();
     const params = new URLSearchParams(location.search);
     handleCallback().then((handled) => {
       if (!handled && params.get('connect') === '1') {
@@ -236,7 +215,7 @@
   });
 
   window.addEventListener('pageshow', (event) => {
-    if (event.persisted || document.body.classList.contains('is-entering-app')) {
+    if (event.persisted) {
       resetTransitionState(true);
     }
   });

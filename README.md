@@ -53,19 +53,21 @@ Screens intentionally include the signed-out app state: users should always see 
 
 | Area | Status |
 | --- | --- |
-| Spotify auth | `index.html?connect=1` starts PKCE immediately. `app.html?connect=1` preserves that intent and redirects to the landing auth flow. |
+| Spotify auth | `index.html?connect=1` starts PKCE immediately with the canonical directory redirect URL. `app.html?connect=1` preserves that intent and redirects to the landing auth flow. |
 | Signed-out UX | Internal app routes show a clear Spotify connect gate instead of looking broken or empty. |
+| Connected error UX | If Spotify profile loads but playlists fail, WashList keeps the user signed in and shows retry/sign-out actions instead of a fake connect prompt. |
 | Compare view | Playlist comparison renders album artwork, track title, artist, duration, and shared-match state. |
 | Duplicate safety | Metadata groups require close duration or explicit version evidence. Artist-only matches are never duplicates. |
 | Static deployment | CSS/JS references include cache-busting query strings so GitHub Pages serves the current app after deploy. |
-| Regression checks | `tools/qa-check.mjs` covers auth route intent, auth-gate UI, compare artwork, cache busting, token storage, and duplicate guards. |
+| Motion | Heavy cross-page blur/overlay transitions were removed; only local microinteractions remain. |
+| Regression checks | `tools/qa-check.mjs` covers canonical OAuth redirect, auth route intent, connected load failures, auth-gate UI, compare artwork, cache busting, token storage, and duplicate guards. |
 
 ## Product Tour
 
 <details open>
 <summary><b>1. Connect</b> · Spotify PKCE without a backend</summary>
 
-The landing page keeps the product promise focused: connect Spotify, scan playlists, review duplicates. Direct app entry shows a connect gate, and `?connect=1` starts the Spotify flow instead of dropping users into an empty workspace.
+The landing page keeps the product promise focused: connect Spotify, scan playlists, review duplicates. Direct app entry shows a connect gate, `?connect=1` starts the Spotify flow, and valid existing sessions go straight to the workspace instead of opening Spotify again.
 </details>
 
 <details open>
@@ -151,7 +153,6 @@ js/waveform-bg.js                  Canvas waveform background
 styles/tokens.css                  Shared design tokens and theme variables
 styles/app.css                     Core app components
 styles/live.css                    Data-connected states and responsive layer
-styles/landing-transition.css      Landing-to-app transition styles
 docs/i18n.md                       Localization workflow and glossary
 docs/security.md                   Security report and production hardening notes
 tools/qa-check.mjs                 Static regression checks
@@ -236,7 +237,7 @@ Open:
 
 1. Create an app in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
 2. Add redirect URI: `https://stonerhand.github.io/WashList/`.
-3. For local OAuth testing, also add `http://127.0.0.1:4173/index.html`.
+3. For local OAuth testing, also add `http://127.0.0.1:4173/`.
 4. Keep the public client id in [js/landing-auth.js](./js/landing-auth.js).
 5. Open the site and click **Connect Spotify**.
 
@@ -260,6 +261,8 @@ Manual smoke checklist:
 - Language switcher updates the product preview and marquee.
 - App without auth shows a localized Spotify connect gate, not demo data.
 - `app.html?connect=1` redirects to `index.html?connect=1` and starts the PKCE flow.
+- Spotify authorize URL uses the canonical directory redirect URI, not `/index.html`.
+- If `/v1/me` works but playlist loading fails, the app keeps the user visible and shows retry/sign-out actions.
 - `#library`, `#duplicates`, `#compare`, `#overlap`, `#graph`, `#history`, `#settings` deep links select the right section.
 - Compare rows show album artwork and do not collapse to text-only lists.
 - Search is debounced and does not visibly lag.
