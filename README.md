@@ -43,9 +43,35 @@ It scans playlists, builds normalized track fingerprints, explains why items are
 
 ## Screens
 
-| Landing | App shell |
-| --- | --- |
-| <img src="./docs/assets/washlist-landing.jpg" alt="WashList landing page screenshot" width="100%"> | <img src="./docs/assets/washlist-app.jpg" alt="WashList app shell screenshot" width="100%"> |
+| Landing | App shell | Mobile |
+| --- | --- | --- |
+| <img src="./docs/assets/washlist-landing.jpg" alt="WashList landing page screenshot" width="100%"> | <img src="./docs/assets/washlist-app.jpg" alt="WashList app shell screenshot" width="100%"> | <img src="./docs/assets/washlist-mobile.jpg" alt="WashList mobile duplicate review screenshot" width="100%"> |
+
+## Product Tour
+
+<details open>
+<summary><b>1. Connect</b> · Spotify PKCE without a backend</summary>
+
+The landing page keeps the product promise focused: connect Spotify, scan playlists, review duplicates. Demo mode was removed so the primary path stays honest and production-shaped.
+</details>
+
+<details open>
+<summary><b>2. Scan</b> · Fast playlist loading with visible progress</summary>
+
+Playlist pages are loaded with controlled parallelism, API backoff, timeout handling, debounced search, and local progress states. The UI stays responsive while scan results are built.
+</details>
+
+<details open>
+<summary><b>3. Review</b> · Evidence-first duplicate decisions</summary>
+
+Every group shows why it exists: exact URI/ISRC, metadata confidence, related version, or review-needed. Artist-only matches are never treated as duplicates.
+</details>
+
+<details>
+<summary><b>4. Clean up</b> · Per-track and group-level actions</summary>
+
+Users can remove one duplicate track or resolve a full group. Repeat clicks are guarded, removed tracks disappear from local results, and dry-run mode keeps Spotify untouched.
+</details>
 
 ## Product Logic
 
@@ -117,6 +143,19 @@ docs/i18n.md                       Localization workflow and glossary
 docs/security.md                   Security report and production hardening notes
 tools/qa-check.mjs                 Static regression checks
 ```
+
+## Route Map
+
+| Route | Purpose | Notes |
+| --- | --- | --- |
+| `index.html` | Public landing | Localized hero, product/method sections, Spotify connect. |
+| `app.html#library` | Library scanner | Playlist scan, progress, filters, result summary. |
+| `app.html#duplicates` | Duplicate review | Exact/probable/version/review queues with explanations. |
+| `app.html#compare` | Playlist comparison | Shared tracks between selected playlists. |
+| `app.html#overlap` | Multi-playlist overlap | Tracks appearing in three or more playlists. |
+| `app.html#graph` | Relationship graph | Visual playlist connection map. |
+| `app.html#history` | Cleanup history | Local action log and export path. |
+| `app.html#settings` | Preferences | Scan mode, review rules, theme, language, performance limits. |
 
 <details>
 <summary><b>Data flow</b></summary>
@@ -209,6 +248,20 @@ Manual smoke checklist:
 - Duplicate removal disables repeat clicks and removes confirmed tracks from local results.
 - Logout clears session-scoped Spotify credentials.
 - Mobile viewport has no horizontal overflow.
+
+<details>
+<summary><b>Manual QA tour</b></summary>
+
+1. Open the landing page and switch language.
+2. Confirm Product and Method sections scroll to the right anchors.
+3. Start Spotify auth and use browser Back without freezing the page.
+4. Open each app route by hash and from the sidebar.
+5. Scan with empty data, small data, and a large playlist.
+6. Remove one duplicate track and confirm it disappears from the group.
+7. Toggle strict/balanced/fuzzy scan rules and confirm labels remain understandable.
+8. Switch light/dark theme and verify contrast, focus rings, and hover states.
+9. Resize to mobile and confirm navigation, filters, settings, and duplicate cards remain usable.
+</details>
 
 ## Roadmap
 
