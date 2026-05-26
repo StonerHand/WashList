@@ -162,6 +162,9 @@
       'toast.done': 'Scanning complete.',
       'toast.removed': 'Removed {count} from {playlist}.',
       'toast.loadErr': 'Could not load playlists. Try again.',
+      'toast.removeErr': 'Could not remove the track from Spotify. Try again.',
+      'toast.removeScopeErr': 'Spotify needs fresh cleanup permission. Sign out and connect again.',
+      'toast.removeForbidden': 'Spotify does not allow editing this playlist. You can remove tracks only from your own or collaborative playlists.',
       'toast.scanErr': 'Could not scan {playlist}.',
       'toast.apiErr': 'Spotify request failed. Try again in a few seconds.',
       'toast.out': 'Signed out.',
@@ -314,6 +317,9 @@
       'toast.done': 'Сканирование завершено.',
       'toast.removed': 'Удалено {count} из {playlist}.',
       'toast.loadErr': 'Не удалось загрузить плейлисты. Попробуй еще раз.',
+      'toast.removeErr': 'Не удалось удалить трек из Spotify. Попробуй еще раз.',
+      'toast.removeScopeErr': 'Spotify нужен новый доступ для удаления. Выйди и подключись заново.',
+      'toast.removeForbidden': 'Spotify не разрешает менять этот плейлист. Удалять можно только из своих или совместных плейлистов.',
       'toast.scanErr': 'Не удалось просканировать {playlist}.',
       'toast.apiErr': 'Spotify не ответил. Попробуй через несколько секунд.',
       'toast.out': 'Вы вышли.',
@@ -558,13 +564,25 @@
           removeAuthItem(TOKEN_KEY);
           removeAuthItem(EXPIRES_KEY);
           state.accessToken = null;
-          throw new Error('401');
+          const error = new Error('401');
+          error.status = 401;
+          throw error;
         }
-        if (!response.ok) throw new Error(String(response.status));
         if (response.status === 204) return null;
-        return response.json();
+        const raw = await response.text();
+        if (!response.ok) {
+          const error = new Error(String(response.status));
+          error.status = response.status;
+          error.body = raw;
+          throw error;
+        }
+        if (!raw.trim()) return null;
+        const type = response.headers.get('Content-Type') || '';
+        if (!type.includes('application/json')) return raw;
+        return JSON.parse(raw);
       } catch (error) {
         clearTimeout(timeout);
+        if (error.status && error.status < 500) throw error;
         if (attempt === retries - 1) throw error;
         await sleep(350 * (attempt + 1));
       }
@@ -1381,10 +1399,11 @@
       return;
     }
     if (!confirm(`Remove exact duplicates from ${groups.length} groups?`)) return;
+    let removedGroups = 0;
     for (const { playlist, group } of groups) {
-      await removeInstances(playlist, group.insts.slice(1), { quiet: true });
+      if (await removeInstances(playlist, group.insts.slice(1), { quiet: true })) removedGroups += 1;
     }
-    toast(t('toast.done'), 'ok');
+    toast(removedGroups ? t('toast.done') : t('toast.removeErr'), removedGroups ? 'ok' : 'err');
   }
 
   async function removeOne(playlistId, pos) {
@@ -1397,27 +1416,40 @@
     const data = state.playlistData[playlistId];
     const item = data?.tracks?.[pos];
     const track = item?.track;
-    if (!playlist || !track) return;
-    await removeInstances(playlist, [{ pos, uri: track.uri, tid: track.id }]);
+    if (!playlist || !track) {
+      if (button) {
+        button.disabled = false;
+        button.textContent = t('dup.removeOne');
+      }
+      return;
+    }
+    try {
+      await removeInstances(playlist, [{ pos, uri: track.uri, tid: track.id }]);
+    } finally {
+      if (button?.isConnected) {
+        button.disabled = false;
+        button.textContent = t('dup.removeOne');
+      }
+    }
   }
 
   async function removeInstances(playlist, instances, options = {}) {
     if (!instances.length) {
       toast(t('dup.noAction'), 'inf');
-      return;
+      return false;
     }
     if (optionOn('optDry')) {
       toast(t('dup.dry'), 'inf');
-      return;
+      return false;
     }
     const removalKey = `${playlist.id}:${instances.map((inst) => Number(inst.pos)).filter(Number.isFinite).sort((a, b) => a - b).join(',')}`;
-    if (state.pendingRemovals.has(removalKey)) return;
+    if (state.pendingRemovals.has(removalKey)) return false;
     state.pendingRemovals.add(removalKey);
     let removed = false;
     try {
       if (!state.accessToken) {
         toast(t('auth.required'), 'inf');
-        return;
+        return false;
       }
       if (playlist.isLiked) {
         const ids = [...new Set(instances.map((inst) => inst.tid).filter(Boolean))];
@@ -1429,13 +1461,15 @@
           await sleep(160);
         }
       } else {
-        const snap = await spotify(`https://api.spotify.com/v1/playlists/${playlist.id}`);
         const tracks = instances.map((inst) => ({ uri: inst.uri, positions: [inst.pos] })).filter((item) => item.uri);
         for (let i = 0; i < tracks.length; i += 100) {
-          await spotify(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
+          const body = { tracks: tracks.slice(i, i + 100) };
+          if (playlist.snapshot_id) body.snapshot_id = playlist.snapshot_id;
+          const response = await spotify(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
             method: 'DELETE',
-            body: JSON.stringify({ tracks: tracks.slice(i, i + 100), snapshot_id: snap.snapshot_id }),
+            body: JSON.stringify(body),
           });
+          if (response?.snapshot_id) playlist.snapshot_id = response.snapshot_id;
           await sleep(160);
         }
       }
@@ -1448,12 +1482,20 @@
           if (state.accessToken) scanPlaylist(playlist.id, { quiet: true });
         }, 1800);
       }
-    } catch {
-      toast(t('toast.apiErr'), 'err');
+      return true;
+    } catch (error) {
+      toast(removalErrorMessage(error, playlist), 'err');
+      return false;
     } finally {
       state.pendingRemovals.delete(removalKey);
       if (!removed) renderAll();
     }
+  }
+
+  function removalErrorMessage(error, playlist) {
+    if (error?.status === 401) return t('auth.required');
+    if (error?.status === 403) return playlist?.isLiked ? t('toast.removeScopeErr') : t('toast.removeForbidden');
+    return t('toast.removeErr');
   }
 
   function applyLocalRemoval(playlistId, instances) {

@@ -35,6 +35,9 @@ check('connected playlist load failure stays signed in', /function loadErrorMark
 check('auth gate strings are localized', /'auth\.title'/.test(files.appJs) && /'auth\.sub'/.test(files.appJs) && /'auth\.secure'/.test(files.appJs));
 check('search input is debounced', /debounce\(renderPlaylists,\s*120\)/.test(files.appJs));
 check('duplicate removals are idempotency guarded', /pendingRemovals/.test(files.appJs));
+check('Spotify empty success responses are accepted', /response\.text\(\)/.test(files.appJs) && /!\s*raw\.trim\(\)/.test(files.appJs));
+check('duplicate removal avoids pre-delete playlist fetch', !/spotify\(`https:\/\/api\.spotify\.com\/v1\/playlists\/\$\{playlist\.id\}`\)/.test(files.appJs));
+check('duplicate removal errors are localized', /function removalErrorMessage/.test(files.appJs) && /toast\.removeScopeErr/.test(files.appJs));
 check('compare rows render album artwork', /function albumArt/.test(files.appJs) && /track-art/.test(files.appJs) && /track-art/.test(files.appCss + files.liveCss));
 check('metadata duplicate guard requires duration or version evidence', /hasVersionSignal/.test(files.appJs) && /!durationClose && !hasVersionSignal/.test(files.appJs));
 check('static assets are cache busted', /washlist-app\.js\?v=/.test(files.app) && /landing-auth\.js\?v=/.test(files.index));

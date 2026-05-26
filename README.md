@@ -58,9 +58,10 @@ Screens intentionally include the signed-out app state: users should always see 
 | Connected error UX | If Spotify profile loads but playlists fail, WashList keeps the user signed in and shows retry/sign-out actions instead of a fake connect prompt. |
 | Compare view | Playlist comparison renders album artwork, track title, artist, duration, and shared-match state. |
 | Duplicate safety | Metadata groups require close duration or explicit version evidence. Artist-only matches are never duplicates. |
+| Duplicate removal | Empty Spotify DELETE responses are treated as success, per-track buttons recover after errors, and playlist removal avoids extra pre-delete API reads. |
 | Static deployment | CSS/JS references include cache-busting query strings so GitHub Pages serves the current app after deploy. |
 | Motion | Heavy cross-page blur/overlay transitions were removed; only local microinteractions remain. |
-| Regression checks | `tools/qa-check.mjs` covers canonical OAuth redirect, auth route intent, connected load failures, auth-gate UI, compare artwork, cache busting, token storage, and duplicate guards. |
+| Regression checks | `tools/qa-check.mjs` covers canonical OAuth redirect, auth route intent, connected load failures, auth-gate UI, duplicate removal, compare artwork, cache busting, token storage, and duplicate guards. |
 
 ## Product Tour
 
@@ -263,6 +264,7 @@ Manual smoke checklist:
 - `app.html?connect=1` redirects to `index.html?connect=1` and starts the PKCE flow.
 - Spotify authorize URL uses the canonical directory redirect URI, not `/index.html`.
 - If `/v1/me` works but playlist loading fails, the app keeps the user visible and shows retry/sign-out actions.
+- Duplicate deletion treats empty Spotify success responses as success and shows permission-specific errors for stale scopes or non-editable playlists.
 - `#library`, `#duplicates`, `#compare`, `#overlap`, `#graph`, `#history`, `#settings` deep links select the right section.
 - Compare rows show album artwork and do not collapse to text-only lists.
 - Search is debounced and does not visibly lag.

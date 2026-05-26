@@ -12,6 +12,7 @@ WashList is a static frontend app that talks directly to Spotify. This keeps the
 - Direct app entry without auth renders a connect gate instead of private data or broken controls.
 - OAuth uses a canonical directory redirect URI (`/WashList/`) to avoid `/index.html` mismatches in Spotify configuration.
 - If profile auth succeeds but playlist loading fails, the UI keeps the session visible and offers retry/sign-out instead of starting a second OAuth attempt.
+- Duplicate removal accepts empty successful Spotify DELETE responses and shows permission-specific errors for stale scopes or playlists the user cannot edit.
 - User/API data is escaped before HTML rendering.
 - Landing HTML translations are sanitized to a small allowlist.
 - Duplicate removal is guarded against repeated clicks.
