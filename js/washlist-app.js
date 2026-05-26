@@ -1,6 +1,18 @@
 (() => {
+  const CLIENT_ID = '5ce8326e147f46b3b11ebc24ac37bf7c';
+  const SCOPES = [
+    'playlist-read-private',
+    'playlist-read-collaborative',
+    'playlist-modify-public',
+    'playlist-modify-private',
+    'user-library-read',
+    'user-library-modify',
+    'user-read-private',
+  ].join(' ');
   const TOKEN_KEY = 'wl_t';
   const EXPIRES_KEY = 'wl_e';
+  const VERIFIER_KEY = 'wl_v';
+  const STATE_KEY = 'wl_state';
   const HISTORY_KEY = 'wl_h';
   const LANG_KEY = 'washlist:lang';
   const THEME_KEY = 'washlist:theme';
@@ -156,6 +168,7 @@
       'auth.sub': 'Connect your Spotify account to load playlists, album covers, comparison data and cleanup actions.',
       'auth.secure': 'Uses Spotify PKCE. The access token stays in this browser session.',
       'auth.connect': 'Connect Spotify',
+      'auth.connecting': 'Opening Spotify...',
       'data.loadFailedTitle': 'Spotify is connected',
       'data.loadFailedSub': 'Your profile is loaded, but playlists did not load. Retry the request or sign out and reconnect if Spotify keeps rejecting it.',
       'data.retry': 'Retry loading',
@@ -311,6 +324,7 @@
       'auth.sub': 'Подключи Spotify, чтобы загрузить плейлисты, обложки альбомов, сравнение и действия с дублями.',
       'auth.secure': 'Используем Spotify PKCE. Токен доступа хранится только в этой сессии браузера.',
       'auth.connect': 'Подключить Spotify',
+      'auth.connecting': 'Открываю Spotify...',
       'data.loadFailedTitle': 'Spotify подключен',
       'data.loadFailedSub': 'Профиль загрузился, но плейлисты не пришли. Повтори загрузку или выйди и подключись заново, если Spotify снова отклонит запрос.',
       'data.retry': 'Повторить загрузку',
@@ -427,6 +441,25 @@
       clearTimeout(timer);
       timer = window.setTimeout(() => fn(...args), delay);
     };
+  }
+
+  function canonicalRedirectUri() {
+    const path = location.pathname.endsWith('/')
+      ? location.pathname
+      : location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1);
+    return `${location.origin}${path || '/'}`;
+  }
+
+  async function makeVerifier() {
+    const bytes = new Uint8Array(64);
+    crypto.getRandomValues(bytes);
+    return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  }
+
+  async function makeChallenge(verifier) {
+    const data = new TextEncoder().encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
   function applyI18n() {
@@ -689,6 +722,8 @@
   function signOut() {
     removeAuthItem(TOKEN_KEY);
     removeAuthItem(EXPIRES_KEY);
+    removeAuthItem(VERIFIER_KEY);
+    removeAuthItem(STATE_KEY);
     state.accessToken = null;
     showSignedOut();
     toast(t('toast.out'), 'inf');
@@ -701,11 +736,48 @@
   }
 
   function updateAuthButton() {
-    setText('logoutBtn', state.accessToken ? t('top.logout') : t('auth.connect'));
+    const button = document.getElementById('logoutBtn');
+    if (!button) return;
+    const signedIn = !!state.accessToken;
+    button.textContent = signedIn ? t('top.logout') : t('auth.connect');
+    button.dataset.authAction = signedIn ? 'logout' : 'connect';
+    button.setAttribute('aria-label', button.textContent);
+    button.classList.toggle('primary', !signedIn);
+    button.classList.toggle('ghost', signedIn);
   }
 
-  function goToConnect() {
-    location.href = 'index.html?connect=1';
+  async function startSpotifyAuth() {
+    const verifier = await makeVerifier();
+    const challenge = await makeChallenge(verifier);
+    const authState = crypto.randomUUID();
+    writeAuthItem(VERIFIER_KEY, verifier);
+    writeAuthItem(STATE_KEY, authState);
+
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      redirect_uri: canonicalRedirectUri(),
+      state: authState,
+      code_challenge_method: 'S256',
+      code_challenge: challenge,
+    });
+    location.assign(`https://accounts.spotify.com/authorize?${params.toString()}`);
+  }
+
+  function goToConnect(source) {
+    const button = source?.closest?.('button') || document.getElementById('logoutBtn');
+    if (button) {
+      button.disabled = true;
+      button.textContent = t('auth.connecting');
+    }
+    startSpotifyAuth().catch(() => {
+      if (button) {
+        button.disabled = false;
+        updateAuthButton();
+      }
+      location.href = 'index.html?connect=1';
+    });
   }
 
   async function retryLoadPlaylists() {
@@ -735,7 +807,7 @@
           <p>${t('auth.sub')}</p>
           <small>${t('auth.secure')}</small>
         </div>
-        <a class="btn-app primary" href="index.html?connect=1">${t('auth.connect')}</a>
+        <button class="btn-app primary" type="button" data-connect-spotify>${t('auth.connect')}</button>
       </div>
     `;
   }
@@ -1836,9 +1908,9 @@
       localStorage.removeItem(HISTORY_KEY);
       renderHistory();
     });
-    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    document.getElementById('logoutBtn')?.addEventListener('click', (event) => {
       if (!state.accessToken) {
-        goToConnect();
+        goToConnect(event.currentTarget);
         return;
       }
       signOut();
@@ -1887,7 +1959,9 @@
       const removeOneButton = event.target.closest('[data-remove-one]');
       const retryLoad = event.target.closest('[data-retry-load]');
       const signOutButton = event.target.closest('[data-sign-out]');
+      const connectButton = event.target.closest('[data-connect-spotify]');
       if (scan) scanPlaylist(scan.dataset.scan);
+      if (connectButton) goToConnect(connectButton);
       if (openDupes) {
         state.dupFilter = 'all';
         switchTab('tDup');
@@ -1941,7 +2015,7 @@
 
     const params = new URLSearchParams(location.search);
     if (params.get('connect') === '1') {
-      location.replace('index.html?connect=1');
+      goToConnect();
       return;
     }
     if (chkToken()) {

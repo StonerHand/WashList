@@ -28,8 +28,9 @@ check('app has noindex and CSP metadata', /noindex,nofollow/.test(files.app) && 
 check('external blank links are noopener noreferrer', !/target="_blank"(?![^>]*rel="noopener noreferrer")/.test(files.index));
 check('landing HTML translations are sanitized', /function safeI18nHtml/.test(files.index));
 check('app supports hash deep links', /TAB_HASHES/.test(files.appJs) && /popstate/.test(files.appJs));
-check('app connect route preserves OAuth intent', /index\.html\?connect=1/.test(files.appJs) && /params\.get\('connect'\) === '1'/.test(files.landingAuth));
-check('OAuth redirect URI is canonical directory URL', /function canonicalRedirectUri/.test(files.landingAuth) && !/location\.href\.split/.test(files.landingAuth));
+check('app starts Spotify OAuth directly', /function startSpotifyAuth/.test(files.appJs) && /data-connect-spotify/.test(files.appJs) && /goToConnect\(\);/.test(files.appJs));
+check('top auth button switches between connect and logout', /data-auth-action="connect"/.test(files.app) && /dataset\.authAction/.test(files.appJs));
+check('OAuth redirect URI is canonical directory URL', /function canonicalRedirectUri/.test(files.landingAuth) && /function canonicalRedirectUri/.test(files.appJs) && !/location\.href\.split/.test(files.landingAuth + files.appJs));
 check('signed-out app shows Spotify auth gate', /function authRequiredMarkup/.test(files.appJs) && /auth-gate/.test(files.liveCss));
 check('connected playlist load failure stays signed in', /function loadErrorMarkup/.test(files.appJs) && /data-retry-load/.test(files.appJs));
 check('auth gate strings are localized', /'auth\.title'/.test(files.appJs) && /'auth\.sub'/.test(files.appJs) && /'auth\.secure'/.test(files.appJs));

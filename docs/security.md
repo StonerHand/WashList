@@ -65,6 +65,6 @@ If inline scripts remain, use CSP nonces or hashes rather than broad `unsafe-inl
 - Logout removes token state.
 - External links use `rel="noopener noreferrer"`.
 - Direct `app.html` without auth shows connect state, not private data.
-- `app.html?connect=1` preserves OAuth intent and redirects to the landing PKCE flow.
+- `app.html?connect=1` starts the same PKCE flow directly without flashing the landing page first.
 - Spotify authorize requests use the same redirect URI configured in the Spotify dashboard.
 - Fast repeated clicks do not repeat destructive UI actions.

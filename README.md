@@ -41,6 +41,24 @@ WashList is built around a safer principle:
 
 It scans playlists, builds normalized track fingerprints, explains why items are grouped, and keeps uncertain results visible for review.
 
+## Experience Principles
+
+| Principle | Product behavior |
+| --- | --- |
+| Fast path first | Connect, scan, review, remove. No demo mode, no dead-end screens, no hidden commands. |
+| Evidence over guesses | Every duplicate group exposes the matching reason, confidence, source, duration, and artwork. |
+| Safe by default | Versions and weak matches stay visible. Destructive actions require explicit user intent. |
+| State clarity | Signed out, connected, loading, failed, empty, and removed states all have distinct UI and copy. |
+| Static and private | Runs on GitHub Pages, uses Spotify PKCE, stores tokens in the browser session, and sends no analytics. |
+
+## Latest Hardening Pass
+
+- App-level Spotify connect now starts OAuth directly, so signed-out users are not bounced through the landing page.
+- Logout clears token, verifier, OAuth state, playlist cache, load errors, and flips the top action back to **Connect Spotify**.
+- Spotify DELETE edge cases are handled: empty success bodies are valid, stale permissions get a clear reconnect message, and non-editable playlists explain the limitation.
+- The signed-out connect gate was restyled to feel like the product surface, not an error box.
+- QA now guards auth route behavior, top-button state, empty DELETE responses, duplicate removal safety, cache busting, and stale transition code.
+
 ## Screens
 
 | Landing | App auth + compare | Mobile compare |
@@ -53,15 +71,15 @@ Screens intentionally include the signed-out app state: users should always see 
 
 | Area | Status |
 | --- | --- |
-| Spotify auth | `index.html?connect=1` starts PKCE immediately with the canonical directory redirect URL. `app.html?connect=1` preserves that intent and redirects to the landing auth flow. |
-| Signed-out UX | Internal app routes show a clear Spotify connect gate instead of looking broken or empty. |
+| Spotify auth | `index.html?connect=1` and `app.html?connect=1` start PKCE with the canonical directory redirect URL. The app no longer flashes the landing page before Spotify. |
+| Signed-out UX | Internal app routes show a polished Spotify connect gate and the top action switches back to **Connect Spotify** after logout. |
 | Connected error UX | If Spotify profile loads but playlists fail, WashList keeps the user signed in and shows retry/sign-out actions instead of a fake connect prompt. |
 | Compare view | Playlist comparison renders album artwork, track title, artist, duration, and shared-match state. |
 | Duplicate safety | Metadata groups require close duration or explicit version evidence. Artist-only matches are never duplicates. |
 | Duplicate removal | Empty Spotify DELETE responses are treated as success, per-track buttons recover after errors, and playlist removal avoids extra pre-delete API reads. |
 | Static deployment | CSS/JS references include cache-busting query strings so GitHub Pages serves the current app after deploy. |
 | Motion | Heavy cross-page blur/overlay transitions were removed; only local microinteractions remain. |
-| Regression checks | `tools/qa-check.mjs` covers canonical OAuth redirect, auth route intent, connected load failures, auth-gate UI, duplicate removal, compare artwork, cache busting, token storage, and duplicate guards. |
+| Regression checks | `tools/qa-check.mjs` covers direct app OAuth, canonical OAuth redirect, auth button state, connected load failures, auth-gate UI, duplicate removal, compare artwork, cache busting, token storage, and duplicate guards. |
 
 ## Product Tour
 
@@ -261,7 +279,8 @@ Manual smoke checklist:
 - Landing opens without console errors.
 - Language switcher updates the product preview and marquee.
 - App without auth shows a localized Spotify connect gate, not demo data.
-- `app.html?connect=1` redirects to `index.html?connect=1` and starts the PKCE flow.
+- `app.html?connect=1` starts the PKCE flow directly without showing the landing page first.
+- After logout the sidebar becomes offline and the top action becomes **Connect Spotify**.
 - Spotify authorize URL uses the canonical directory redirect URI, not `/index.html`.
 - If `/v1/me` works but playlist loading fails, the app keeps the user visible and shows retry/sign-out actions.
 - Duplicate deletion treats empty Spotify success responses as success and shows permission-specific errors for stale scopes or non-editable playlists.
