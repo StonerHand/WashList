@@ -23,12 +23,12 @@
   --ink-4:     #4F5663;
 
   /* Accents */
-  --mint:      #5EFFA8;
-  --mint-2:    #3DE993;
-  --mint-3:    #A8FFD8;
-  --mint-bg:   rgba(94, 255, 168, 0.10);
-  --mint-brd:  rgba(94, 255, 168, 0.28);
-  --mint-glow: 0 0 0 1px rgba(94,255,168,.35), 0 8px 40px -8px rgba(94,255,168,.45);
+  --mint:      #B89CFF;
+  --mint-2:    #9D80F5;
+  --mint-3:    #CFB9FF;
+  --mint-bg:   rgba(184, 156, 255, 0.12);
+  --mint-brd:  rgba(184, 156, 255, 0.32);
+  --mint-glow: 0 0 0 1px rgba(184,156,255,.35), 0 8px 40px -8px rgba(184,156,255,.45);
 
   --cyan:      #6FE8FF;
   --cyan-bg:   rgba(111, 232, 255, 0.10);
@@ -71,7 +71,46 @@
   --shadow-3: 0 40px 120px -30px rgba(0,0,0,.85);
 }
 
-[data-theme="light"] { /* removed — dark-only */ }
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg:        #F4F6F8;
+  --bg-1:      #FFFFFF;
+  --bg-2:      #EEF2F5;
+  --bg-3:      #E4E9EE;
+  --surface:   #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --glass:     rgba(255, 255, 255, 0.70);
+
+  --line:      rgba(11, 17, 24, 0.08);
+  --line-2:    rgba(11, 17, 24, 0.13);
+  --line-3:    rgba(11, 17, 24, 0.22);
+
+  --ink:       #10141A;
+  --ink-2:     #4E5867;
+  --ink-3:     #7B8492;
+  --ink-4:     #A2AAB5;
+
+  --mint:      #13C878;
+  --mint-2:    #0FB66C;
+  --mint-3:    #77E8B5;
+  --mint-bg:   rgba(19, 200, 120, 0.10);
+  --mint-brd:  rgba(19, 200, 120, 0.26);
+  --mint-glow: 0 0 0 1px rgba(19,200,120,.24), 0 8px 34px -12px rgba(19,200,120,.36);
+
+  --cyan-bg:   rgba(16, 152, 183, 0.10);
+  --cyan-brd:  rgba(16, 152, 183, 0.24);
+  --coral-bg:  rgba(224, 83, 68, 0.10);
+  --coral-brd: rgba(224, 83, 68, 0.22);
+  --amber-bg:  rgba(191, 125, 22, 0.12);
+  --amber-brd: rgba(191, 125, 22, 0.24);
+  --violet-bg: rgba(111, 80, 210, 0.11);
+  --violet-brd:rgba(111, 80, 210, 0.24);
+
+  --shadow-1: 0 1px 0 rgba(255,255,255,.8) inset, 0 1px 2px rgba(15,23,42,.08);
+  --shadow-2: 0 24px 60px -24px rgba(15,23,42,.24), 0 1px 0 rgba(255,255,255,.9) inset;
+  --shadow-3: 0 40px 120px -38px rgba(15,23,42,.30);
+}
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; scroll-behavior: smooth; }

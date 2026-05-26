@@ -1,0 +1,94 @@
+/* Cross-page transition from landing into the product workspace. */
+
+body {
+  transition:
+    filter 360ms var(--ease-out),
+    opacity 360ms var(--ease-out),
+    transform 420ms var(--ease-out);
+}
+
+body.is-entering-app {
+  cursor: wait;
+  filter: blur(8px) saturate(130%);
+  opacity: .18;
+  transform: scale(.985);
+}
+
+.route-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(184, 156, 255, .24), transparent 34%),
+    rgba(10, 12, 16, .72);
+  backdrop-filter: blur(18px);
+  transition: opacity 320ms var(--ease-out);
+}
+
+body.is-entering-app .route-transition {
+  opacity: 1;
+}
+
+.route-transition-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid var(--mint-brd);
+  border-radius: 16px;
+  background: rgba(20, 24, 31, .74);
+  box-shadow: var(--mint-glow), var(--shadow-3);
+  color: var(--ink);
+  transform: translateY(10px) scale(.96);
+  opacity: 0;
+  transition:
+    opacity 260ms var(--ease-out) 80ms,
+    transform 360ms var(--ease-out) 80ms;
+}
+
+body.is-entering-app .route-transition-card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.route-transition-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--mint), var(--mint-2));
+  box-shadow: 0 0 28px rgba(184, 156, 255, .38);
+  display: grid;
+  place-items: center;
+  color: #100923;
+  font-weight: 900;
+}
+
+.route-transition-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.route-transition-copy b {
+  font-size: 14px;
+  letter-spacing: -.01em;
+}
+
+.route-transition-copy span {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .10em;
+  color: var(--ink-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  .route-transition,
+  .route-transition-card {
+    transition-duration: 1ms !important;
+  }
+}

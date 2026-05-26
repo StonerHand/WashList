@@ -5,7 +5,7 @@ body { background: var(--bg); }
 body::before {
   content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background:
-    radial-gradient(ellipse 70% 50% at 0% 0%, rgba(94, 255, 168, 0.05), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 0% 0%, rgba(184, 156, 255, 0.06), transparent 60%),
     radial-gradient(ellipse 60% 50% at 100% 100%, rgba(111, 232, 255, 0.04), transparent 60%);
 }
 
@@ -35,7 +35,7 @@ body::before {
   width: 28px; height: 28px; border-radius: 7px;
   background: linear-gradient(135deg, var(--mint), var(--mint-2));
   display: grid; place-items: center; position: relative; overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(94,255,168,.3), 0 4px 14px -4px rgba(94,255,168,.4);
+  box-shadow: 0 0 0 1px rgba(184,156,255,.3), 0 4px 14px -4px rgba(184,156,255,.4);
 }
 .side-logo .logo-mark::before {
   content: ''; position: absolute; inset: 0;
@@ -168,7 +168,7 @@ body::before {
   transition: all var(--dur-micro) var(--ease-base);
 }
 .btn-app:hover { background: var(--line); border-color: var(--line-3); }
-.btn-app.primary { background: var(--mint); color: #051209; border-color: var(--mint); font-weight: 600; box-shadow: 0 6px 18px -8px rgba(94,255,168,.5); }
+.btn-app.primary { background: var(--mint); color: #100923; border-color: var(--mint); font-weight: 600; box-shadow: 0 6px 18px -8px rgba(184,156,255,.5); }
 .btn-app.primary:hover { background: var(--mint-2); }
 .btn-app.danger { color: var(--coral); border-color: var(--coral-brd); background: var(--coral-bg); }
 .btn-app.danger:hover { background: var(--coral-bg); border-color: var(--coral); }
@@ -192,7 +192,7 @@ body::before {
   margin-bottom: 16px;
 }
 .scan-bigboard {
-  background: linear-gradient(180deg, rgba(94,255,168,.04), transparent),
+  background: linear-gradient(180deg, rgba(184,156,255,.055), transparent),
               linear-gradient(180deg, var(--surface-raised), var(--surface));
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
@@ -209,11 +209,11 @@ body::before {
 }
 .scan-bigboard .corner-mono .pulse {
   width: 8px; height: 8px; border-radius: 50%; background: var(--mint);
-  box-shadow: 0 0 0 0 rgba(94,255,168,.6); animation: pulseRing 2.4s infinite;
+  box-shadow: 0 0 0 0 rgba(184,156,255,.6); animation: pulseRing 2.4s infinite;
 }
 @keyframes pulseRing {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(94,255,168,.6); }
-  50% { box-shadow: 0 0 0 6px rgba(94,255,168,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(184,156,255,.6); }
+  50% { box-shadow: 0 0 0 6px rgba(184,156,255,0); }
 }
 .scan-board-eyebrow { font-family: var(--f-mono); font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
 .scan-board-title { font-family: var(--f-display); font-size: 42px; font-weight: 500; letter-spacing: -0.035em; line-height: 1.05; margin-top: 4px; }
@@ -233,7 +233,7 @@ body::before {
 .scan-beam {
   position: absolute; top: 0; bottom: 0; width: 2px;
   background: linear-gradient(180deg, transparent, var(--mint), transparent);
-  box-shadow: 0 0 24px 3px rgba(94,255,168,.7);
+  box-shadow: 0 0 24px 3px rgba(184,156,255,.7);
   pointer-events: none;
 }
 
@@ -416,7 +416,7 @@ body::before {
   border-radius: 50%;
   mix-blend-mode: screen;
 }
-.compare-mid .venn .a { left: 0; background: radial-gradient(circle, rgba(94,255,168,.7), rgba(94,255,168,.15) 70%); }
+.compare-mid .venn .a { left: 0; background: radial-gradient(circle, rgba(184,156,255,.7), rgba(184,156,255,.15) 70%); }
 .compare-mid .venn .b { right: 0; background: radial-gradient(circle, rgba(111,232,255,.7), rgba(111,232,255,.15) 70%); }
 .compare-mid .num { font-family: var(--f-display); font-size: 36px; font-weight: 500; letter-spacing: -0.03em; }
 .compare-mid .lbl { font-family: var(--f-mono); font-size: 10.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; }
@@ -624,4 +624,3 @@ body::before {
 [data-density="compact"] .cluster { margin-bottom: 8px; }
 [data-density="compact"] .cluster-track { padding: 14px; }
 [data-density="compact"] .cluster-pair .divider::before { padding: 3px 6px; font-size: 9px; }
-

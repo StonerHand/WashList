@@ -9,9 +9,10 @@
     if (!ctx) return null;
 
     const cfg = Object.assign({
-      lineColor: 'rgba(94, 255, 168, 0.55)',  // mint
+      lineColor: 'rgba(184, 156, 255, 0.55)',  // accent
       lineDim:   'rgba(255, 255, 255, 0.05)',
       accentColor: 'rgba(111, 232, 255, 0.7)', // cyan
+      glowColor: 'rgba(184, 156, 255, 0.10)',
       density: 36,           // number of lines
       mouseRadius: 280,
       amplitude: 14,
@@ -110,7 +111,7 @@
       // mouse glow halo
       if (mx > -1000) {
         const g = ctx.createRadialGradient(mx, my, 0, mx, my, cfg.mouseRadius * 0.9);
-        g.addColorStop(0, 'rgba(94, 255, 168, 0.10)');
+        g.addColorStop(0, cfg.glowColor);
         g.addColorStop(0.5, 'rgba(111, 232, 255, 0.04)');
         g.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.globalAlpha = 1;
