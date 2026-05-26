@@ -75,11 +75,9 @@
     }, delay);
   }
 
-  function transitionDelay() {
-    return new Promise((resolve) => {
-      const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 30 : 360;
-      setTimeout(resolve, delay);
-    });
+  function resetTransitionState(clearStatus = false) {
+    document.body.classList.remove('is-entering-app');
+    if (clearStatus) document.querySelectorAll('.auth-status').forEach((el) => el.remove());
   }
 
   function status(text, type = 'info') {
@@ -129,10 +127,7 @@
       state,
     });
 
-    rememberTransition();
-    ensureTransitionLayer();
-    document.body.classList.add('is-entering-app');
-    await transitionDelay();
+    status('Opening Spotify...');
     location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
   }
 
@@ -207,5 +202,11 @@
         startAuth();
       });
     });
+  });
+
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted || document.body.classList.contains('is-entering-app')) {
+      resetTransitionState(true);
+    }
   });
 })();

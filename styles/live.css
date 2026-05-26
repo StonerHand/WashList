@@ -666,57 +666,6 @@ body.app-entering .view {
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 
-.cursor-dot,
-.cursor-ring {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 500;
-  pointer-events: none;
-  opacity: 0;
-  transform: translate3d(-50%, -50%, 0);
-  transition: opacity 160ms var(--ease-base), width 160ms var(--ease-out), height 160ms var(--ease-out), border-color 160ms var(--ease-out), background 160ms var(--ease-out);
-}
-
-.cursor-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--mint);
-  box-shadow: 0 0 18px rgba(var(--accent-rgb), .60);
-}
-
-.cursor-ring {
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--mint-brd);
-  border-radius: 50%;
-  background: rgba(var(--accent-rgb), .035);
-  backdrop-filter: blur(1px);
-}
-
-.cursor-active .cursor-dot,
-.cursor-active .cursor-ring {
-  opacity: 1;
-}
-
-.cursor-action .cursor-ring {
-  width: 48px;
-  height: 48px;
-  border-color: var(--mint);
-  background: var(--mint-bg);
-}
-
-.cursor-danger .cursor-ring {
-  border-color: var(--coral);
-  background: var(--coral-bg);
-}
-
-.cursor-press .cursor-ring {
-  width: 28px;
-  height: 28px;
-}
-
 @keyframes rowIn {
   from {
     opacity: 0;
@@ -725,13 +674,6 @@ body.app-entering .view {
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@media (pointer: coarse) {
-  .cursor-dot,
-  .cursor-ring {
-    display: none;
   }
 }
 

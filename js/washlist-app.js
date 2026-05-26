@@ -39,7 +39,6 @@
       'lib.sub': 'Scan Spotify playlists, keep real songs, and review duplicates with clear reasons.',
       'lib.scanAll': 'Scan all',
       'lib.reload': 'Reload',
-      'lib.demo': 'Demo data',
       'lib.search': 'Search playlists',
       'lib.playlists': 'Playlists',
       'lib.scan': 'Scan',
@@ -154,7 +153,8 @@
       'set.playlistWorkersSub': 'Higher values are faster but can hit API rate limits.',
       'set.pageWorkers': 'Parallel page fetches',
       'set.pageWorkersSub': 'Used inside a single large playlist.',
-      'toast.demo': 'Demo data loaded.',
+      'auth.required': 'Connect Spotify to load your real playlists.',
+      'auth.connect': 'Connect Spotify',
       'toast.done': 'Scanning complete.',
       'toast.removed': 'Removed {count} from {playlist}.',
       'toast.loadErr': 'Could not load playlists. Try again.',
@@ -185,7 +185,6 @@
       'lib.sub': 'Сканируй Spotify-плейлисты, сохраняй нужные треки и проверяй дубли с понятными причинами.',
       'lib.scanAll': 'Сканировать все',
       'lib.reload': 'Обновить',
-      'lib.demo': 'Демо-данные',
       'lib.search': 'Поиск плейлистов',
       'lib.playlists': 'Плейлисты',
       'lib.scan': 'Сканировать',
@@ -300,7 +299,8 @@
       'set.playlistWorkersSub': 'Больше быстрее, но можно упереться в rate limit.',
       'set.pageWorkers': 'Параллельные страницы',
       'set.pageWorkersSub': 'Используется внутри большого плейлиста.',
-      'toast.demo': 'Демо-данные загружены.',
+      'auth.required': 'Подключи Spotify, чтобы загрузить реальные плейлисты.',
+      'auth.connect': 'Подключить Spotify',
       'toast.done': 'Сканирование завершено.',
       'toast.removed': 'Удалено {count} из {playlist}.',
       'toast.loadErr': 'Не удалось загрузить плейлисты. Попробуй еще раз.',
@@ -546,7 +546,7 @@
     } catch (error) {
       console.warn('init failed', error);
       toast(t('toast.loadErr'), 'err');
-      loadDemo();
+      showSignedOut();
     } finally {
       setLoading(false);
     }
@@ -571,6 +571,19 @@
     setLoading(false);
     renderAll();
     populateCompare();
+  }
+
+  function showSignedOut() {
+    state.accessToken = null;
+    state.playlists = [];
+    state.playlistData = {};
+    setText('authMode', 'offline');
+    setText('uAv', 'W');
+    setText('uName', 'WashList');
+    setText('uPlan', 'spotify');
+    setScanHeader(t('scan.ready'), 0);
+    setLoading(false);
+    renderAll();
   }
 
   function setLoading(value) {
@@ -679,6 +692,16 @@
   function renderPlaylists() {
     const root = document.getElementById('plList');
     if (!root) return;
+    if (!state.accessToken && !state.playlists.length) {
+      root.innerHTML = `
+        <div class="empty">
+          <h3>${t('state.empty')}</h3>
+          <p>${t('auth.required')}</p>
+          <p style="margin-top:16px"><a class="btn-app primary" href="index.html">${t('auth.connect')}</a></p>
+        </div>
+      `;
+      return;
+    }
     const search = (document.getElementById('srch')?.value || '').toLowerCase();
     let list = state.playlists.filter((playlist) => !search || playlist.name.toLowerCase().includes(search));
     const data = state.playlistData;
@@ -735,6 +758,10 @@
   }
 
   async function scanAll() {
+    if (!state.accessToken) {
+      toast(t('auth.required'), 'inf');
+      return;
+    }
     if (state.scanning) return;
     const button = document.getElementById('scanAllBtn');
     button.disabled = true;
@@ -1171,6 +1198,11 @@
   }
 
   async function removeOne(playlistId, pos) {
+    const button = document.querySelector(`[data-remove-one="${CSS.escape(playlistId)}"][data-pos="${pos}"]`);
+    if (button) {
+      button.disabled = true;
+      button.textContent = t('dup.rming');
+    }
     const playlist = state.playlists.find((item) => item.id === playlistId);
     const data = state.playlistData[playlistId];
     const item = data?.tracks?.[pos];
@@ -1190,7 +1222,7 @@
     }
     try {
       if (!state.accessToken) {
-        toast(t('dup.dry'), 'inf');
+        toast(t('auth.required'), 'inf');
         return;
       }
       if (playlist.isLiked) {
@@ -1213,13 +1245,30 @@
           await sleep(160);
         }
       }
-      addHistory({ date: new Date().toISOString(), playlist: playlist.name, removed: instances.length, kept: Math.max(0, (state.playlistData[playlist.id]?.tc || 0) - instances.length), mode: state.scanMode });
+      applyLocalRemoval(playlist.id, instances);
+      addHistory({ date: new Date().toISOString(), playlist: playlist.name, removed: instances.length, kept: state.playlistData[playlist.id]?.tc || 0, mode: state.scanMode });
       if (!options.quiet) toast(t('toast.removed', { count: instances.length, playlist: playlist.name }), 'ok');
-      await scanPlaylist(playlist.id, { quiet: true });
+      if (!options.quiet) {
+        window.setTimeout(() => {
+          if (state.accessToken) scanPlaylist(playlist.id, { quiet: true });
+        }, 1800);
+      }
     } catch (error) {
       console.warn('remove failed', error);
       toast(t('toast.apiErr'), 'err');
     }
+  }
+
+  function applyLocalRemoval(playlistId, instances) {
+    const data = state.playlistData[playlistId];
+    if (!data?.tracks?.length) return;
+    const positions = new Set(instances.map((inst) => Number(inst.pos)).filter(Number.isFinite));
+    if (!positions.size) return;
+    const tracks = data.tracks.filter((_, index) => !positions.has(index));
+    state.playlistData[playlistId] = { ...data, tracks, tc: tracks.length, status: 'done', ...findDupes(tracks) };
+    const playlist = state.playlists.find((item) => item.id === playlistId);
+    if (playlist?.tracks) playlist.tracks.total = Math.max(0, tracks.length);
+    renderAll();
   }
 
   function populateCompare() {
@@ -1415,55 +1464,6 @@
     URL.revokeObjectURL(link.href);
   }
 
-  function loadDemo() {
-    state.accessToken = null;
-    document.getElementById('authMode').textContent = 'demo';
-    document.getElementById('uAv').textContent = '♪';
-    document.getElementById('uName').textContent = 'Demo';
-    document.getElementById('uPlan').textContent = 'local';
-    state.playlists = [
-      { id: 'd1', name: 'Chill Vibes', tracks: { total: 142 }, images: [] },
-      { id: 'd2', name: '2024 Hits', tracks: { total: 87 }, images: [] },
-      { id: 'd3', name: 'Late Night', tracks: { total: 203 }, images: [] },
-      { id: 'd4', name: 'Workout', tracks: { total: 55 }, images: [] },
-      { id: 'liked', name: 'Liked Songs', tracks: { total: 1204 }, images: [], isLiked: true },
-    ];
-    const mk = (id, name, artist, album, duration = 242000, isrc = '') => ({
-      track: {
-        id,
-        uri: `spotify:track:${id}`,
-        name,
-        duration_ms: duration,
-        external_ids: isrc ? { isrc } : {},
-        external_urls: { spotify: `https://open.spotify.com/track/${id}` },
-        artists: [{ id: `artist-${norm(artist)}`, name: artist }],
-        album: { id: `album-${norm(album)}`, name: album, images: [] },
-      },
-      added_at: '2024-01-01T00:00:00Z',
-    });
-    const base = [
-      mk('a1', 'Midnight City', 'M83', 'Hurry Up', 244000, 'USSUB1100020'),
-      mk('a1', 'Midnight City', 'M83', 'Hurry Up', 244000, 'USSUB1100020'),
-      mk('b1', 'Blinding Lights', 'The Weeknd', 'After Hours', 200040, 'USUG11904206'),
-      mk('b2', 'Blinding Lights', 'The Weeknd', 'After Hours Deluxe', 201000, ''),
-      mk('c1', 'Blinding Lights - Live', 'The Weeknd', 'Live at SoFi', 233000, ''),
-      mk('r1', 'Slow Tide', 'Aria Vey', 'Singles', 222000, ''),
-      mk('r2', 'Slow Tide - Foux Remix', 'Aria Vey', 'Remix EP', 318000, ''),
-      ...Array(132).fill(null).map((_, i) => mk(`x${i}`, `Track ${i}`, `Artist ${i % 12}`, `Album ${i % 8}`, 180000 + i * 750)),
-    ];
-    const data1 = findDupes(base);
-    state.playlistData.d1 = { status: 'done', tc: base.length, tracks: base, ...data1 };
-    const d2Tracks = [mk('b1', 'Blinding Lights', 'The Weeknd', 'After Hours'), ...Array(86).fill(null).map((_, i) => mk(`y${i}`, `Hit ${i}`, `Artist ${i % 9}`, `Album ${i % 5}`))];
-    state.playlistData.d2 = { status: 'done', tc: d2Tracks.length, tracks: d2Tracks, ...findDupes(d2Tracks) };
-    const d3Tracks = [mk('a1', 'Midnight City', 'M83', 'Hurry Up'), ...Array(202).fill(null).map((_, i) => mk(`z${i}`, `Late ${i}`, `Artist ${i % 16}`, `Album ${i % 6}`))];
-    state.playlistData.d3 = { status: 'done', tc: d3Tracks.length, tracks: d3Tracks, ...findDupes(d3Tracks) };
-    renderAll();
-    populateCompare();
-    setLoading(false);
-    setScanHeader(t('scan.done'), 100);
-    toast(t('toast.demo'), 'inf');
-  }
-
   function toast(message, type = 'inf') {
     const root = document.getElementById('toasts');
     if (!root) return;
@@ -1523,43 +1523,12 @@
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) draw();
   }
 
-  function initCursor() {
-    if (window.matchMedia('(pointer: coarse)').matches) return;
-    const dot = document.querySelector('.cursor-dot');
-    const ring = document.querySelector('.cursor-ring');
-    if (!dot || !ring) return;
-    let x = 0;
-    let y = 0;
-    let rx = 0;
-    let ry = 0;
-    document.addEventListener('mousemove', (event) => {
-      x = event.clientX;
-      y = event.clientY;
-      dot.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
-      document.body.classList.add('cursor-active');
-      const target = event.target.closest('button, a, select, input, .playlist-row, .cluster');
-      document.body.classList.toggle('cursor-action', !!target);
-      document.body.classList.toggle('cursor-danger', !!event.target.closest('.danger'));
-    }, { passive: true });
-    document.addEventListener('mouseleave', () => document.body.classList.remove('cursor-active', 'cursor-action', 'cursor-danger'));
-    document.addEventListener('mousedown', () => document.body.classList.add('cursor-press'));
-    document.addEventListener('mouseup', () => document.body.classList.remove('cursor-press'));
-    function frame() {
-      rx += (x - rx) * 0.18;
-      ry += (y - ry) * 0.18;
-      ring.style.transform = `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%)`;
-      requestAnimationFrame(frame);
-    }
-    frame();
-  }
-
   function bindEvents() {
     document.querySelectorAll('[data-tab-target]').forEach((button) => {
       button.addEventListener('click', () => switchTab(button.dataset.tabTarget));
     });
     document.getElementById('scanAllBtn')?.addEventListener('click', scanAll);
-    document.getElementById('reloadBtn')?.addEventListener('click', () => state.accessToken ? loadPlaylists().catch(() => toast(t('toast.loadErr'), 'err')) : loadDemo());
-    document.getElementById('demoBtn')?.addEventListener('click', loadDemo);
+    document.getElementById('reloadBtn')?.addEventListener('click', () => state.accessToken ? loadPlaylists().catch(() => toast(t('toast.loadErr'), 'err')) : showSignedOut());
     document.getElementById('runCmpBtn')?.addEventListener('click', runCompare);
     document.getElementById('runOvBtn')?.addEventListener('click', renderOverlap);
     document.getElementById('buildGraphBtn')?.addEventListener('click', renderGraph);
@@ -1574,7 +1543,7 @@
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(EXPIRES_KEY);
       state.accessToken = null;
-      loadDemo();
+      showSignedOut();
       toast(t('toast.out'), 'inf');
     });
     document.getElementById('srch')?.addEventListener('input', renderPlaylists);
@@ -1693,7 +1662,6 @@
     applyI18n();
     bindEvents();
     initScanWave();
-    initCursor();
     bootBackground();
     playWorkspaceEntry();
 
@@ -1702,12 +1670,10 @@
       location.replace('index.html');
       return;
     }
-    if (params.get('demo') === '1') {
-      loadDemo();
-    } else if (chkToken()) {
+    if (chkToken()) {
       initApp();
     } else {
-      loadDemo();
+      showSignedOut();
     }
   });
 })();

@@ -82,13 +82,29 @@
   .logo-word { font-weight: 700; font-size: 16px; letter-spacing: -0.02em; }
   .logo-word sup { font-family: var(--f-mono); font-size: 9px; font-weight: 500; color: var(--mint); margin-left: 4px; letter-spacing: 0; vertical-align: super; }
 
-  .nav-links { display: flex; gap: 6px; justify-self: center; }
-  .nav-link {
-    padding: 8px 16px; font-size: 13.5px; font-weight: 500; color: var(--ink-2); text-decoration: none;
+  .nav-links {
+    display: flex;
+    gap: 6px;
+    justify-self: center;
+    padding: 5px;
+    border: 1px solid var(--line);
     border-radius: 999px;
-    transition: color var(--dur-micro) var(--ease-base), background var(--dur-micro) var(--ease-base);
+    background: rgba(20, 24, 31, .42);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
   }
-  .nav-link:hover { color: var(--ink); background: var(--line); }
+  .nav-link {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 32px; padding: 0 14px;
+    font-family: var(--f-mono); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-3); text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    transition: color var(--dur-micro) var(--ease-base), background var(--dur-micro) var(--ease-base), border-color var(--dur-micro) var(--ease-base), transform var(--dur-micro) var(--ease-base);
+  }
+  .nav-link:hover { color: var(--ink); background: var(--line); border-color: var(--line-2); transform: translateY(-1px); }
+  .nav-link.active { color: var(--mint); background: var(--mint-bg); border-color: var(--mint-brd); }
 
   .nav-cta { display: flex; gap: 8px; align-items: center; justify-self: end; }
 
@@ -573,7 +589,6 @@
         <svg class="chev" width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4.5l3 3 3-3"/></svg>
       </button>
     </div>
-    <a class="btn ghost" href="app.html?demo=1" data-i18n="cta.demo">Try the demo</a>
     <a class="btn primary" href="app.html?connect=1" data-auth-connect>
       <span class="spotify-mark" aria-hidden="true"></span>
       <span data-i18n="cta.connect">Connect Spotify</span>
@@ -601,10 +616,6 @@
       <span class="spotify-mark" aria-hidden="true"></span>
       <span data-i18n="cta.connect">Connect Spotify</span>
       <svg class="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-    </a>
-    <a class="btn ghost lg" href="app.html?demo=1">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="6.5"/><path d="M6.5 5.5l4 2.5-4 2.5z" fill="currentColor"/></svg>
-      <span data-i18n="cta.demo_full">Try the demo — no login</span>
     </a>
   </div>
 
@@ -634,97 +645,97 @@
   <div class="preview-shell reveal">
     <div class="preview-body">
       <aside class="pv-side">
-        <h4>Pipeline</h4>
+        <h4 data-i18n="prev.pipeline">Pipeline</h4>
         <div class="pv-stages" id="pv-stages">
-          <div class="pv-stage done"><span class="num">01</span><span class="label">Reading playlists</span><span class="check"></span></div>
-          <div class="pv-stage done"><span class="num">02</span><span class="label">Normalizing metadata</span><span class="check"></span></div>
-          <div class="pv-stage active"><span class="num">03</span><span class="label">Building fingerprints</span><span class="check"></span></div>
-          <div class="pv-stage"><span class="num">04</span><span class="label">Comparing tracks</span><span class="check"></span></div>
-          <div class="pv-stage"><span class="num">05</span><span class="label">Detecting duplicates</span><span class="check"></span></div>
-          <div class="pv-stage"><span class="num">06</span><span class="label">Preparing results</span><span class="check"></span></div>
+          <div class="pv-stage done"><span class="num">01</span><span class="label" data-i18n="prev.stage.read">Reading playlists</span><span class="check"></span></div>
+          <div class="pv-stage done"><span class="num">02</span><span class="label" data-i18n="prev.stage.normalize">Normalizing metadata</span><span class="check"></span></div>
+          <div class="pv-stage active"><span class="num">03</span><span class="label" data-i18n="prev.stage.fingerprint">Building fingerprints</span><span class="check"></span></div>
+          <div class="pv-stage"><span class="num">04</span><span class="label" data-i18n="prev.stage.compare">Comparing tracks</span><span class="check"></span></div>
+          <div class="pv-stage"><span class="num">05</span><span class="label" data-i18n="prev.stage.detect">Detecting duplicates</span><span class="check"></span></div>
+          <div class="pv-stage"><span class="num">06</span><span class="label" data-i18n="prev.stage.prepare">Preparing results</span><span class="check"></span></div>
         </div>
 
-        <h4 style="margin-top:6px">Counters</h4>
+        <h4 style="margin-top:6px" data-i18n="prev.counters">Counters</h4>
         <div class="pv-counters">
-          <div class="pv-counter"><div class="k">Tracks</div><div class="v tnum" id="cc1">2,847</div></div>
-          <div class="pv-counter mint"><div class="k">Dupes</div><div class="v tnum" id="cc2">42</div></div>
-          <div class="pv-counter amber"><div class="k">Review</div><div class="v tnum" id="cc3">11</div></div>
+          <div class="pv-counter"><div class="k" data-i18n="prev.counter.tracks">Tracks</div><div class="v tnum" id="cc1">2,847</div></div>
+          <div class="pv-counter mint"><div class="k" data-i18n="prev.counter.dupes">Dupes</div><div class="v tnum" id="cc2">42</div></div>
+          <div class="pv-counter amber"><div class="k" data-i18n="prev.counter.review">Review</div><div class="v tnum" id="cc3">11</div></div>
         </div>
       </aside>
 
       <div class="pv-main">
         <div class="pv-header">
-          <div class="pv-h1">Library scan <span class="accent">/ liked songs + 14 playlists</span></div>
-          <div class="pv-h1-sub">eta · 00:48</div>
+          <div class="pv-h1" data-i18n-html="prev.scanTitle">Library scan <span class="accent">/ liked songs + 14 playlists</span></div>
+          <div class="pv-h1-sub" data-i18n="prev.eta">eta · 00:48</div>
         </div>
 
         <div class="pv-waveboard">
-          <span class="corner tl">FINGERPRINT • 4096 SAMPLES</span>
-          <span class="corner tr">● ANALYZING</span>
+          <span class="corner tl" data-i18n="prev.wave.samples">FINGERPRINT • 4096 SAMPLES</span>
+          <span class="corner tr" data-i18n="prev.wave.analyzing">● ANALYZING</span>
           <canvas id="pv-wave"></canvas>
           <div class="scan-beam"></div>
         </div>
 
         <div class="pv-cluster">
           <div class="pv-cluster-h">
-            <span class="pv-tag"><span class="b"></span> Exact duplicate</span>
-            <span style="font-size:13.5px;color:var(--ink-2)">Same ISRC · identical fingerprint</span>
-            <span class="pv-conf"><small>conf</small> 99.4%</span>
+            <span class="pv-tag"><span class="b"></span> <span data-i18n="prev.exact">Exact duplicate</span></span>
+            <span style="font-size:13.5px;color:var(--ink-2)" data-i18n="prev.exactReason">Same ISRC · identical fingerprint</span>
+            <span class="pv-conf"><small data-i18n="prev.conf">conf</small> 99.4%</span>
           </div>
           <div class="pv-pair">
             <div class="pv-track">
               <div class="cov"></div>
               <div class="info">
                 <div class="ttl">Midnight Drive — Extended</div>
-                <div class="meta">Hiroshi Kawai · Neon Atlas · 4:32 · added 2023</div>
+                <div class="meta" data-i18n="prev.trackA.meta">Hiroshi Kawai · Neon Atlas · 4:32 · added 2023</div>
               </div>
-              <span class="keep-pill">Keep</span>
+              <span class="keep-pill" data-i18n="prev.keep">Keep</span>
             </div>
             <div class="pv-divider"></div>
             <div class="pv-track b">
               <div class="cov"></div>
               <div class="info">
                 <div class="ttl">Midnight Drive — Extended</div>
-                <div class="meta">Hiroshi Kawai · Neon Atlas (Deluxe) · 4:32 · added 2025</div>
+                <div class="meta" data-i18n="prev.trackB.meta">Hiroshi Kawai · Neon Atlas (Deluxe) · 4:32 · added 2025</div>
               </div>
             </div>
           </div>
           <div class="pv-cluster-actions">
-            <button class="pill primary">Keep first · Remove other</button>
-            <button class="pill">Split</button>
-            <button class="pill">Review later</button>
-            <span style="margin-left:auto;font-family:var(--f-mono);font-size:11px;color:var(--ink-3)">⌘K to focus</span>
+            <button class="pill primary" data-i18n="prev.keepFirst">Keep first · Remove other</button>
+            <button class="pill" data-i18n="prev.split">Split</button>
+            <button class="pill" data-i18n="prev.reviewLater">Review later</button>
+            <span style="margin-left:auto;font-family:var(--f-mono);font-size:11px;color:var(--ink-3)" data-i18n="prev.focus">⌘K to focus</span>
           </div>
         </div>
 
         <div class="pv-cluster">
           <div class="pv-cluster-h">
-            <span class="pv-tag warn"><span class="b"></span> Related version</span>
-            <span style="font-size:13.5px;color:var(--ink-2)">Same title + artist, different duration — likely remix</span>
-            <span class="pv-conf"><small>conf</small> 71.8%</span>
+            <span class="pv-tag warn"><span class="b"></span> <span data-i18n="prev.related">Related version</span></span>
+            <span style="font-size:13.5px;color:var(--ink-2)" data-i18n="prev.relatedReason">Same title + artist, different duration — likely remix</span>
+            <span class="pv-conf"><small data-i18n="prev.conf">conf</small> 71.8%</span>
           </div>
           <div class="pv-pair">
             <div class="pv-track">
               <div class="cov" style="background: linear-gradient(135deg, var(--violet), var(--cyan));"></div>
               <div class="info">
                 <div class="ttl">Slow Tide</div>
-                <div class="meta">Aria Vey · Singles · 3:42 · original</div>
+                <div class="meta" data-i18n="prev.trackC.meta">Aria Vey · Singles · 3:42 · original</div>
               </div>
-              <span class="keep-pill">Keep</span>
+              <span class="keep-pill" data-i18n="prev.keep">Keep</span>
             </div>
             <div class="pv-divider"></div>
             <div class="pv-track b">
               <div class="cov" style="background: linear-gradient(135deg, var(--amber), var(--coral));"></div>
               <div class="info">
                 <div class="ttl">Slow Tide — Foux Remix</div>
-                <div class="meta">Aria Vey, Foux · Remix EP · 5:18 · related</div>
+                <div class="meta" data-i18n="prev.trackD.meta">Aria Vey, Foux · Remix EP · 5:18 · related</div>
               </div>
             </div>
           </div>
           <div class="pv-cluster-actions">
-            <button class="pill">Mark as separate</button>
-            <button class="pill">Keep both</button>
-            <button class="pill danger">Remove remix</button>
+            <button class="pill" data-i18n="prev.markSeparate">Mark as separate</button>
+            <button class="pill" data-i18n="prev.keepBoth">Keep both</button>
+            <button class="pill danger" data-i18n="prev.removeRemix">Remove remix</button>
           </div>
         </div>
       </div>
@@ -794,7 +805,6 @@
       <span class="spotify-mark"></span> <span data-i18n="cta.connect">Connect Spotify</span>
       <svg class="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
     </a>
-    <a class="btn ghost lg" href="app.html?demo=1" data-i18n="cta.demo">Try the demo</a>
   </div>
 </section>
 
@@ -819,13 +829,22 @@
   const I18N = {
     en: {
       'nav.method': 'Method', 'nav.product': 'Product',
-      'cta.demo': 'Try the demo', 'cta.demo_full': 'Try the demo — no login', 'cta.connect': 'Connect Spotify',
+      'cta.connect': 'Connect Spotify',
       'hero.eyebrow': 'Music intelligence for Spotify',
       'hero.sub': 'A music-intelligence layer for Spotify. WashList fingerprints every track, surfaces real duplicates, separates <b>different versions</b> from <b>actual dupes</b>, and never auto-deletes a song you actually wanted',
       'meta.scanned': 'Library scanned', 'meta.dupes': 'Duplicates found', 'meta.fp': 'False positives blocked', 'meta.avg': 'Avg confidence', 'meta.tracks': 'tracks',
       'prev.eyebrow': 'Live product preview',
       'prev.title': 'Scanning feels like <em>listening</em>,<br><span class="thin">not loading</span>',
       'prev.sub': 'Every track becomes a waveform. Duplicates surface as overlapping signals. Suspicious matches pulse softly. The whole pipeline is honest — you see what was compared and why',
+      'prev.pipeline': 'Pipeline', 'prev.counters': 'Counters',
+      'prev.stage.read': 'Reading playlists', 'prev.stage.normalize': 'Normalizing metadata', 'prev.stage.fingerprint': 'Building fingerprints', 'prev.stage.compare': 'Comparing tracks', 'prev.stage.detect': 'Detecting duplicates', 'prev.stage.prepare': 'Preparing results',
+      'prev.counter.tracks': 'Tracks', 'prev.counter.dupes': 'Dupes', 'prev.counter.review': 'Review',
+      'prev.scanTitle': 'Library scan <span class="accent">/ liked songs + 14 playlists</span>', 'prev.eta': 'eta · 00:48',
+      'prev.wave.samples': 'FINGERPRINT • 4096 SAMPLES', 'prev.wave.analyzing': '● ANALYZING',
+      'prev.exact': 'Exact duplicate', 'prev.exactReason': 'Same ISRC · identical fingerprint', 'prev.related': 'Related version', 'prev.relatedReason': 'Same title + artist, different duration — likely remix', 'prev.conf': 'conf',
+      'prev.trackA.meta': 'Hiroshi Kawai · Neon Atlas · 4:32 · added 2023', 'prev.trackB.meta': 'Hiroshi Kawai · Neon Atlas (Deluxe) · 4:32 · added 2025', 'prev.trackC.meta': 'Aria Vey · Singles · 3:42 · original', 'prev.trackD.meta': 'Aria Vey, Foux · Remix EP · 5:18 · related',
+      'prev.keep': 'Keep', 'prev.keepFirst': 'Keep first · Remove other', 'prev.split': 'Split', 'prev.reviewLater': 'Review later', 'prev.focus': '⌘K to focus', 'prev.markSeparate': 'Mark as separate', 'prev.keepBoth': 'Keep both', 'prev.removeRemix': 'Remove remix',
+      'marquee.words': ['Reading playlists', 'Normalizing metadata', 'Building fingerprints', 'Comparing tracks', 'Detecting duplicates', 'Same ISRC', 'Different version', 'Conf 99%', 'Conf 71%', 'Keep first', 'Mark related', 'Never auto-delete'],
       'meth.eyebrow': 'How matching works',
       'meth.title': 'Honest matching.<br><span class="thin">No silent deletes</span>',
       'meth.sub': "Same artist isn't a duplicate. Different songs by the same artist stay separate. Different versions of one track are surfaced — but never auto-removed. You decide",
@@ -837,13 +856,22 @@
     },
     ru: {
       'nav.method': 'Метод', 'nav.product': 'Продукт',
-      'cta.demo': 'Попробовать демо', 'cta.demo_full': 'Демо — без входа', 'cta.connect': 'Подключить Spotify',
+      'cta.connect': 'Подключить Spotify',
       'hero.eyebrow': 'Музыкальный интеллект для Spotify',
       'hero.sub': 'Слой music intelligence поверх Spotify. WashList снимает отпечаток с каждого трека, находит настоящие дубли, отличает <b>разные версии</b> от <b>реальных дубликатов</b> и никогда не удаляет ничего за вас',
       'meta.scanned': 'Проверено', 'meta.dupes': 'Найдено дублей', 'meta.fp': 'Ложных срабатываний', 'meta.avg': 'Средняя точность', 'meta.tracks': 'треков',
       'prev.eyebrow': 'Живое превью продукта',
       'prev.title': 'Сканирование как <em>прослушивание</em>,<br><span class="thin">а не загрузка</span>',
       'prev.sub': 'Каждый трек становится волной. Дубликаты проявляются как наложение сигналов. Спорные совпадения мягко пульсируют. Весь pipeline честный — видно, что и почему сравнивалось',
+      'prev.pipeline': 'Пайплайн', 'prev.counters': 'Счетчики',
+      'prev.stage.read': 'Читаем плейлисты', 'prev.stage.normalize': 'Нормализуем метаданные', 'prev.stage.fingerprint': 'Строим отпечатки', 'prev.stage.compare': 'Сравниваем треки', 'prev.stage.detect': 'Ищем дубли', 'prev.stage.prepare': 'Готовим результат',
+      'prev.counter.tracks': 'Треки', 'prev.counter.dupes': 'Дубли', 'prev.counter.review': 'Проверка',
+      'prev.scanTitle': 'Скан библиотеки <span class="accent">/ любимые + 14 плейлистов</span>', 'prev.eta': 'осталось · 00:48',
+      'prev.wave.samples': 'ОТПЕЧАТОК • 4096 СЭМПЛОВ', 'prev.wave.analyzing': '● АНАЛИЗ',
+      'prev.exact': 'Точный дубль', 'prev.exactReason': 'Одинаковый ISRC · идентичный отпечаток', 'prev.related': 'Связанная версия', 'prev.relatedReason': 'То же название и исполнитель, другая длительность — похоже на ремикс', 'prev.conf': 'точн.',
+      'prev.trackA.meta': 'Hiroshi Kawai · Neon Atlas · 4:32 · добавлено 2023', 'prev.trackB.meta': 'Hiroshi Kawai · Neon Atlas (Deluxe) · 4:32 · добавлено 2025', 'prev.trackC.meta': 'Aria Vey · Singles · 3:42 · оригинал', 'prev.trackD.meta': 'Aria Vey, Foux · Remix EP · 5:18 · связанная версия',
+      'prev.keep': 'Оставить', 'prev.keepFirst': 'Оставить первый · удалить второй', 'prev.split': 'Разделить', 'prev.reviewLater': 'Проверить позже', 'prev.focus': '⌘K для фокуса', 'prev.markSeparate': 'Считать разными', 'prev.keepBoth': 'Оставить оба', 'prev.removeRemix': 'Удалить ремикс',
+      'marquee.words': ['Читаем плейлисты', 'Нормализуем метаданные', 'Строим отпечатки', 'Сравниваем треки', 'Ищем дубли', 'Одинаковый ISRC', 'Другая версия', 'Точность 99%', 'Точность 71%', 'Оставить первый', 'Связанная версия', 'Без автоудаления'],
       'meth.eyebrow': 'Как работает сравнение',
       'meth.title': 'Честное сравнение.<br><span class="thin">Ничего тихо не удаляется</span>',
       'meth.sub': 'Тот же исполнитель — не дубль. Разные песни одного исполнителя остаются раздельно. Разные версии одного трека показываются, но никогда не удаляются автоматически. Решаете вы',
@@ -855,13 +883,22 @@
     },
     de: {
       'nav.method': 'Methode', 'nav.product': 'Produkt',
-      'cta.demo': 'Demo testen', 'cta.demo_full': 'Demo — ohne Login', 'cta.connect': 'Spotify verbinden',
+      'cta.connect': 'Spotify verbinden',
       'hero.eyebrow': 'Music Intelligence für Spotify',
       'hero.sub': 'Music-Intelligence-Schicht für Spotify. WashList nimmt Fingerabdrücke aller Tracks, findet echte Duplikate, trennt <b>verschiedene Versionen</b> von <b>echten Dupes</b> und löscht nie automatisch',
       'meta.scanned': 'Bibliothek gescannt', 'meta.dupes': 'Duplikate gefunden', 'meta.fp': 'Fehler verhindert', 'meta.avg': 'Ø Confidence', 'meta.tracks': 'Tracks',
       'prev.eyebrow': 'Live-Produktvorschau',
       'prev.title': 'Scannen fühlt sich an wie <em>zuhören</em>,<br><span class="thin">nicht wie laden</span>',
       'prev.sub': 'Jeder Track wird eine Welle. Duplikate erscheinen als überlappende Signale. Verdächtige Treffer pulsieren leise. Die ganze Pipeline ist ehrlich — du siehst, was und warum verglichen wurde',
+      'prev.pipeline': 'Pipeline', 'prev.counters': 'Zähler',
+      'prev.stage.read': 'Playlists lesen', 'prev.stage.normalize': 'Metadaten normalisieren', 'prev.stage.fingerprint': 'Fingerprints bauen', 'prev.stage.compare': 'Tracks vergleichen', 'prev.stage.detect': 'Duplikate erkennen', 'prev.stage.prepare': 'Ergebnisse vorbereiten',
+      'prev.counter.tracks': 'Tracks', 'prev.counter.dupes': 'Dupes', 'prev.counter.review': 'Review',
+      'prev.scanTitle': 'Bibliotheksscan <span class="accent">/ Lieblingssongs + 14 Playlists</span>', 'prev.eta': 'eta · 00:48',
+      'prev.wave.samples': 'FINGERPRINT • 4096 SAMPLES', 'prev.wave.analyzing': '● ANALYSE',
+      'prev.exact': 'Exaktes Duplikat', 'prev.exactReason': 'Gleiche ISRC · identischer Fingerprint', 'prev.related': 'Verwandte Version', 'prev.relatedReason': 'Gleicher Titel + Künstler, andere Dauer — wahrscheinlich Remix', 'prev.conf': 'conf',
+      'prev.trackA.meta': 'Hiroshi Kawai · Neon Atlas · 4:32 · hinzugefügt 2023', 'prev.trackB.meta': 'Hiroshi Kawai · Neon Atlas (Deluxe) · 4:32 · hinzugefügt 2025', 'prev.trackC.meta': 'Aria Vey · Singles · 3:42 · Original', 'prev.trackD.meta': 'Aria Vey, Foux · Remix EP · 5:18 · verwandt',
+      'prev.keep': 'Behalten', 'prev.keepFirst': 'Erstes behalten · anderes entfernen', 'prev.split': 'Trennen', 'prev.reviewLater': 'Später prüfen', 'prev.focus': '⌘K zum Fokus', 'prev.markSeparate': 'Als getrennt markieren', 'prev.keepBoth': 'Beide behalten', 'prev.removeRemix': 'Remix entfernen',
+      'marquee.words': ['Playlists lesen', 'Metadaten normalisieren', 'Fingerprints bauen', 'Tracks vergleichen', 'Duplikate erkennen', 'Gleiche ISRC', 'Andere Version', 'Conf 99%', 'Conf 71%', 'Erstes behalten', 'Verwandt markieren', 'Nie automatisch löschen'],
       'meth.eyebrow': 'Wie das Matching funktioniert',
       'meth.title': 'Ehrliches Matching.<br><span class="thin">Keine stillen Löschungen</span>',
       'meth.sub': 'Gleicher Künstler ist kein Duplikat. Verschiedene Songs des gleichen Künstlers bleiben getrennt. Versionen werden angezeigt — aber nie automatisch entfernt. Du entscheidest',
@@ -873,13 +910,22 @@
     },
     es: {
       'nav.method': 'Método', 'nav.product': 'Producto',
-      'cta.demo': 'Probar demo', 'cta.demo_full': 'Demo — sin login', 'cta.connect': 'Conectar Spotify',
+      'cta.connect': 'Conectar Spotify',
       'hero.eyebrow': 'Music intelligence para Spotify',
       'hero.sub': 'Capa de music-intelligence sobre Spotify. WashList toma la huella de cada pista, encuentra duplicados reales, separa <b>versiones distintas</b> de <b>duplicados auténticos</b> y nunca elimina automáticamente',
       'meta.scanned': 'Biblioteca escaneada', 'meta.dupes': 'Duplicados encontrados', 'meta.fp': 'Falsos positivos evitados', 'meta.avg': 'Confianza media', 'meta.tracks': 'pistas',
       'prev.eyebrow': 'Vista previa en vivo',
       'prev.title': 'Escanear se siente como <em>escuchar</em>,<br><span class="thin">no como cargar</span>',
       'prev.sub': 'Cada pista se vuelve una onda. Los duplicados emergen como señales superpuestas. Las coincidencias dudosas pulsan suavemente. Todo el pipeline es honesto — ves qué se comparó y por qué',
+      'prev.pipeline': 'Pipeline', 'prev.counters': 'Contadores',
+      'prev.stage.read': 'Leyendo playlists', 'prev.stage.normalize': 'Normalizando metadatos', 'prev.stage.fingerprint': 'Creando huellas', 'prev.stage.compare': 'Comparando pistas', 'prev.stage.detect': 'Detectando duplicados', 'prev.stage.prepare': 'Preparando resultados',
+      'prev.counter.tracks': 'Pistas', 'prev.counter.dupes': 'Duplicados', 'prev.counter.review': 'Revisión',
+      'prev.scanTitle': 'Escaneo de biblioteca <span class="accent">/ favoritos + 14 playlists</span>', 'prev.eta': 'eta · 00:48',
+      'prev.wave.samples': 'HUELLA • 4096 MUESTRAS', 'prev.wave.analyzing': '● ANALIZANDO',
+      'prev.exact': 'Duplicado exacto', 'prev.exactReason': 'Mismo ISRC · huella idéntica', 'prev.related': 'Versión relacionada', 'prev.relatedReason': 'Mismo título + artista, distinta duración — posible remix', 'prev.conf': 'conf',
+      'prev.trackA.meta': 'Hiroshi Kawai · Neon Atlas · 4:32 · añadido 2023', 'prev.trackB.meta': 'Hiroshi Kawai · Neon Atlas (Deluxe) · 4:32 · añadido 2025', 'prev.trackC.meta': 'Aria Vey · Singles · 3:42 · original', 'prev.trackD.meta': 'Aria Vey, Foux · Remix EP · 5:18 · relacionada',
+      'prev.keep': 'Mantener', 'prev.keepFirst': 'Mantener primera · quitar otra', 'prev.split': 'Separar', 'prev.reviewLater': 'Revisar luego', 'prev.focus': '⌘K para enfocar', 'prev.markSeparate': 'Marcar separadas', 'prev.keepBoth': 'Mantener ambas', 'prev.removeRemix': 'Quitar remix',
+      'marquee.words': ['Leyendo playlists', 'Normalizando metadatos', 'Creando huellas', 'Comparando pistas', 'Detectando duplicados', 'Mismo ISRC', 'Versión distinta', 'Conf 99%', 'Conf 71%', 'Mantener primera', 'Marcar relacionada', 'Nunca auto-borrar'],
       'meth.eyebrow': 'Cómo funciona el matching',
       'meth.title': 'Matching honesto.<br><span class="thin">Sin borrados silenciosos</span>',
       'meth.sub': 'Mismo artista no es duplicado. Canciones distintas del mismo artista se quedan separadas. Las versiones se muestran — pero nunca se eliminan automáticamente. Tú decides',
@@ -891,13 +937,22 @@
     },
     fr: {
       'nav.method': 'Méthode', 'nav.product': 'Produit',
-      'cta.demo': 'Essayer la démo', 'cta.demo_full': 'Démo — sans login', 'cta.connect': 'Connecter Spotify',
+      'cta.connect': 'Connecter Spotify',
       'hero.eyebrow': 'Music intelligence pour Spotify',
       'hero.sub': "Une couche music-intelligence pour Spotify. WashList empreinte chaque piste, fait remonter les vrais doublons, distingue les <b>versions différentes</b> des <b>doublons réels</b>, et ne supprime jamais automatiquement",
       'meta.scanned': 'Bibliothèque scannée', 'meta.dupes': 'Doublons trouvés', 'meta.fp': 'Faux positifs bloqués', 'meta.avg': 'Confiance moy', 'meta.tracks': 'pistes',
       'prev.eyebrow': 'Aperçu en direct',
       'prev.title': 'Scanner, c\'est <em>écouter</em>,<br><span class="thin">pas charger</span>',
       'prev.sub': "Chaque piste devient une onde. Les doublons apparaissent comme des signaux superposés. Les correspondances douteuses pulsent doucement. Tout le pipeline est honnête — tu vois ce qui a été comparé et pourquoi",
+      'prev.pipeline': 'Pipeline', 'prev.counters': 'Compteurs',
+      'prev.stage.read': 'Lecture des playlists', 'prev.stage.normalize': 'Normalisation des métadonnées', 'prev.stage.fingerprint': 'Création des empreintes', 'prev.stage.compare': 'Comparaison des pistes', 'prev.stage.detect': 'Détection des doublons', 'prev.stage.prepare': 'Préparation des résultats',
+      'prev.counter.tracks': 'Pistes', 'prev.counter.dupes': 'Doublons', 'prev.counter.review': 'À vérifier',
+      'prev.scanTitle': 'Scan de bibliothèque <span class="accent">/ favoris + 14 playlists</span>', 'prev.eta': 'eta · 00:48',
+      'prev.wave.samples': 'EMPREINTE • 4096 ÉCHANTILLONS', 'prev.wave.analyzing': '● ANALYSE',
+      'prev.exact': 'Doublon exact', 'prev.exactReason': 'Même ISRC · empreinte identique', 'prev.related': 'Version liée', 'prev.relatedReason': 'Même titre + artiste, durée différente — remix probable', 'prev.conf': 'conf',
+      'prev.trackA.meta': 'Hiroshi Kawai · Neon Atlas · 4:32 · ajouté en 2023', 'prev.trackB.meta': 'Hiroshi Kawai · Neon Atlas (Deluxe) · 4:32 · ajouté en 2025', 'prev.trackC.meta': 'Aria Vey · Singles · 3:42 · original', 'prev.trackD.meta': 'Aria Vey, Foux · Remix EP · 5:18 · liée',
+      'prev.keep': 'Garder', 'prev.keepFirst': 'Garder la première · retirer l’autre', 'prev.split': 'Séparer', 'prev.reviewLater': 'Vérifier plus tard', 'prev.focus': '⌘K pour focus', 'prev.markSeparate': 'Marquer séparées', 'prev.keepBoth': 'Garder les deux', 'prev.removeRemix': 'Retirer le remix',
+      'marquee.words': ['Lecture des playlists', 'Normalisation des métadonnées', 'Création des empreintes', 'Comparaison des pistes', 'Détection des doublons', 'Même ISRC', 'Version différente', 'Conf 99%', 'Conf 71%', 'Garder la première', 'Marquer liée', 'Jamais auto-supprimer'],
       'meth.eyebrow': 'Comment fonctionne le matching',
       'meth.title': 'Matching honnête.<br><span class="thin">Aucune suppression silencieuse</span>',
       'meth.sub': "Même artiste n'est pas un doublon. Différentes chansons du même artiste restent séparées. Les versions sont affichées — mais jamais supprimées automatiquement",
@@ -935,6 +990,7 @@
       trig.querySelector('.flag').textContent = cur.flag;
       trig.querySelector('.code').textContent = cur.short;
     }
+    renderMarquee(dict);
     try { localStorage.setItem('washlist:lang', lang); } catch (e) {}
   }
 
@@ -997,6 +1053,40 @@
     });
   })();
 
+  // Anchor navigation
+  (function () {
+    const links = [...document.querySelectorAll('.nav-link[href^="#"]')];
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const setActive = (hash) => {
+      links.forEach((link) => link.classList.toggle('active', link.getAttribute('href') === hash));
+    };
+
+    links.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        const hash = link.getAttribute('href');
+        const target = document.querySelector(hash);
+        if (!target) return;
+        event.preventDefault();
+        target.scrollIntoView({ behavior: reduce.matches ? 'auto' : 'smooth', block: 'start' });
+        history.replaceState(null, '', hash);
+        setActive(hash);
+      });
+    });
+
+    const observed = links
+      .map((link) => document.querySelector(link.getAttribute('href')))
+      .filter(Boolean);
+    const navIo = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible) setActive(`#${visible.target.id}`);
+    }, { threshold: [0.2, 0.4, 0.6], rootMargin: '-18% 0px -58% 0px' });
+    observed.forEach((section) => navIo.observe(section));
+    if (location.hash && document.querySelector(location.hash)) setActive(location.hash);
+    else setActive('#preview');
+  })();
+
   // Init background waveform
   const bg = WashListWaveform.init(document.getElementById('bg-canvas'), {
     density: 28,
@@ -1034,14 +1124,14 @@
   }, 2200);
 
   // Marquee text
-  const marqueeWords = [
-    'Reading playlists', 'Normalizing metadata', 'Building fingerprints',
-    'Comparing tracks', 'Detecting duplicates', 'Same ISRC', 'Different version',
-    'Conf 99%', 'Conf 71%', 'Keep first', 'Mark related', 'Never auto-delete'
-  ];
-  const mq = document.getElementById('marquee');
-  const html = marqueeWords.map((w,i) => `<span class="marquee-item">${i%3===0?`<em>${w}</em>`:w}<span class="dot"></span></span>`).join('');
-  mq.innerHTML = html + html;
+  function renderMarquee(dict = I18N[currentLang] || I18N.en) {
+    const mq = document.getElementById('marquee');
+    if (!mq) return;
+    const words = Array.isArray(dict['marquee.words']) ? dict['marquee.words'] : I18N.en['marquee.words'];
+    const html = words.map((w,i) => `<span class="marquee-item">${i%3===0?`<em>${w}</em>`:w}<span class="dot"></span></span>`).join('');
+    mq.innerHTML = html + html;
+  }
+  renderMarquee();
 
   // Reveal on scroll
   const io = new IntersectionObserver((entries) => {
