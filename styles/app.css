@@ -428,6 +428,28 @@ body::before {
   background: var(--bg-1); border: 1px solid var(--line);
 }
 .track-row .tk { font-family: var(--f-mono); font-size: 10px; color: var(--ink-3); width: 24px; }
+.track-art {
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--accent-ink);
+  background: linear-gradient(135deg, var(--mint), var(--cyan));
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), .22), 0 8px 18px -12px rgba(var(--accent-rgb), .64);
+}
+.track-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.track-art.fallback {
+  font-weight: 800;
+  font-size: 14px;
+}
 .track-row .name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .track-row .name b { color: var(--ink); font-weight: 600; }
 .track-row .dur { font-family: var(--f-mono); font-size: 10.5px; color: var(--ink-3); }

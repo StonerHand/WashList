@@ -153,7 +153,10 @@
       'set.playlistWorkersSub': 'Higher values are faster but can hit API rate limits.',
       'set.pageWorkers': 'Parallel page fetches',
       'set.pageWorkersSub': 'Used inside a single large playlist.',
+      'auth.title': 'Spotify is not connected',
       'auth.required': 'Connect Spotify to load your real playlists.',
+      'auth.sub': 'Connect your Spotify account to load playlists, album covers, comparison data and cleanup actions.',
+      'auth.secure': 'Uses Spotify PKCE. The access token stays in this browser session.',
       'auth.connect': 'Connect Spotify',
       'toast.done': 'Scanning complete.',
       'toast.removed': 'Removed {count} from {playlist}.',
@@ -299,7 +302,10 @@
       'set.playlistWorkersSub': 'Больше быстрее, но можно упереться в rate limit.',
       'set.pageWorkers': 'Параллельные страницы',
       'set.pageWorkersSub': 'Используется внутри большого плейлиста.',
+      'auth.title': 'Spotify не подключен',
       'auth.required': 'Подключи Spotify, чтобы загрузить реальные плейлисты.',
+      'auth.sub': 'Подключи Spotify, чтобы загрузить плейлисты, обложки альбомов, сравнение и действия с дублями.',
+      'auth.secure': 'Используем Spotify PKCE. Токен доступа хранится только в этой сессии браузера.',
       'auth.connect': 'Подключить Spotify',
       'toast.done': 'Сканирование завершено.',
       'toast.removed': 'Удалено {count} из {playlist}.',
@@ -423,6 +429,7 @@
     updateLangTrigger();
     updateCrumb();
     renderAll();
+    updateAuthButton();
   }
 
   function initTheme() {
@@ -573,6 +580,7 @@
   }
 
   async function initApp() {
+    showSignedIn();
     document.getElementById('authMode').textContent = 'live';
     setLoading(true);
     try {
@@ -620,13 +628,42 @@
     state.accessToken = null;
     state.playlists = [];
     state.playlistData = {};
+    document.body.classList.add('signed-out');
     setText('authMode', 'offline');
     setText('uAv', 'W');
     setText('uName', 'WashList');
     setText('uPlan', 'spotify');
+    updateAuthButton();
     setScanHeader(t('scan.ready'), 0);
     setLoading(false);
     renderAll();
+  }
+
+  function showSignedIn() {
+    document.body.classList.remove('signed-out');
+    updateAuthButton();
+  }
+
+  function updateAuthButton() {
+    setText('logoutBtn', state.accessToken ? t('top.logout') : t('auth.connect'));
+  }
+
+  function goToConnect() {
+    location.href = 'index.html?connect=1';
+  }
+
+  function authRequiredMarkup() {
+    return `
+      <div class="auth-gate">
+        <div class="auth-gate-mark" aria-hidden="true">♪</div>
+        <div class="auth-gate-copy">
+          <h3>${t('auth.title')}</h3>
+          <p>${t('auth.sub')}</p>
+          <small>${t('auth.secure')}</small>
+        </div>
+        <a class="btn-app primary" href="index.html?connect=1">${t('auth.connect')}</a>
+      </div>
+    `;
   }
 
   function setLoading(value) {
@@ -753,11 +790,7 @@
     if (!root) return;
     if (!state.accessToken && !state.playlists.length) {
       root.innerHTML = `
-        <div class="empty">
-          <h3>${t('state.empty')}</h3>
-          <p>${t('auth.required')}</p>
-          <p style="margin-top:16px"><a class="btn-app primary" href="index.html">${t('auth.connect')}</a></p>
-        </div>
+        ${authRequiredMarkup()}
       `;
       return;
     }
@@ -1015,6 +1048,10 @@
     };
   }
 
+  function albumArt(track) {
+    return track?.album?.images?.[2]?.url || track?.album?.images?.[1]?.url || track?.album?.images?.[0]?.url || '';
+  }
+
   function fmtInst(entity) {
     return {
       pos: entity.pos,
@@ -1121,9 +1158,13 @@
         if (!sameArtists || !exactTitle || !similarNames) return;
 
         const compatible = versionCompatible(distinct);
+        const hasVersionSignal = distinct.some((entry) => entry.tags.length > 0);
+        const durationClose = closeDuration(distinct, state.scanMode === 'fuzzy' ? 6000 : 3500);
+        if (!durationClose && !hasVersionSignal) return;
+        if (hasVersionSignal && !closeDuration(distinct, 45000)) return;
         distinct.forEach((entry) => used.add(entry.pos));
         reviewCount += distinct.length;
-        if (compatible && closeDuration(distinct, state.scanMode === 'fuzzy' ? 6000 : 3500)) {
+        if (compatible && durationClose) {
           groups.push(makeGroup('probable', 'dup.reason.metadata', distinct, state.scanMode === 'fuzzy' ? 82 : 88, false));
         } else {
           groups.push(makeGroup(compatible ? 'review' : 'version', compatible ? 'dup.reason.weak' : 'dup.reason.version', distinct, compatible ? 68 : 74, false));
@@ -1170,6 +1211,10 @@
   function renderAllDuplicates() {
     const root = document.getElementById('dupList');
     if (!root) return;
+    if (!state.accessToken && !state.playlists.length) {
+      root.innerHTML = authRequiredMarkup();
+      return;
+    }
     const groups = collectDuplicateGroups().filter((entry) => state.dupFilter === 'all' || entry.group.type === state.dupFilter);
     if (!groups.length) {
       root.innerHTML = `<div class="empty"><h3>${t('state.empty')}</h3><p>${t('dup.sub')}</p></div>`;
@@ -1348,12 +1393,21 @@
       const select = document.getElementById(id);
       if (!select) return;
       const previous = select.value;
-      select.innerHTML = state.playlists.map((playlist) => `<option value="${attr(playlist.id)}">${esc(playlist.name)}</option>`).join('');
+      select.disabled = !state.playlists.length;
+      select.innerHTML = state.playlists.length
+        ? state.playlists.map((playlist) => `<option value="${attr(playlist.id)}">${esc(playlist.name)}</option>`).join('')
+        : `<option value="">${esc(t('auth.required'))}</option>`;
       if (previous && state.playlists.some((playlist) => playlist.id === previous)) select.value = previous;
     });
+    if (!state.accessToken && !state.playlists.length) renderCompareGate();
   }
 
   function runCompare() {
+    if (!state.accessToken) {
+      renderCompareGate();
+      toast(t('auth.required'), 'inf');
+      return;
+    }
     const leftId = document.getElementById('cmpL')?.value;
     const rightId = document.getElementById('cmpR')?.value;
     if (!leftId || !rightId || leftId === rightId) return;
@@ -1376,20 +1430,42 @@
     renderTrackRows(rightMap, sharedSet, document.getElementById('cmpRL'));
   }
 
+  function renderCompareGate() {
+    setText('cmpN', '0');
+    setText('cmpLF', 'A');
+    setText('cmpRF', 'B');
+    const markup = authRequiredMarkup();
+    const left = document.getElementById('cmpLL');
+    const right = document.getElementById('cmpRL');
+    if (left) left.innerHTML = markup;
+    if (right) right.innerHTML = `<div class="empty"><h3>${t('state.empty')}</h3><p>${t('auth.required')}</p></div>`;
+  }
+
   function renderTrackRows(map, sharedSet, root) {
     if (!root) return;
-    root.innerHTML = [...map.entries()].slice(0, 120).map(([uri, track], index) => `
+    root.innerHTML = [...map.entries()].slice(0, 120).map(([uri, track], index) => {
+      const art = albumArt(track);
+      const cover = art
+        ? `<span class="track-art"><img src="${attr(art)}" alt=""></span>`
+        : '<span class="track-art fallback">♪</span>';
+      return `
       <div class="track-row ${sharedSet.has(uri) ? 'match' : ''}">
         <span class="tk">${String(index + 1).padStart(2, '0')}</span>
+        ${cover}
         <span class="name"><b>${esc(track.name)}</b><small>${esc(track.artists?.map((artist) => artist.name).join(', ') || '')}</small></span>
         <span class="dur">${fmtMs(track.duration_ms)}</span>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   function renderOverlap() {
     const root = document.getElementById('ovGrid');
     if (!root) return;
+    if (!state.accessToken && !state.playlists.length) {
+      root.innerHTML = authRequiredMarkup();
+      return;
+    }
     const min = parseInt(document.getElementById('ovMin')?.value || '3', 10);
     const scanned = state.playlists.filter((playlist) => state.playlistData[playlist.id]?.tracks?.length);
     if (!scanned.length) {
@@ -1423,6 +1499,10 @@
     const status = document.getElementById('gphSt');
     if (!svg) return;
     svg.innerHTML = '';
+    if (!state.accessToken && !state.playlists.length) {
+      if (status) status.textContent = t('auth.required');
+      return;
+    }
     const scanned = state.playlists.filter((playlist) => state.playlistData[playlist.id]?.tracks?.length);
     if (scanned.length < 2) {
       if (status) status.textContent = t('gph.nodata');
@@ -1478,6 +1558,10 @@
   function renderHistory() {
     const root = document.getElementById('histRows');
     if (!root) return;
+    if (!state.accessToken && !state.playlists.length) {
+      root.innerHTML = authRequiredMarkup();
+      return;
+    }
     const history = getHistory();
     if (!history.length) {
       root.innerHTML = `<div class="empty"><h3>${t('state.empty')}</h3><p>${t('hist.empty')}</p></div>`;
@@ -1613,6 +1697,10 @@
       renderHistory();
     });
     document.getElementById('logoutBtn')?.addEventListener('click', () => {
+      if (!state.accessToken) {
+        goToConnect();
+        return;
+      }
       removeAuthItem(TOKEN_KEY);
       removeAuthItem(EXPIRES_KEY);
       state.accessToken = null;
@@ -1741,7 +1829,7 @@
 
     const params = new URLSearchParams(location.search);
     if (params.get('connect') === '1') {
-      location.replace('index.html');
+      location.replace('index.html?connect=1');
       return;
     }
     if (chkToken()) {

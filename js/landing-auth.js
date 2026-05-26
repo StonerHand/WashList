@@ -156,14 +156,14 @@
     const params = new URLSearchParams(location.search);
     const code = params.get('code');
     const error = params.get('error');
-    if (!code && !error) return;
+    if (!code && !error) return false;
 
     if (error) {
       history.replaceState({}, '', REDIRECT_URI);
       removeAuthItem(VERIFIER_KEY);
       removeAuthItem(STATE_KEY);
       status('Spotify connection was cancelled.', 'warn');
-      return;
+      return true;
     }
 
     const expectedState = readAuthItem(STATE_KEY);
@@ -172,14 +172,14 @@
       removeAuthItem(VERIFIER_KEY);
       removeAuthItem(STATE_KEY);
       status('Spotify returned an invalid state. Try connecting again.', 'error');
-      return;
+      return true;
     }
 
     const verifier = readAuthItem(VERIFIER_KEY);
     if (!verifier) {
       history.replaceState({}, '', REDIRECT_URI);
       status('Auth session expired. Try connecting again.', 'error');
-      return;
+      return true;
     }
 
     status('Connecting Spotify...');
@@ -204,16 +204,22 @@
       removeAuthItem(STATE_KEY);
       rememberTransition();
       location.replace('app.html');
-    } catch (error) {
-      console.warn('Spotify auth failed', error?.message || error);
+    } catch {
       history.replaceState({}, '', REDIRECT_URI);
       status('Could not connect Spotify. Please try again.', 'error');
     }
+    return true;
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     ensureTransitionLayer();
-    handleCallback();
+    const params = new URLSearchParams(location.search);
+    handleCallback().then((handled) => {
+      if (!handled && params.get('connect') === '1') {
+        history.replaceState({}, '', REDIRECT_URI);
+        startAuth();
+      }
+    });
     document.querySelectorAll('a[href^="app.html"]').forEach((link) => {
       if (link.hasAttribute('data-auth-connect')) return;
       link.addEventListener('click', (event) => {

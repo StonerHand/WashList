@@ -87,6 +87,13 @@ button {
   box-shadow: 0 12px 28px -12px rgba(var(--accent-rgb), .66);
 }
 
+body.signed-out #logoutBtn {
+  color: var(--accent-ink);
+  border-color: var(--mint);
+  background: linear-gradient(135deg, var(--mint), var(--mint-2));
+  box-shadow: 0 10px 26px -12px rgba(var(--accent-rgb), .62);
+}
+
 .btn-app:disabled,
 .chip:disabled,
 .toggle:disabled {
@@ -238,6 +245,56 @@ button {
 .playlist-list {
   display: grid;
   gap: 10px;
+}
+
+.auth-gate {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 124px;
+  padding: 18px;
+  border: 1px solid var(--mint-brd);
+  border-radius: var(--r-lg);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(var(--accent-rgb), .18), transparent 42%),
+    linear-gradient(180deg, var(--surface-raised), var(--surface));
+  box-shadow: 0 18px 50px -38px rgba(var(--accent-rgb), .72);
+}
+
+.auth-gate-mark {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: var(--accent-ink);
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--mint), var(--mint-2));
+  box-shadow: var(--mint-glow);
+}
+
+.auth-gate-copy h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.auth-gate-copy p {
+  max-width: 720px;
+  margin: 6px 0 0;
+  color: var(--ink-2);
+}
+
+.auth-gate-copy small {
+  display: block;
+  margin-top: 8px;
+  color: var(--ink-3);
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: .04em;
 }
 
 .playlist-row {
@@ -805,6 +862,15 @@ body.app-entering .view {
   .cluster-track.live {
     align-items: flex-start;
     flex-wrap: wrap;
+  }
+
+  .auth-gate {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .auth-gate .btn-app {
+    justify-content: center;
   }
 
   .cluster-track .track-actions {
